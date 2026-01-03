@@ -16,7 +16,7 @@
     "baseUrl": ".",
     "paths": {
       "@shared/types": ["shared/types/src/index.ts"],
-      "@shared/util": ["shared/util/src/index.ts"]
+      "@shared/util": ["shared/util/src/index.ts"],
     }
   },
   "exclude": ["node_modules", "tmp"]
