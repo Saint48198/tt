@@ -17,6 +17,8 @@
     "paths": {
       "@shared/types": ["shared/types/src/index.ts"],
       "@shared/util": ["shared/util/src/index.ts"],
+      "@shared/services": ["shared/services/src/index.ts"],
+      "@shared/components": ["shared/components/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
