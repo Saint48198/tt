@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../db';
-import { verifyToken } from '../utils/jwt'; // adjust path if needed
+import { verifyToken } from '../utils/jwt';
 
 const router = Router();
 
