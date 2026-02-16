@@ -17,7 +17,7 @@ router.post('/api/geocode', async (req: Request, res: Response) => {
             q: `${latitude},${longitude}`,
             key: process.env.OPENCAGE_API_KEY,
           },
-        }
+        },
       );
 
       const { results } = response.data;
@@ -55,7 +55,8 @@ router.post('/api/geocode', async (req: Request, res: Response) => {
       .json({ error: 'At least one of city, country, or place is required.' });
   }
 
-  const query = place || `${city || ''}, ${state || ''}, ${country || ''}`.trim();
+  const query =
+    place || `${city || ''}, ${state || ''}, ${country || ''}`.trim();
 
   try {
     const response = await axios.get(
@@ -65,7 +66,7 @@ router.post('/api/geocode', async (req: Request, res: Response) => {
           q: query,
           key: process.env.OPENCAGE_API_KEY,
         },
-      }
+      },
     );
 
     const { results } = response.data;
