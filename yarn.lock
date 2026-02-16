@@ -267,6 +267,14 @@
   optionalDependencies:
     lmdb "3.4.3"
 
+"@angular/cdk@~21.0.0", "@angular/cdk@21.0.6":
+  version "21.0.6"
+  resolved "https://registry.npmjs.org/@angular/cdk/-/cdk-21.0.6.tgz"
+  integrity sha512-5Gw8mXtKXvcvDMWEciPLRYB6Ja5vsikLAidZsdCEIF6Bc51GmoqT5Tk/Ke+ciCd5Hq9Aco/IcHxT1RC3470lZg==
+  dependencies:
+    parse5 "^8.0.0"
+    tslib "^2.3.0"
+
 "@angular/cli@>= 21.0.0 < 22.0.0", "@angular/cli@~21.0.0":
   version "21.0.4"
   resolved "https://registry.npmjs.org/@angular/cli/-/cli-21.0.4.tgz"
@@ -292,7 +300,7 @@
     yargs "18.0.0"
     zod "4.1.13"
 
-"@angular/common@~21.0.0", "@angular/common@21.0.6":
+"@angular/common@^21.0.0 || ^22.0.0", "@angular/common@~21.0.0", "@angular/common@21.0.6":
   version "21.0.6"
   resolved "https://registry.npmjs.org/@angular/common/-/common-21.0.6.tgz"
   integrity sha512-Yd8PF0dR37FAzqEcBHAyVCiSGMJOezSJe6rV/4BC6AVLfaZ7oZLl8CNVxKsod2UHd6rKxt1hzx05QdVcVvYNeA==
@@ -320,14 +328,14 @@
   dependencies:
     tslib "^2.3.0"
 
-"@angular/core@^21.0.0", "@angular/core@>=19.0.0 <22.0.0", "@angular/core@~21.0.0", "@angular/core@21.0.6":
+"@angular/core@^21.0.0", "@angular/core@^21.0.0 || ^22.0.0", "@angular/core@>=19.0.0 <22.0.0", "@angular/core@~21.0.0", "@angular/core@21.0.6":
   version "21.0.6"
   resolved "https://registry.npmjs.org/@angular/core/-/core-21.0.6.tgz"
   integrity sha512-SvWbOkkrsqprYJSBmzQEWkWjfZB/jkRYyFp2ClMJBPqOLxP1a+i3Om2rolcNQjZPz87bs9FszwgRlXUy7sw5cQ==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/forms@~21.0.0":
+"@angular/forms@^21.0.0 || ^22.0.0", "@angular/forms@~21.0.0":
   version "21.0.6"
   resolved "https://registry.npmjs.org/@angular/forms/-/forms-21.0.6.tgz"
   integrity sha512-aAkAAKuUrP8U7R4aH/HbmG/CXP90GlML77ECBI5b4qCSb+bvaTEYsaf85mCyTpr9jvGkia2LTe42hPcOuyzdsQ==
@@ -340,6 +348,13 @@
   resolved "https://registry.npmjs.org/@angular/language-service/-/language-service-21.0.6.tgz"
   integrity sha512-hxquRSxUW2FBeXHChCq5lOwo5jjJoOs7OdZmtBJtcNE93+6HUANRXLhcqG8kKkvwvGg7QUQf7+R9h3TCJYiz1A==
 
+"@angular/material@~21.0.0":
+  version "21.0.6"
+  resolved "https://registry.npmjs.org/@angular/material/-/material-21.0.6.tgz"
+  integrity sha512-BSbqFkVIjpXS+UGD7R1jDnuKArMCtLSKHL/1f/9mvHM4AntRFC88MQJMjS0k+pHCofN+MBMEpzBVrDOOqL+46A==
+  dependencies:
+    tslib "^2.3.0"
+
 "@angular/platform-browser-dynamic@>=19.0.0 <22.0.0", "@angular/platform-browser-dynamic@~21.0.0":
   version "21.0.6"
   resolved "https://registry.npmjs.org/@angular/platform-browser-dynamic/-/platform-browser-dynamic-21.0.6.tgz"
@@ -347,7 +362,7 @@
   dependencies:
     tslib "^2.3.0"
 
-"@angular/platform-browser@^21.0.0", "@angular/platform-browser@>=19.0.0 <22.0.0", "@angular/platform-browser@~21.0.0", "@angular/platform-browser@21.0.6":
+"@angular/platform-browser@^21.0.0", "@angular/platform-browser@^21.0.0 || ^22.0.0", "@angular/platform-browser@>=19.0.0 <22.0.0", "@angular/platform-browser@~21.0.0", "@angular/platform-browser@21.0.6":
   version "21.0.6"
   resolved "https://registry.npmjs.org/@angular/platform-browser/-/platform-browser-21.0.6.tgz"
   integrity sha512-tPk8rlUEBPXIUPRYq6Xu7QhJgKtnVr0dOHHuhyi70biKTupr5VikpZC5X9dy2Q3H3zYbK6MHC6384YMuwfU2kg==

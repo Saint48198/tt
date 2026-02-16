@@ -1,0 +1,101 @@
+<div class="attractions-list-page">
+  <div class="page-header">
+    <h1>Attractions</h1>
+    <button mat-raised-button color="primary" routerLink="/attractions/new">
+      <mat-icon>add</mat-icon>
+      Add Attraction
+    </button>
+  </div>
+
+  <div class="table-container mat-elevation-z2">
+    @if (loading()) {
+      <div class="loading-overlay">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
+
+    <table mat-table [dataSource]="dataSource" matSort (matSortChange)="onSortChange($event)">
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+        <td mat-cell *matCellDef="let attraction">{{ attraction.name }}</td>
+      </ng-container>
+
+      <!-- Country Column -->
+      <ng-container matColumnDef="country_name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Country</th>
+        <td mat-cell *matCellDef="let attraction">{{ attraction.country_name || '-' }}</td>
+      </ng-container>
+
+      <!-- Tags Column -->
+      <ng-container matColumnDef="tags">
+        <th mat-header-cell *matHeaderCellDef>Type</th>
+        <td mat-cell *matCellDef="let attraction">
+          <div class="tags">
+            @if (attraction.is_unesco) {
+              <mat-chip class="unesco-chip">UNESCO</mat-chip>
+            }
+            @if (attraction.is_national_park) {
+              <mat-chip class="park-chip">National Park</mat-chip>
+            }
+            @if (!attraction.is_unesco && !attraction.is_national_park) {
+              <span class="no-tags">-</span>
+            }
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Latitude Column -->
+      <ng-container matColumnDef="lat">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Latitude</th>
+        <td mat-cell *matCellDef="let attraction">{{ attraction.lat | number:'1.4-4' }}</td>
+      </ng-container>
+
+      <!-- Longitude Column -->
+      <ng-container matColumnDef="lng">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Longitude</th>
+        <td mat-cell *matCellDef="let attraction">{{ attraction.lng | number:'1.4-4' }}</td>
+      </ng-container>
+
+      <!-- Last Visited Column -->
+      <ng-container matColumnDef="last_visited">
+        <th mat-header-cell *matHeaderCellDef>Last Visited</th>
+        <td mat-cell *matCellDef="let attraction">{{ attraction.last_visited || 'Never' }}</td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let attraction">
+          <button mat-icon-button [routerLink]="['/attractions', attraction.id]" matTooltip="Edit">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="deleteAttraction(attraction)" matTooltip="Delete">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      <!-- No Data Row -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell empty-state" [attr.colspan]="displayedColumns.length">
+          @if (!loading()) {
+            No attractions found.
+          }
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator
+      [length]="total()"
+      [pageSize]="25"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
+  </div>
+</div>
+

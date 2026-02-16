@@ -7,7 +7,7 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a href="#" class="nav-item active">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">
         <span class="nav-icon">📊</span>
         <span>Dashboard</span>
       </a>
@@ -15,13 +15,25 @@
         <span class="nav-icon">👥</span>
         <span>Users</span>
       </a>
+      <a routerLink="/countries" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🌍</span>
+        <span>Countries</span>
+      </a>
+      <a routerLink="/states" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🏛️</span>
+        <span>States</span>
+      </a>
+      <a routerLink="/cities" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🏙️</span>
+        <span>Cities</span>
+      </a>
+      <a routerLink="/attractions" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">🏰</span>
+        <span>Attractions</span>
+      </a>
       <a href="#" class="nav-item">
         <span class="nav-icon">🗺️</span>
         <span>Trips</span>
-      </a>
-      <a href="#" class="nav-item">
-        <span class="nav-icon">📍</span>
-        <span>Locations</span>
       </a>
       <a href="#" class="nav-item">
         <span class="nav-icon">📸</span>
