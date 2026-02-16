@@ -1,2 +1,2 @@
-export * from './lib/services/services';
 export * from './lib/login/login.service'
+export * from './lib/auth/auth.guard'

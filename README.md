@@ -1,96 +1,186 @@
-# Tt
+# Trip Tracker
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A full-stack trip tracking application built with Angular and Node.js using an Nx monorepo.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## Project Structure
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-
-## Run tasks
-
-To run tasks with Nx use:
-
-```sh
-npx nx <target> <project-name>
+```
+tt/
+├── api/                    # Node.js/Express backend API
+├── frontend-app/           # Angular app for end users
+├── frontend-admin/         # Angular app for administrators
+└── shared/                 # Shared libraries
+    ├── components/         # Shared Angular components
+    ├── services/           # Shared Angular services
+    ├── types/              # Shared TypeScript types
+    └── util/               # Shared utilities
 ```
 
-For example:
+## Prerequisites
 
-```sh
-npx nx build myproject
+- Node.js (v18 or higher)
+- npm (v9 or higher)
+
+## Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd tt
+
+# Install dependencies
+npm install
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## Running the Applications
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Start All Applications
 
-## Add new projects
+Run all applications (API, frontend-app, and frontend-admin) concurrently:
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+```bash
+npm start
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+### Start Individual Applications
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+#### API (Backend)
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
+```bash
+# Using npm script
+npm run serve:api
+
+# Or using Nx
+npx nx serve api
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+The API will be available at `http://localhost:3000`
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+#### Frontend App (User Application)
 
-## Set up CI!
+```bash
+# Using npm script
+npm run serve:app
 
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+# Or using Nx
+npx nx serve frontend-app
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+The app will be available at `http://localhost:4200`
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+#### Frontend Admin (Admin Portal)
 
-### Step 2
+```bash
+# Using npm script
+npm run serve:admin
 
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+# Or using Nx
+npx nx serve frontend-admin
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+The admin portal will be available at `http://localhost:4201`
 
-## Install Nx Console
+### Start Multiple Specific Applications
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+You can run specific combinations using Nx:
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+# Run API and frontend-app only
+npx nx run-many -t serve -p api frontend-app
 
-## Useful links
+# Run both frontends only
+npx nx run-many -t serve -p frontend-app frontend-admin
+```
 
-Learn more:
+## Building for Production
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Build All Applications
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+npm run build
+```
+
+### Build Individual Applications
+
+```bash
+# Build API
+npm run build:api
+# Or: npx nx build api
+
+# Build Frontend App
+npm run build:app
+# Or: npx nx build frontend-app
+
+# Build Frontend Admin
+npm run build:admin
+# Or: npx nx build frontend-admin
+```
+
+Build outputs will be in the `dist/` directory.
+
+## Testing
+
+### Run All Tests
+
+```bash
+npx nx run-many -t test
+```
+
+### Run Tests for Specific Project
+
+```bash
+npx nx test api
+npx nx test frontend-app
+npx nx test frontend-admin
+```
+
+### Run E2E Tests
+
+```bash
+npx nx e2e frontend-app-e2e
+npx nx e2e frontend-admin-e2e
+npx nx e2e api-e2e
+```
+
+## Linting
+
+```bash
+# Lint all projects
+npx nx run-many -t lint
+
+# Lint specific project
+npx nx lint api
+npx nx lint frontend-app
+npx nx lint frontend-admin
+```
+
+## Useful Nx Commands
+
+```bash
+# View project dependency graph
+npx nx graph
+
+# See affected projects (based on git changes)
+npx nx affected -t build
+npx nx affected -t test
+
+# List available projects
+npx nx show projects
+```
+
+## Application Ports
+
+| Application      | Default Port |
+|------------------|--------------|
+| API              | 3000         |
+| Frontend App     | 4200         |
+| Frontend Admin   | 4201         |
+
+## Authentication
+
+- **Frontend App**: Public user application (no auth required)
+- **Frontend Admin**: Requires admin role authentication
+
+## License
+
+MIT

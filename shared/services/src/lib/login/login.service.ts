@@ -1,45 +1,82 @@
+// shared/services/auth.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
+import { HttpClient } from '@angular/common/http';
+import { Observable, BehaviorSubject, tap } from 'rxjs';
 
 export interface LoginResponse {
   message: string;
   token: string;
 }
 
+export interface UserPayload {
+  id: number;
+  username: string;
+  email: string;
+  roles: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
-export class LoginService {
-  private http = inject(HttpClient);
-  private readonly loginUrl = '/api/login';
+export class AuthService {
+  private readonly http: HttpClient = inject(HttpClient);
+  private apiUrl = '/api'; // Configure based on environment
+  private currentUserSubject = new BehaviorSubject<UserPayload | null>(null);
 
-  login(payload: LoginRequest): Observable<LoginResponse> {
+  currentUser$ = this.currentUserSubject.asObservable();
+
+  constructor() {
+    this.loadUserFromToken();
+  }
+
+  login(username: string, password: string): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>(this.loginUrl, payload, { withCredentials: true })
+      .post<LoginResponse>(
+        `${this.apiUrl}/login`,
+        { username, password },
+        { withCredentials: true },
+      )
       .pipe(
-        map((res) => res),
-        catchError(this.handleError),
+        tap((response) => {
+          if (response.token) {
+            localStorage.setItem('auth_token', response.token);
+            this.decodeAndSetUser(response.token);
+          }
+        }),
       );
   }
 
-  private handleError(err: HttpErrorResponse) {
-    let errorMessage = 'Login failed';
+  logout(): void {
+    localStorage.removeItem('auth_token');
+    this.currentUserSubject.next(null);
+  }
 
-    if (err.error && typeof err.error === 'object' && 'error' in err.error) {
-      errorMessage = (err.error as any).error;
-    } else if (err.status === 0) {
-      errorMessage = 'Network error';
-    } else if (err.status >= 500) {
-      errorMessage = 'Server error';
+  getToken(): string | null {
+    return localStorage.getItem('auth_token');
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.getToken();
+  }
+
+  hasRole(role: string): boolean {
+    const user = this.currentUserSubject.value;
+    return user?.roles?.includes(role) ?? false;
+  }
+
+  private loadUserFromToken(): void {
+    const token = this.getToken();
+    if (token) {
+      this.decodeAndSetUser(token);
     }
+  }
 
-    return throwError(() => new Error(errorMessage));
+  private decodeAndSetUser(token: string): void {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1])) as UserPayload;
+      this.currentUserSubject.next(payload);
+    } catch {
+      this.logout();
+    }
   }
 }

@@ -3,14 +3,14 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "start": "concurrently \"npm:serve:*\"",
-    "serve:api": "npm --prefix api run start",
-    "serve:admin": "npm --prefix frontend-admin run start",
-    "serve:app": "npm --prefix frontend-app run start",
-    "build": "npm run build:api && npm run build:admin && npm run build:app",
-    "build:api": "npm --prefix api run build",
-    "build:admin": "npm --prefix frontend-admin run build",
-    "build:app": "npm --prefix frontend-app run build"
+    "start": "npx nx run-many -t serve -p api frontend-app frontend-admin --parallel=3",
+    "serve:api": "npx nx serve api",
+    "serve:admin": "npx nx serve frontend-admin",
+    "serve:app": "npx nx serve frontend-app",
+    "build": "npx nx run-many -t build -p api frontend-app frontend-admin",
+    "build:api": "npx nx build api",
+    "build:admin": "npx nx build frontend-admin",
+    "build:app": "npx nx build frontend-app"
   },
   "private": true,
   "devDependencies": {
@@ -76,6 +76,7 @@
     "@angular/platform-browser-dynamic": "~21.0.0",
     "@angular/router": "~21.0.0",
     "axios": "^1.6.0",
+    "better-sqlite3": "^12.6.2",
     "cloudinary": "^2.8.0",
     "concurrently": "^8.0.0",
     "cookie-parser": "^1.4.7",

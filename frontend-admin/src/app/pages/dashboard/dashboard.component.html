@@ -1,0 +1,111 @@
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="logo">🌍</span>
+      <span class="logo-text">Trip Tracker</span>
+      <span class="admin-badge">Admin</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span>Users</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">🗺️</span>
+        <span>Trips</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">📍</span>
+        <span>Locations</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">📸</span>
+        <span>Photos</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="top-bar">
+      <h1>Dashboard</h1>
+      <div class="user-menu">
+        @if (currentUser$ | async; as user) {
+          <span class="username">{{ user.username }}</span>
+        }
+        <button class="logout-btn" (click)="logout()">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <span class="stat-value">1,234</span>
+            <span class="stat-label">Total Users</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🗺️</div>
+          <div class="stat-info">
+            <span class="stat-value">5,678</span>
+            <span class="stat-label">Total Trips</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📍</div>
+          <div class="stat-info">
+            <span class="stat-value">892</span>
+            <span class="stat-label">Locations</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📸</div>
+          <div class="stat-info">
+            <span class="stat-value">15,432</span>
+            <span class="stat-label">Photos</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="recent-section">
+        <h2>Recent Activity</h2>
+        <div class="activity-list">
+          <div class="activity-item">
+            <span class="activity-icon">🆕</span>
+            <div class="activity-content">
+              <span class="activity-text">New user registered</span>
+              <span class="activity-time">2 minutes ago</span>
+            </div>
+          </div>
+          <div class="activity-item">
+            <span class="activity-icon">✈️</span>
+            <div class="activity-content">
+              <span class="activity-text">New trip created to Paris</span>
+              <span class="activity-time">15 minutes ago</span>
+            </div>
+          </div>
+          <div class="activity-item">
+            <span class="activity-icon">📸</span>
+            <div class="activity-content">
+              <span class="activity-text">25 new photos uploaded</span>
+              <span class="activity-time">1 hour ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

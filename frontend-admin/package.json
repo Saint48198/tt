@@ -3,12 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "lint": "ng lint"
+    "start": "npx nx serve frontend-admin",
+    "build": "npx nx build frontend-admin",
+    "test": "npx nx test frontend-admin",
+    "lint": "npx nx lint frontend-admin"
   },
   "dependencies": {
     "@angular/animations": "^17.0.0",

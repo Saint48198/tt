@@ -1,0 +1,21 @@
+<header class="header">
+  <div class="header-content">
+    <a routerLink="/" class="logo">
+      <span class="logo-icon">🌍</span>
+      <span class="logo-text">{{ title }}</span>
+    </a>
+
+    @if (showNav) {
+      <nav class="nav">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+        <a routerLink="/explore" routerLinkActive="active">Explore</a>
+        <a routerLink="/trips" routerLinkActive="active">My Trips</a>
+      </nav>
+    }
+
+    <div class="header-actions">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</header>
+
