@@ -6,8 +6,8 @@ import { Role } from '@shared/types';
 
 const router = Router();
 
-// POST /login
-router.post('/login', async (req: Request, res: Response) => {
+// POST /api/login
+router.post('/api/login', async (req: Request, res: Response) => {
   if (req.method !== 'POST') {
     // Express will only hit this handler for POST if you mounted router.post,
     // but keeping the check to mirror the original behavior.

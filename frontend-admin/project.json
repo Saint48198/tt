@@ -46,7 +46,7 @@
       },
       "defaultConfiguration": "production"
     },
-    "serve": {
+      "serve": {
       "continuous": true,
       "executor": "@angular/build:dev-server",
       "configurations": {
@@ -57,7 +57,10 @@
           "buildTarget": "frontend-admin:build:development"
         }
       },
-      "defaultConfiguration": "development"
+      "defaultConfiguration": "development",
+      "options": {
+        "proxyConfig": "frontend-admin/proxy.conf.json"
+      }
     },
     "lint": {
       "executor": "@nx/eslint:lint"

@@ -3,7 +3,6 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { db } from '../db';
 import { handleApiError } from '../utils/errorHandler';
-import { User } from '@shared/types';
 
 const router = Router();
 
@@ -130,7 +129,7 @@ router.get('/users/:id', (req: Request, res: Response) => {
         WHERE u.id = ?
       `
       )
-      .get(id) as User;
+      .get(id);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
