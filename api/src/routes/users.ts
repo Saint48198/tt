@@ -7,6 +7,103 @@ import { User } from '@shared/types';
 
 const router = Router();
 
+// GET /api/users - List all users with pagination and sorting
+router.get('/api/users', (req: Request, res: Response) => {
+  const { page, limit, all, sortBy, sortOrder } = req.query;
+
+  const pageNum =
+    page !== undefined
+      ? Number(Array.isArray(page) ? page[0] : page)
+      : 1;
+
+  const limitNum =
+    limit !== undefined
+      ? Number(Array.isArray(limit) ? limit[0] : limit)
+      : 10;
+
+  const rawSortBy = Array.isArray(sortBy) ? sortBy?.[0] : sortBy;
+  const sortByStr = (rawSortBy ?? 'username').toString();
+
+  const rawSortOrder = Array.isArray(sortOrder) ? sortOrder?.[0] : sortOrder;
+  const sortOrderStr = (rawSortOrder ?? 'asc').toString().toLowerCase();
+
+  const validColumns = ['username', 'email', 'id'];
+
+  if (!validColumns.includes(sortByStr)) {
+    return res.status(400).json({ error: 'Invalid sort column.' });
+  }
+
+  if (!['asc', 'desc'].includes(sortOrderStr)) {
+    return res.status(400).json({ error: 'Invalid sort order.' });
+  }
+
+  try {
+    if (all === 'true') {
+      const users = db
+        .prepare(
+          `
+          SELECT
+            u.id,
+            u.username,
+            u.email,
+            u.google_access_token,
+            u.google_refresh_token,
+            u.google_token_expiry,
+            GROUP_CONCAT(r.name) as roles
+          FROM users u
+          LEFT JOIN user_roles ur ON u.id = ur.user_id
+          LEFT JOIN roles r ON ur.role_id = r.id
+          GROUP BY u.id
+          ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
+        `
+        )
+        .all();
+
+      return res.status(200).json({
+        total: users.length,
+        users,
+      });
+    }
+
+    const offset = (pageNum - 1) * limitNum;
+
+    const totalRow = db
+      .prepare('SELECT COUNT(*) AS count FROM users')
+      .get() as { count: number };
+
+    const users = db
+      .prepare(
+        `
+        SELECT
+          u.id,
+          u.username,
+          u.email,
+          u.google_access_token,
+          u.google_refresh_token,
+          u.google_token_expiry,
+          GROUP_CONCAT(r.name) as roles
+        FROM users u
+        LEFT JOIN user_roles ur ON u.id = ur.user_id
+        LEFT JOIN roles r ON ur.role_id = r.id
+        GROUP BY u.id
+        ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
+        LIMIT ? OFFSET ?
+      `
+      )
+      .all(limitNum, offset);
+
+    return res.status(200).json({
+      total: totalRow.count,
+      users,
+      page: pageNum,
+      limit: limitNum,
+    });
+  } catch (error) {
+    console.error('Failed to fetch users:', error);
+    return res.status(500).json({ error: 'Failed to fetch users.' });
+  }
+});
+
 // GET /users/:id
 router.get('/users/:id', (req: Request, res: Response) => {
   const { id } = req.params;

@@ -14,6 +14,12 @@ export const appRoutes: Route[] = [
     canActivate: [adminGuard],
   },
   {
+    path: 'users',
+    loadComponent: () =>
+      import('./pages/users-list/users-list.component').then((m) => m.UsersListComponent),
+    canActivate: [adminGuard],
+  },
+  {
     path: 'countries',
     loadComponent: () =>
       import('./pages/countries-list/countries-list.component').then((m) => m.CountriesListComponent),
