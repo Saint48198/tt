@@ -32,6 +32,41 @@ cd tt
 npm install
 ```
 
+## Environment Configuration
+
+The API requires environment variables to be configured. Create a `.env` file in the root directory of the project:
+
+```bash
+# Create .env file
+touch .env
+```
+
+Add the following environment variables to your `.env` file:
+
+```env
+# JWT Secret for authentication
+JWT_SECRET=your_jwt_secret_key_here
+
+# Cloudinary Configuration (for photo storage)
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# OpenCage API (for geocoding)
+OPENCAGE_API_KEY=your_opencage_api_key
+
+# Google API (for tag suggestions)
+GOOGLE_API_KEY=your_google_api_key
+
+# Gemini API (for AI-powered title suggestions)
+GEMINI_API_KEY=your_gemini_api_key
+
+# Optional: Server Port (defaults to 3001)
+PORT=3001
+```
+
+**Note:** The `.env` file is gitignored and should never be committed to version control. Make sure to keep your API keys secure.
+
 ## Running the Applications
 
 ### Start All Applications
