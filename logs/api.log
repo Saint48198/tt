@@ -1,0 +1,29 @@
+
+ NX   Running target serve for project api and 2 tasks it depends on:
+
+
+
+> nx run types:build  [existing outputs match the cache, left as is]
+
+
+> nx run api:build:production  [existing outputs match the cache, left as is]
+
+
+> nx run api:serve:development
+
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mStarting inspector on localhost:9229 failed: address already in use[39m[22m
+[1m[31m[39m[22m
+[1m[31mError: listen EADDRINUSE: address already in use :::3001[39m[22m
+[1m[31m    at Server.setupListenHandle [as _listen2] (node:net:1940:16)[39m[22m
+[1m[31m    at listenInCluster (node:net:1997:12)[39m[22m
+[1m[31m    at Server.listen (node:net:2102:7)[39m[22m
+[1m[31m    at app.listen (/Users/scottiedaniels/Web/tt/node_modules/express/lib/application.js:635:24)[39m[22m
+[1m[31m    at Object.<anonymous> (/Users/scottiedaniels/Web/tt/api/src/main.ts:77:5)[39m[22m
+[1m[31m    at Module._compile (node:internal/modules/cjs/loader:1761:14)[39m[22m
+[1m[31m    at Object..js (node:internal/modules/cjs/loader:1893:10)[39m[22m
+[1m[31m    at Module.load (node:internal/modules/cjs/loader:1481:32)[39m[22m
+[1m[31m    at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12)[39m[22m
+[1m[31m    at Module._load (/Users/scottiedaniels/Web/tt/node_modules/@nx/js/src/executors/node/node-with-require-overrides.js:18:31)[39m[22m
+[1m[31m[39m[22m
+[7m[1m[36m NX [39m[22m[27m [1mProcess exited with code 1, waiting for changes to restart...[22m

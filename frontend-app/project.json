@@ -57,7 +57,10 @@
           "buildTarget": "frontend-app:build:development"
         }
       },
-      "defaultConfiguration": "development"
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4200
+      }
     },
     "lint": {
       "executor": "@nx/eslint:lint"

@@ -2,6 +2,12 @@
 
 A full-stack trip tracking application built with Angular and Node.js using an Nx monorepo.
 
+## 📚 Documentation
+
+- **[BUILD_SYSTEM_GUIDE.md](./BUILD_SYSTEM_GUIDE.md)** - How to create components without breaking the build
+- **[COMPONENT_CREATION_GUIDE.md](./COMPONENT_CREATION_GUIDE.md)** - Detailed component creation best practices
+- **[MAP_COMPONENT_SUMMARY.md](./MAP_COMPONENT_SUMMARY.md)** - Example of a properly structured component
+
 ## Project Structure
 
 ```
@@ -202,6 +208,49 @@ npx nx affected -t test
 # List available projects
 npx nx show projects
 ```
+
+## 🚀 Creating New Components
+
+### Quick Component Creation (Recommended)
+
+```bash
+# Create a shared component with auto-validation
+./create-component.sh my-component shared-components
+
+# Create a feature component in frontend-admin
+./create-component.sh my-feature frontend-admin
+```
+
+This script automatically:
+- ✅ Generates the component using Nx
+- ✅ Adds exports to library index.ts
+- ✅ Validates the build
+- ✅ Shows you next steps
+
+### Manual Component Creation
+
+```bash
+# Generate component
+npx nx g @nx/angular:component my-component --project=shared-components --standalone
+
+# Remember to add to index.ts!
+echo "export * from './lib/my-component/my-component.component';" >> shared/components/src/index.ts
+
+# Validate build
+npx nx build shared-components
+```
+
+### Pre-Commit Validation
+
+Before committing new components, run:
+
+```bash
+./validate-build.sh
+```
+
+This checks for common build-breaking issues.
+
+📖 **See [BUILD_SYSTEM_GUIDE.md](./BUILD_SYSTEM_GUIDE.md) for detailed instructions**
 
 ## Application Ports
 

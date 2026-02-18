@@ -10,7 +10,9 @@
     "build": "npx nx run-many -t build -p api frontend-app frontend-admin",
     "build:api": "npx nx build api",
     "build:admin": "npx nx build frontend-admin",
-    "build:app": "npx nx build frontend-app"
+    "build:app": "npx nx build frontend-app",
+    "validate": "./validate-build.sh",
+    "component:create": "./create-component.sh"
   },
   "private": true,
   "devDependencies": {
@@ -38,6 +40,7 @@
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
     "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
     "@types/formidable": "^3.4.6",
     "@types/jest": "^30.0.0",
@@ -84,6 +87,7 @@
     "cloudinary": "^2.8.0",
     "concurrently": "^8.0.0",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "express": "^4.21.2",
     "formidable": "^3.5.4",
     "jsonwebtoken": "^9.0.3",

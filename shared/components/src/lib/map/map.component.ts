@@ -22,7 +22,7 @@ export interface MapMarker {
 
 export interface MapOverlay {
   type: 'country' | 'state' | 'custom';
-  geoJson: GeoJSON.GeoJsonObject; // GeoJSON data
+  geoJson: GeoJSON.Feature | GeoJSON.FeatureCollection | GeoJSON.GeoJsonObject; // GeoJSON data
   style?: L.PathOptions;
   interactive?: boolean;
 }

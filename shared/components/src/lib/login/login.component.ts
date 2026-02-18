@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LoginService } from '@shared/services/login/login.service';
+import { LoginService, LoginResponse } from '@shared/services';
 
 @Component({
   selector: 'lib-login',
@@ -38,8 +38,8 @@ export class LoginComponent {
       return;
     }
 
-    this.loginService.login({ username, password }).subscribe({
-      next: (res) => {
+    this.loginService.login(username, password).subscribe({
+      next: (res: LoginResponse) => {
         this.loading.set(false);
 
         // Optionally store token
