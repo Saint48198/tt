@@ -1,0 +1,78 @@
+<div class="map-examples">
+  <h1>Map Component Examples</h1>
+
+  <!-- Example 1: Simple Markers -->
+  <section class="example">
+    <h2>Example 1: Simple Markers</h2>
+    <p>Display multiple location markers with tooltips and popups</p>
+    <lib-map
+      [markers]="simpleMarkers"
+      [center]="[39.8283, -98.5795]"
+      [zoom]="4"
+      height="400px"
+      [fitBounds]="true">
+    </lib-map>
+  </section>
+
+  <!-- Example 2: Country Overlay -->
+  <section class="example">
+    <h2>Example 2: Country/Region Overlay</h2>
+    <p>Show a country or region shape using GeoJSON</p>
+    <lib-map
+      [overlays]="countryOverlay"
+      [center]="[45, 3.5]"
+      [zoom]="5"
+      height="400px"
+      [fitBounds]="true">
+    </lib-map>
+  </section>
+
+  <!-- Example 3: Combined Markers and Overlay -->
+  <section class="example">
+    <h2>Example 3: Markers + Overlay</h2>
+    <p>Combine location markers with a country overlay</p>
+    <lib-map
+      [markers]="franceMarkers"
+      [overlays]="countryOverlay"
+      height="400px"
+      [fitBounds]="true">
+    </lib-map>
+  </section>
+
+  <!-- Example 4: Multiple Overlays -->
+  <section class="example">
+    <h2>Example 4: Multiple State/Region Overlays</h2>
+    <p>Display multiple states or regions with different colors</p>
+    <lib-map
+      [markers]="stateMarkers"
+      [overlays]="multipleOverlays"
+      height="400px"
+      [fitBounds]="true">
+    </lib-map>
+  </section>
+
+  <!-- Example 5: Custom Icons -->
+  <section class="example">
+    <h2>Example 5: Custom Marker Icons</h2>
+    <p>Use emoji or custom icons for markers</p>
+    <lib-map
+      [markers]="customMarkers"
+      [center]="[50, 1]"
+      [zoom]="5"
+      height="400px"
+      [fitBounds]="true">
+    </lib-map>
+  </section>
+
+  <!-- Example 6: Minimal Map -->
+  <section class="example">
+    <h2>Example 6: Minimal Configuration</h2>
+    <p>Minimal map with custom height and center</p>
+    <lib-map
+      [center]="[35.6762, 139.6503]"
+      [zoom]="10"
+      height="300px">
+    </lib-map>
+  </section>
+</div>
+
