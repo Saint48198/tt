@@ -11,7 +11,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MapComponent, MapMarker } from '@shared/components';
 import { CountriesService } from '../../services/countries.service';
+import { GeocodeService } from '../../services/geocode.service';
 import { Country } from '../../interfaces';
 
 @Component({
@@ -30,6 +32,7 @@ import { Country } from '../../interfaces';
     MatDatepickerModule,
     MatNativeDateModule,
     MatTooltipModule,
+    MapComponent,
   ],
   templateUrl: './country-edit.component.html',
   styleUrl: './country-edit.component.scss',
@@ -39,13 +42,18 @@ export class CountryEditComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly countriesService = inject(CountriesService);
+  private readonly geocodeService = inject(GeocodeService);
   private readonly snackBar = inject(MatSnackBar);
 
   form!: FormGroup;
   isEditMode = signal(false);
   loading = signal(false);
   saving = signal(false);
+  geocoding = signal(false);
   countryId: number | null = null;
+  mapMarkers = signal<MapMarker[]>([]);
+  mapCenter = signal<[number, number]>([39.8283, -98.5795]);
+  hasCoordinates = signal(false);
 
   ngOnInit(): void {
     this.initForm();
@@ -56,6 +64,10 @@ export class CountryEditComponent implements OnInit {
       this.countryId = +id;
       this.loadCountry(this.countryId);
     }
+
+    // React to lat/lng form changes to update the map
+    this.form.get('lat')?.valueChanges.subscribe(() => this.updateMapFromForm());
+    this.form.get('lng')?.valueChanges.subscribe(() => this.updateMapFromForm());
   }
 
   private initForm(): void {
@@ -84,6 +96,7 @@ export class CountryEditComponent implements OnInit {
           geo_map_id: country.geo_map_id || '',
         });
         this.loading.set(false);
+        this.updateMapFromForm();
       },
       error: (err) => {
         this.snackBar.open(
@@ -95,6 +108,31 @@ export class CountryEditComponent implements OnInit {
         this.router.navigate(['/countries']);
       },
     });
+  }
+
+  private updateMapFromForm(): void {
+    const lat = this.form.get('lat')?.value;
+    const lng = this.form.get('lng')?.value;
+
+    if (lat != null && lng != null && lat !== '' && lng !== '') {
+      const latNum = +lat;
+      const lngNum = +lng;
+      if (!isNaN(latNum) && !isNaN(lngNum)) {
+        this.hasCoordinates.set(true);
+        this.mapCenter.set([latNum, lngNum]);
+        this.mapMarkers.set([
+          {
+            lat: latNum,
+            lng: lngNum,
+            title: this.form.get('name')?.value || 'Country',
+            popup: `<strong>${this.form.get('name')?.value || 'Country'}</strong><br/>Lat: ${latNum}, Lng: ${lngNum}`,
+          },
+        ]);
+        return;
+      }
+    }
+    this.hasCoordinates.set(false);
+    this.mapMarkers.set([]);
   }
 
   onSubmit(): void {
@@ -136,6 +174,35 @@ export class CountryEditComponent implements OnInit {
           { duration: 5000, panelClass: 'error-snackbar' }
         );
         this.saving.set(false);
+      },
+    });
+  }
+
+  lookupCoordinates(): void {
+    const name = this.form.get('name')?.value?.trim();
+    if (!name) {
+      this.snackBar.open('Please enter a country name first', 'Close', { duration: 3000 });
+      return;
+    }
+
+    this.geocoding.set(true);
+    this.geocodeService.forwardGeocode({ country: name }).subscribe({
+      next: (result) => {
+        this.form.patchValue({ lat: result.lat, lng: result.lng });
+        this.snackBar.open(
+          `Coordinates found: ${result.lat}, ${result.lng}`,
+          'Close',
+          { duration: 3000 }
+        );
+        this.geocoding.set(false);
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || 'Failed to look up coordinates',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+        this.geocoding.set(false);
       },
     });
   }

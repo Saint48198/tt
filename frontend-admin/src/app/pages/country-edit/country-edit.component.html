@@ -43,16 +43,32 @@
         </mat-form-field>
       </div>
 
-      <div class="form-row two-col">
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Latitude</mat-label>
-          <input matInput type="number" formControlName="lat" placeholder="e.g. 37.0902" />
-        </mat-form-field>
+      <div class="form-row-with-action">
+        <div class="form-row two-col">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Latitude</mat-label>
+            <input matInput type="number" formControlName="lat" placeholder="e.g. 37.0902" />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Longitude</mat-label>
-          <input matInput type="number" formControlName="lng" placeholder="e.g. -95.7129" />
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Longitude</mat-label>
+            <input matInput type="number" formControlName="lng" placeholder="e.g. -95.7129" />
+          </mat-form-field>
+        </div>
+        <button
+          mat-stroked-button
+          type="button"
+          class="geocode-btn"
+          (click)="lookupCoordinates()"
+          [disabled]="geocoding() || !form.get('name')?.value"
+        >
+          @if (geocoding()) {
+            <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+          } @else {
+            <mat-icon>my_location</mat-icon>
+          }
+          Lookup
+        </button>
       </div>
 
       <div class="form-row two-col">
@@ -67,21 +83,40 @@
         </mat-form-field>
       </div>
 
-      <div class="form-actions">
-        <button mat-stroked-button type="button" routerLink="/countries">Cancel</button>
-        <button
-          mat-raised-button
-          color="primary"
-          type="submit"
-          [disabled]="saving()"
-        >
-          @if (saving()) {
-            <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
-          }
-          {{ isEditMode() ? 'Update Country' : 'Create Country' }}
-        </button>
-      </div>
     </form>
+
+    @if (hasCoordinates()) {
+      <div class="map-section mat-elevation-z2">
+        <h2>
+          <mat-icon>map</mat-icon>
+          Location
+        </h2>
+        <lib-map
+          [markers]="mapMarkers()"
+          [center]="mapCenter()"
+          [zoom]="5"
+          height="400px"
+          [fitBounds]="false"
+          [showAttribution]="true">
+        </lib-map>
+      </div>
+    }
+
+    <div class="form-actions">
+      <button mat-stroked-button type="button" routerLink="/countries">Cancel</button>
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="saving()"
+      >
+        @if (saving()) {
+          <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+        }
+        {{ isEditMode() ? 'Update Country' : 'Create Country' }}
+      </button>
+    </div>
   }
 </div>
 
