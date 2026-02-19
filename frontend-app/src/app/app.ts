@@ -1,12 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { HeaderComponent } from '@shared/components';
+import { HeaderComponent, FooterComponent } from '@shared/components';
 import { AuthService } from '@shared/services';
 
 @Component({
   standalone: true,
-  imports: [RouterModule, CommonModule, HeaderComponent],
+  imports: [RouterModule, CommonModule, HeaderComponent, FooterComponent],
   selector: 'app-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',
