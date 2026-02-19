@@ -74,7 +74,9 @@
       <div class="form-row two-col">
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Last Visited</mat-label>
-          <input matInput formControlName="last_visited" placeholder="e.g. 2025-06-15" />
+          <input matInput [matDatepicker]="lastVisitedPicker" formControlName="last_visited" placeholder="YYYY-MM" />
+          <mat-datepicker-toggle matIconSuffix [for]="lastVisitedPicker"></mat-datepicker-toggle>
+          <mat-datepicker #lastVisitedPicker startView="multi-year" (monthSelected)="onMonthSelected($event, lastVisitedPicker)"></mat-datepicker>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field">

@@ -1,0 +1,78 @@
+<div class="state-edit-page">
+  <div class="page-header">
+    <button mat-icon-button routerLink="/states" aria-label="Back to States">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>{{ isEditMode() ? 'Edit State' : 'Add State' }}</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="state-form mat-elevation-z2">
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" placeholder="State name" />
+          @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+            <mat-error>Name is required</mat-error>
+          }
+          @if (form.get('name')?.hasError('maxlength')) {
+            <mat-error>Name must be 255 characters or less</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-col">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Abbreviation</mat-label>
+          <input matInput formControlName="abbr" placeholder="e.g. CA" />
+          @if (form.get('abbr')?.hasError('maxlength')) {
+            <mat-error>Abbreviation must be 10 characters or less</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Country</mat-label>
+          <mat-select formControlName="country_id" placeholder="Select a country">
+            @for (country of countries(); track country.id) {
+              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('country_id')?.hasError('required') && form.get('country_id')?.touched) {
+            <mat-error>Country is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Last Visited</mat-label>
+          <input matInput [matDatepicker]="lastVisitedPicker" formControlName="last_visited" placeholder="YYYY-MM" />
+          <mat-datepicker-toggle matIconSuffix [for]="lastVisitedPicker"></mat-datepicker-toggle>
+          <mat-datepicker #lastVisitedPicker startView="multi-year" (monthSelected)="onMonthSelected($event, lastVisitedPicker)"></mat-datepicker>
+        </mat-form-field>
+      </div>
+    </form>
+
+
+    <div class="form-actions">
+      <button mat-stroked-button type="button" routerLink="/states">Cancel</button>
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="saving()"
+      >
+        @if (saving()) {
+          <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+        }
+        {{ isEditMode() ? 'Update State' : 'Create State' }}
+      </button>
+    </div>
+  }
+</div>
+

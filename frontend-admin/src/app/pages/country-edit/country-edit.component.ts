@@ -8,13 +8,23 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
+import { MatNativeDateModule, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MapComponent, MapMarker } from '@shared/components';
 import { CountriesService } from '../../services/countries.service';
 import { GeocodeService } from '../../services/geocode.service';
 import { Country } from '../../interfaces';
+
+const MONTH_YEAR_FORMATS = {
+  parse: { dateInput: 'MM/YYYY' },
+  display: {
+    dateInput: { year: 'numeric', month: '2-digit' } as Intl.DateTimeFormatOptions,
+    monthYearLabel: { year: 'numeric', month: 'short' } as Intl.DateTimeFormatOptions,
+    dateA11yLabel: { year: 'numeric', month: 'long' } as Intl.DateTimeFormatOptions,
+    monthYearA11yLabel: { year: 'numeric', month: 'long' } as Intl.DateTimeFormatOptions,
+  },
+};
 
 @Component({
   selector: 'app-country-edit',
@@ -36,6 +46,7 @@ import { Country } from '../../interfaces';
   ],
   templateUrl: './country-edit.component.html',
   styleUrl: './country-edit.component.scss',
+  providers: [{ provide: MAT_DATE_FORMATS, useValue: MONTH_YEAR_FORMATS }],
 })
 export class CountryEditComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -77,9 +88,25 @@ export class CountryEditComponent implements OnInit {
       lat: [null],
       lng: [null],
       slug: ['', [Validators.maxLength(255)]],
-      last_visited: [''],
+      last_visited: [null as Date | null],
       geo_map_id: ['', [Validators.maxLength(255)]],
     });
+  }
+
+  private parseDate(value: string | undefined): Date | null {
+    if (!value) return null;
+    const parts = value.split('-');
+    if (parts.length >= 2) {
+      return new Date(+parts[0], +parts[1] - 1, 1);
+    }
+    return null;
+  }
+
+  private formatDate(value: Date | null): string | undefined {
+    if (!value || !(value instanceof Date) || isNaN(value.getTime())) return undefined;
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
   }
 
   private loadCountry(id: number): void {
@@ -92,7 +119,7 @@ export class CountryEditComponent implements OnInit {
           lat: country.lat ?? null,
           lng: country.lng ?? null,
           slug: country.slug || '',
-          last_visited: country.last_visited || '',
+          last_visited: this.parseDate(country.last_visited),
           geo_map_id: country.geo_map_id || '',
         });
         this.loading.set(false);
@@ -150,7 +177,7 @@ export class CountryEditComponent implements OnInit {
       lat: formValue.lat != null && formValue.lat !== '' ? +formValue.lat : undefined,
       lng: formValue.lng != null && formValue.lng !== '' ? +formValue.lng : undefined,
       slug: formValue.slug || undefined,
-      last_visited: formValue.last_visited || undefined,
+      last_visited: this.formatDate(formValue.last_visited),
       geo_map_id: formValue.geo_map_id || undefined,
     };
 
@@ -205,6 +232,11 @@ export class CountryEditComponent implements OnInit {
         this.geocoding.set(false);
       },
     });
+  }
+
+  onMonthSelected(date: Date, datepicker: MatDatepicker<Date>): void {
+    this.form.get('last_visited')?.setValue(new Date(date.getFullYear(), date.getMonth(), 1));
+    datepicker.close();
   }
 }
 
