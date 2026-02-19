@@ -1,28 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { v2 as cloudinary } from 'cloudinary';
+import { photoService } from '../services/photoService';
+import { authenticateRequest } from '../utils/authUtil';
+import formidable from 'formidable';
 
 const router = Router();
-
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-type CloudinaryPhoto = {
-  asset_id: string;
-  secure_url: string;
-  created_at: string;
-  format: string;
-};
-
-type Photo = {
-  id: string;
-  url: string;
-  created_at: string;
-  format: string;
-};
 
 // GET /api/photos
 router.get('/api/photos', async (req: Request, res: Response) => {
@@ -35,28 +16,298 @@ router.get('/api/photos', async (req: Request, res: Response) => {
   }
 
   try {
-    const folder = process.env.CLOUDINARY_FOLDER || '';
-
-    const resources = await cloudinary.api.resources({
-      type: 'upload',
-      prefix: folder,
-      max_results: 50,
-    });
-
-    const photos: Photo[] = (resources.resources ?? []).map(
-      (resource: CloudinaryPhoto) => ({
-        id: resource.asset_id,
-        url: resource.secure_url,
-        created_at: resource.created_at,
-        format: resource.format,
-      })
-    );
-
-    return res.status(200).json({ photos });
+    const result = await photoService.getPhotos();
+    return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch photos:', error);
     return res.status(500).json({ error: 'Failed to fetch photos' });
   }
 });
+
+// GET /api/photos/:entityType/:entityId
+router.get('/api/photos/:entityType/:entityId', (req: Request, res: Response) => {
+  const { entityType, entityId } = req.params;
+
+  if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
+    return res.status(400).json({ error: 'Invalid entityType or entityId' });
+  }
+
+  try {
+    const result = photoService.getPhotosByEntity(entityType, entityId);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Failed to fetch photos:', error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch photos';
+
+    if (message.includes('Invalid')) {
+      return res.status(400).json({ error: message });
+    }
+
+    return res.status(500).json({ error: message });
+  }
+});
+
+// ...existing code...
+
+// POST /api/photos/suggest-titles
+router.post('/api/photos/suggest-titles', async (req: Request, res: Response) => {
+  try {
+    const { imageBase64, mimeType, hints } = req.body || {};
+
+    const result = await photoService.suggestTitles({
+      imageBase64,
+      mimeType,
+      hints,
+    });
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('suggest-titles error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to generate suggestions';
+
+    if (message.includes('required') || message.includes('Missing')) {
+      return res.status(400).json({ error: message });
+    }
+
+    return res.status(500).json({ error: message });
+  }
+});
+
+// POST /api/photos/add/:entityType/:entityId
+router.post(
+  '/api/photos/add/:entityType/:entityId',
+  (req: Request, res: Response) => {
+    const { entityType, entityId } = req.params;
+
+    if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
+      return res.status(400).json({ error: 'Invalid entityType or entityId' });
+    }
+
+    const { url, userId, caption } = req.body;
+
+    try {
+      const result = photoService.addPhotoByEntity({
+        entityType,
+        entityId: Number(entityId),
+        url,
+        userId,
+        caption,
+      });
+
+      return res.status(201).json({
+        message: 'Photo added successfully.',
+        id: result.id,
+      });
+    } catch (error) {
+      console.error('Failed to add photo:', error);
+      const message = error instanceof Error ? error.message : 'Failed to add photo';
+
+      if (message.includes('Invalid') || message.includes('Missing')) {
+        return res.status(400).json({ error: message });
+      }
+
+      return res.status(500).json({ error: message });
+    }
+  }
+);
+
+// POST /api/photos/bulk/add
+router.post('/api/photos/bulk/add', async (req: Request, res: Response) => {
+  try {
+    const payload = await authenticateRequest(req, res);
+    if (!payload) return;
+
+    const { entityType, entityId, photos } = req.body;
+
+    if (!entityType || !entityId || !photos) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const result = photoService.bulkAddPhotos({
+      entityType,
+      entityId,
+      photos,
+      userId: String(payload.id),
+    });
+
+    return res.status(201).json({ message: 'Photos added successfully' });
+  } catch (error) {
+    console.error('Failed to add photos:', error);
+    const message = error instanceof Error ? error.message : 'Failed to add photos';
+
+    if (message.includes('Invalid') || message.includes('Missing')) {
+      return res.status(400).json({ error: message });
+    }
+
+    return res.status(500).json({ error: message });
+  }
+});
+
+// DELETE /api/photos/bulk/remove
+router.delete('/api/photos/bulk/remove', async (req: Request, res: Response) => {
+  try {
+    const payload = await authenticateRequest(req, res);
+    if (!payload) return;
+
+    const { entityType, entityId, photos } = req.body;
+
+    if (!entityType || !entityId || !photos) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const result = photoService.bulkRemovePhotos({
+      entityType,
+      entityId,
+      photos,
+      userId: String(payload.id),
+    });
+
+    return res.status(200).json({ message: 'Photos removed successfully' });
+  } catch (error) {
+    console.error('Failed to remove photos:', error);
+    const message = error instanceof Error ? error.message : 'Failed to remove photos';
+
+    if (message.includes('Invalid') || message.includes('Missing')) {
+      return res.status(400).json({ error: message });
+    }
+
+    return res.status(500).json({ error: message });
+  }
+});
+
+// GET /api/photos/search
+router.get('/api/photos/search', async (req: Request, res: Response) => {
+  try {
+    const rawFolder = req.query.folder;
+    const folder = (typeof rawFolder === 'string' ? rawFolder : Array.isArray(rawFolder) ? rawFolder[0] : undefined) as string | undefined;
+
+    const rawTag = req.query.tag;
+    const tag = (typeof rawTag === 'string' ? rawTag : Array.isArray(rawTag) ? rawTag[0] : undefined) as string | undefined;
+
+    const rawMaxResults = req.query.max_results;
+    const maxResultsStr = (typeof rawMaxResults === 'string' ? rawMaxResults : Array.isArray(rawMaxResults)
+      ? rawMaxResults[0]
+      : undefined) as string | undefined;
+
+    const maxResults = maxResultsStr ? Number(maxResultsStr) : 10;
+
+    const rawNextCursor = req.query.next_cursor;
+    const nextCursor = (typeof rawNextCursor === 'string' ? rawNextCursor : Array.isArray(rawNextCursor)
+      ? rawNextCursor[0]
+      : undefined) as string | undefined;
+
+    const result = await photoService.searchPhotos({
+      folder,
+      tag,
+      max_results: maxResults,
+      next_cursor: nextCursor,
+    });
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Cloudinary API error:', error);
+    return res.status(500).json({ error: 'Failed to fetch photos' });
+  }
+});
+
+// POST /api/photos/upload
+router.post(
+  '/api/photos/upload',
+  async (req: Request, res: Response): Promise<any> => {
+    try {
+      const form = formidable({
+        multiples: true,
+        uploadDir: '/tmp',
+        keepExtensions: true,
+      });
+
+      form.parse(req, async (err: any, fields: any, files: any) => {
+        if (err) {
+          console.error('Form parsing error:', err);
+          return res.status(500).json({ error: 'Error parsing form data' });
+        }
+
+        const fileField = (files as any).files;
+
+        if (!fileField) {
+          return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const uploadedFiles = Array.isArray(fileField)
+          ? fileField
+          : [fileField];
+
+        const firstFieldValue = (v: unknown): string | undefined => {
+          if (v == null) return undefined;
+          if (Array.isArray(v)) return v[0] != null ? String(v[0]) : undefined;
+          return String(v);
+        };
+
+        const visibility = firstFieldValue((fields as any).visibility);
+        const tagsRaw = firstFieldValue((fields as any).tags);
+        const title = firstFieldValue((fields as any).title) ?? '';
+        const description = firstFieldValue((fields as any).description) ?? '';
+
+        try {
+          const result = await photoService.uploadPhotos({
+            files: uploadedFiles.map((f: any) => ({
+              filepath: f.filepath,
+              newFilename: f.newFilename,
+            })),
+            visibility,
+            tags: tagsRaw,
+            title,
+            description,
+          });
+
+          return res.status(200).json(result);
+        } catch (uploadError) {
+          console.error('Upload error:', uploadError);
+          return res.status(500).json({ error: 'Failed to upload images' });
+        }
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      return res.status(500).json({ error: 'Failed to upload images' });
+    }
+  }
+);
+
+// DELETE /api/photos/remove/:entityType/:entityId
+router.delete(
+  '/api/photos/remove/:entityType/:entityId',
+  (req: Request, res: Response) => {
+    const { entityType, entityId } = req.params;
+
+    if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
+      return res.status(400).json({ error: 'Invalid entityType or entityId' });
+    }
+
+    const { photoId } = req.body;
+
+    if (!photoId) {
+      return res.status(400).json({ error: 'Missing required field: photoId.' });
+    }
+
+    try {
+      photoService.removePhoto({
+        entityType,
+        entityId: Number(entityId),
+        photoId,
+      });
+
+      return res.status(200).json({ message: 'Photo removed successfully.' });
+    } catch (error) {
+      console.error('Failed to remove photo:', error);
+      const message = error instanceof Error ? error.message : 'Failed to remove photo';
+
+      if (message.includes('Invalid') || message.includes('Missing') || message.includes('not found')) {
+        return res.status(message.includes('not found') ? 404 : 400).json({ error: message });
+      }
+
+      return res.status(500).json({ error: message });
+    }
+  }
+);
 
 export default router;

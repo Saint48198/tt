@@ -1,7 +1,6 @@
 // api/src/routes/users.ts
 import { Router, Request, Response } from 'express';
-import bcrypt from 'bcrypt';
-import { db } from '../db';
+import { userService } from '../services/userService';
 import { handleApiError } from '../utils/errorHandler';
 
 const router = Router();
@@ -26,85 +25,27 @@ router.get('/api/users', (req: Request, res: Response) => {
   const rawSortOrder = Array.isArray(sortOrder) ? sortOrder?.[0] : sortOrder;
   const sortOrderStr = (rawSortOrder ?? 'asc').toString().toLowerCase();
 
-  const validColumns = ['username', 'email', 'id'];
-
-  if (!validColumns.includes(sortByStr)) {
-    return res.status(400).json({ error: 'Invalid sort column.' });
-  }
-
-  if (!['asc', 'desc'].includes(sortOrderStr)) {
-    return res.status(400).json({ error: 'Invalid sort order.' });
-  }
-
   try {
-    if (all === 'true') {
-      const users = db
-        .prepare(
-          `
-          SELECT
-            u.id,
-            u.username,
-            u.email,
-            u.google_access_token,
-            u.google_refresh_token,
-            u.google_token_expiry,
-            GROUP_CONCAT(r.name) as roles
-          FROM users u
-          LEFT JOIN user_roles ur ON u.id = ur.user_id
-          LEFT JOIN roles r ON ur.role_id = r.id
-          GROUP BY u.id
-          ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
-        `
-        )
-        .all();
-
-      return res.status(200).json({
-        total: users.length,
-        users,
-      });
-    }
-
-    const offset = (pageNum - 1) * limitNum;
-
-    const totalRow = db
-      .prepare('SELECT COUNT(*) AS count FROM users')
-      .get() as { count: number };
-
-    const users = db
-      .prepare(
-        `
-        SELECT
-          u.id,
-          u.username,
-          u.email,
-          u.google_access_token,
-          u.google_refresh_token,
-          u.google_token_expiry,
-          GROUP_CONCAT(r.name) as roles
-        FROM users u
-        LEFT JOIN user_roles ur ON u.id = ur.user_id
-        LEFT JOIN roles r ON ur.role_id = r.id
-        GROUP BY u.id
-        ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
-        LIMIT ? OFFSET ?
-      `
-      )
-      .all(limitNum, offset);
-
-    return res.status(200).json({
-      total: totalRow.count,
-      users,
+    const result = userService.getUsers({
       page: pageNum,
       limit: limitNum,
+      all: all === 'true',
+      sortBy: sortByStr,
+      sortOrder: sortOrderStr,
     });
+
+    return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch users:', error);
-    return res.status(500).json({ error: 'Failed to fetch users.' });
+    const message = error instanceof Error ? error.message : 'Failed to fetch users.';
+    return res.status(error instanceof Error && message.includes('Invalid') ? 400 : 500).json({ error: message });
   }
 });
 
-// GET /users/:id
-router.get('/users/:id', (req: Request, res: Response) => {
+// ...existing code...
+
+// GET /api/users/:id
+router.get('/api/users/:id', (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!id) {
@@ -112,24 +53,7 @@ router.get('/users/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const user = db
-      .prepare(
-        `
-        SELECT
-          u.id,
-          u.username,
-          u.email,
-          u.google_access_token,
-          u.google_refresh_token,
-          u.google_token_expiry,
-          GROUP_CONCAT(r.name) as roles
-        FROM users u
-        LEFT JOIN user_roles ur ON u.id = ur.user_id
-        LEFT JOIN roles r ON ur.role_id = r.id
-        WHERE u.id = ?
-      `
-      )
-      .get(id);
+    const user = userService.getUserById(id);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -142,8 +66,8 @@ router.get('/users/:id', (req: Request, res: Response) => {
   }
 });
 
-// PUT /users/:id
-router.put('/users/:id', (req: Request, res: Response) => {
+// PUT /api/users/:id
+router.put('/api/users/:id', (req: Request, res: Response) => {
   const { id } = req.params;
   const { username, email, passwordHash } = req.body;
 
@@ -152,18 +76,9 @@ router.put('/users/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const updateUser = db.prepare(`
-      UPDATE users
-      SET
-        username = COALESCE(?, username),
-        email = COALESCE(?, email),
-        password_hash = COALESCE(?, password_hash)
-      WHERE id = ?
-    `);
+    const result = userService.updateUser(id, { username, email, passwordHash });
 
-    const result = updateUser.run(username, email, passwordHash, id);
-
-    if (result.changes === 0) {
+    if (!result.success) {
       return res
         .status(404)
         .json({ error: 'User not found or no changes made' });
@@ -176,8 +91,8 @@ router.put('/users/:id', (req: Request, res: Response) => {
   }
 });
 
-// DELETE /users/:id
-router.delete('/users/:id', (req: Request, res: Response) => {
+// DELETE /api/users/:id
+router.delete('/api/users/:id', (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!id) {
@@ -185,10 +100,9 @@ router.delete('/users/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const deleteUser = db.prepare(`DELETE FROM users WHERE id = ?`);
-    const result = deleteUser.run(id);
+    const result = userService.deleteUser(id);
 
-    if (result.changes === 0) {
+    if (!result.success) {
       return res.status(404).json({ error: 'User not found' });
     }
 
@@ -212,15 +126,13 @@ router.put('/api/users/:id/password', async (req: Request, res: Response) => {
   }
 
   try {
-    const user = db
-      .prepare('SELECT id, password_hash FROM users WHERE id = ?')
-      .get(id) as { id: number; password_hash: string } | undefined;
+    const passwordHash = userService.getUserPasswordHash(id);
 
-    if (!user) {
+    if (!passwordHash) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+    const isMatch = await userService.verifyPassword(currentPassword, passwordHash);
     if (!isMatch) {
       return res.status(401).json({ error: 'Current password is incorrect' });
     }
@@ -235,12 +147,7 @@ router.put('/api/users/:id/password', async (req: Request, res: Response) => {
       });
     }
 
-    const newPasswordHash = await bcrypt.hash(newPassword, 10);
-
-    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(
-      newPasswordHash,
-      id
-    );
+    await userService.updateUserPassword(id, newPassword);
 
     return res.status(200).json({ message: 'Password updated successfully' });
   } catch (err: unknown) {
@@ -248,9 +155,53 @@ router.put('/api/users/:id/password', async (req: Request, res: Response) => {
   }
 });
 
-router.all('/api/users/:id/password', (req: Request, res: Response) => {
-  res.setHeader('Allow', 'PUT');
+// ...existing code...
+
+// GET, PUT, etc. not allowed on /api/user-roles
+router.all('/api/user-roles', (req: Request, res: Response) => {
+  res.setHeader('Allow', 'POST, DELETE');
   return res.status(405).end(`Method ${req.method} Not Allowed`);
+});
+
+// POST /api/user/change-password
+router.post('/api/user/change-password', async (req: Request, res: Response) => {
+  const { userId, currentPassword, newPassword, confirmNewPassword } = req.body;
+
+  if (!userId || !currentPassword || !newPassword || !confirmNewPassword) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    return res.status(400).json({ error: 'New passwords do not match' });
+  }
+
+  // Validate password strength
+  const passwordRegex =
+    /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
+
+  if (!passwordRegex.test(newPassword)) {
+    return res.status(400).json({
+      error:
+        'Password must be at least 12 characters long, alphanumeric, and include at least one special character.',
+    });
+  }
+
+  try {
+    await userService.changePassword(userId, currentPassword, newPassword);
+    return res.status(200).json({ message: 'Password changed successfully' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+
+    if (message === 'User not found') {
+      return res.status(404).json({ error: message });
+    }
+    if (message === 'Incorrect current password') {
+      return res.status(403).json({ error: message });
+    }
+
+    console.error('Error changing password:', error);
+    return res.status(500).json({ error: message });
+  }
 });
 
 export default router;

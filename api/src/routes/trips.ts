@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../db';
+import { tripService } from '../services/tripService';
 
 const router = Router();
 
@@ -8,12 +8,7 @@ const router = Router();
  */
 router.get('/api/trips', (_req: Request, res: Response) => {
   try {
-    const trips = db
-      .prepare(
-        'SELECT trips.*, countries.name as country FROM trips JOIN countries ON trips.countryId = countries.id'
-      )
-      .all();
-
+    const trips = tripService.getTrips();
     return res.status(200).json(trips);
   } catch (error) {
     console.error(error);
@@ -28,13 +23,15 @@ router.post('/api/trips', (req: Request, res: Response) => {
   try {
     const { destination, startDate, endDate, notes, countryId } = req.body ?? {};
 
-    const result = db
-      .prepare(
-        'INSERT INTO trips (destination, startDate, endDate, notes, countryId) VALUES (?, ?, ?, ?, ?)'
-      )
-      .run(destination, startDate, endDate, notes, countryId);
+    const result = tripService.createTrip({
+      destination,
+      startDate,
+      endDate,
+      notes,
+      countryId,
+    });
 
-    return res.status(201).json({ id: result.lastInsertRowid });
+    return res.status(201).json({ id: result.id });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: 'Failed to create trip' });
@@ -53,11 +50,7 @@ router.get('/api/trips/:id', (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const trip = db
-      .prepare(
-        'SELECT trips.*, countries.name as country FROM trips JOIN countries ON trips.countryId = countries.id WHERE trips.id = ?'
-      )
-      .get(id);
+    const trip = tripService.getTripById(id);
 
     if (!trip) {
       return res.status(404).json({ message: 'Trip not found' });
@@ -79,11 +72,13 @@ router.put('/api/trips/:id', (req: Request, res: Response) => {
   try {
     const { destination, startDate, endDate, notes, countryId } = req.body ?? {};
 
-    const result = db
-      .prepare(
-        'UPDATE trips SET destination = ?, startDate = ?, endDate = ?, notes = ?, countryId = ? WHERE id = ?'
-      )
-      .run(destination, startDate, endDate, notes, countryId, id);
+    const result = tripService.updateTrip(id, {
+      destination,
+      startDate,
+      endDate,
+      notes,
+      countryId,
+    });
 
     return res.status(200).json({ changes: result.changes });
   } catch (error) {
@@ -99,7 +94,7 @@ router.delete('/api/trips/:id', (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const result = db.prepare('DELETE FROM trips WHERE id = ?').run(id);
+    const result = tripService.deleteTrip(id);
     return res.status(200).json({ changes: result.changes });
   } catch (error) {
     console.error(error);

@@ -7,14 +7,59 @@
 
     @if (showNav) {
       <nav class="nav">
-        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-        <a routerLink="/explore" routerLinkActive="active">Explore</a>
-        <a routerLink="/trips" routerLinkActive="active">My Trips</a>
+        @for (link of navLinks; track link.path) {
+          <a [routerLink]="link.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+            {{ link.label }}
+          </a>
+        }
       </nav>
     }
 
     <div class="header-actions">
       <ng-content></ng-content>
+
+      <!-- User Menu -->
+      <ng-container *ngIf="currentUser$ | async as user">
+        <div class="user-menu-container">
+          <button class="user-menu-trigger" (click)="toggleUserMenu()" [attr.aria-expanded]="showUserMenu()">
+            <span class="user-avatar">{{ user.username?.[0]?.toUpperCase() || 'U' }}</span>
+            <span class="user-name">{{ user.username }}</span>
+            <span class="menu-icon">▼</span>
+          </button>
+
+          <div class="user-menu-dropdown" *ngIf="showUserMenu()" (click)="closeUserMenu()">
+            <div class="menu-header">
+              <div class="user-info">
+                <div class="user-avatar-large">{{ user.username?.[0]?.toUpperCase() || 'U' }}</div>
+                <div>
+                  <div class="user-username">{{ user.username }}</div>
+                  <div class="user-role" *ngIf="user.roles && user.roles.length > 0">{{ user.roles[0] | uppercase }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="menu-divider"></div>
+
+            <div class="menu-items">
+              <a routerLink="/profile" class="menu-item">
+                <span class="item-icon">👤</span>
+                <span>Profile</span>
+              </a>
+              <a routerLink="/settings" class="menu-item">
+                <span class="item-icon">⚙️</span>
+                <span>Settings</span>
+              </a>
+            </div>
+
+            <div class="menu-divider"></div>
+
+            <button class="logout-btn" (click)="logout()">
+              <span class="item-icon">🚪</span>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </ng-container>
     </div>
   </div>
 </header>

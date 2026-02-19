@@ -1,17 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../db';
+import { stateService } from '../services/stateService';
 import { handleApiError } from '../utils/errorHandler';
-import { CountRow } from '@shared/types';
 
 const router = Router();
 
-const validColumns = [
-  'states.name',
-  'abbr',
-  'country_id',
-  'last_visited',
-  'country_name',
-] as const;
 
 const toError = (err: unknown): Error => (err instanceof Error ? err : new Error(String(err)));
 
@@ -24,59 +16,25 @@ router.get('/api/states', (req: Request, res: Response) => {
     page = '1',
     limit = '10',
     all,
-    sortBy = 'name',
+    sortBy = 'states.name',
     sortOrder = 'asc',
   } = req.query as Record<string, string | undefined>;
 
-  let sortByStr = sortBy || 'states.name';
-  const sortOrderStr = sortOrder || 'asc';
-
-  if (sortByStr === 'name') sortByStr = 'states.name';
-
-  if (sortByStr && !validColumns.includes(sortByStr as any)) {
-    return handleApiError(null, res, 'Invalid sort column.', 400);
-  }
-
-  if (sortOrderStr && !['asc', 'desc'].includes(sortOrderStr.toLowerCase())) {
-    return handleApiError(null, res, 'Invalid sort order.', 400);
-  }
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
 
   try {
-    if (all === 'true') {
-      const states = db
-        .prepare(
-          `SELECT states.id, states.name, states.abbr, states.country_id, states.last_visited,
-                  countries.name as country_name
-           FROM states
-           JOIN countries ON states.country_id = countries.id
-           ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`
-        )
-        .all();
+    const result = stateService.getStates({
+      page: pageNum,
+      limit: limitNum,
+      all: all === 'true',
+      sortBy: sortBy || 'states.name',
+      sortOrder: sortOrder || 'asc',
+    });
 
-      return res.status(200).json({ total: states.length, states });
-    }
-
-    const pageNum = Number(page);
-    const limitNum = Number(limit);
-    const offset = (pageNum - 1) * limitNum;
-
-    const total = (db.prepare('SELECT COUNT(*) AS count FROM states').get() as CountRow)
-      .count as number;
-
-    const states = db
-      .prepare(
-        `SELECT states.id, states.name, states.abbr, states.country_id, states.last_visited,
-                countries.name as country_name
-         FROM states
-         JOIN countries ON states.country_id = countries.id
-         ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
-         LIMIT ? OFFSET ?`
-      )
-      .all(limitNum, offset);
-
-    return res.status(200).json({ total, states, page: pageNum, limit: limitNum });
+    return res.status(200).json(result);
   } catch (error: unknown) {
-    return handleApiError(toError(error), res, 'Failed to fetch states.', 500);
+    return handleApiError(toError(error), res, 'Failed to fetch states.', error instanceof Error && error.message.includes('Invalid') ? 400 : 500);
   }
 });
 
@@ -88,15 +46,16 @@ router.post('/api/states', (req: Request, res: Response) => {
   }
 
   try {
-    const result = db
-      .prepare(
-        'INSERT INTO states (name, abbr, country_id, last_visited) VALUES (?, ?, ?, ?)'
-      )
-      .run(name, abbr || null, country_id, last_visited);
+    const result = stateService.createState({
+      name,
+      abbr,
+      country_id,
+      last_visited,
+    });
 
     return res.status(201).json({
       message: 'State created successfully.',
-      id: result.lastInsertRowid,
+      id: result.id,
     });
   } catch (error: unknown) {
     return handleApiError(toError(error), res, 'Failed to create state.', 500);
@@ -120,15 +79,7 @@ router.get('/api/states/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const state = db
-      .prepare(
-        `SELECT states.id, states.name, states.abbr, states.country_id, states.last_visited,
-                countries.name as country_name
-         FROM states
-         JOIN countries ON states.country_id = countries.id
-         WHERE states.id = ?`
-      )
-      .get(id);
+    const state = stateService.getStateById(id);
 
     if (!state) {
       return res.status(404).json({ error: 'State not found.' });
@@ -154,13 +105,14 @@ router.put('/api/states/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = db
-      .prepare(
-        'UPDATE states SET name = ?, abbr = ?, country_id = ?, last_visited = ? WHERE id = ?'
-      )
-      .run(name, abbr || null, country_id, last_visited, id);
+    const result = stateService.updateState(id, {
+      name,
+      abbr,
+      country_id,
+      last_visited,
+    });
 
-    if (result.changes === 0) {
+    if (!result.success) {
       return res.status(404).json({ error: 'State not found.' });
     }
 
@@ -178,9 +130,9 @@ router.delete('/api/states/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = db.prepare('DELETE FROM states WHERE id = ?').run(id);
+    const result = stateService.deleteState(id);
 
-    if (result.changes === 0) {
+    if (!result.success) {
       return res.status(404).json({ error: 'State not found.' });
     }
 

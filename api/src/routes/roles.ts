@@ -1,32 +1,35 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../db';
+import { roleService } from '../services/roleService';
 import { handleApiError } from '../utils/errorHandler';
 
 const router = Router();
 
 /**
- * /api/roles
+ * GET /api/roles
  */
 router.get('/api/roles', (_req: Request, res: Response) => {
   try {
-    const roles = db.prepare(`SELECT * FROM roles`).all();
-    return res.status(200).json(roles);
+    const result = roleService.getAllRoles();
+    return res.status(200).json(result.roles);
   } catch (err: unknown) {
     return handleApiError(err, res, 'Failed to fetch roles', 500);
   }
 });
 
+/**
+ * POST /api/roles
+ */
 router.post('/api/roles', (req: Request, res: Response) => {
   const { name } = req.body;
 
-  if (!name) {
-    return res.status(400).json({ error: 'Role name is required' });
-  }
-
   try {
-    const result = db.prepare(`INSERT INTO roles (name) VALUES (?)`).run(name);
-    return res.status(201).json({ id: result.lastInsertRowid });
+    const result = roleService.createRole(name);
+    return res.status(201).json({ id: result.id });
   } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Role creation failed';
+    if (message.includes('required')) {
+      return res.status(400).json({ error: message });
+    }
     return handleApiError(err, res, 'Role creation failed');
   }
 });
@@ -37,7 +40,7 @@ router.all('/api/roles', (_req: Request, res: Response) => {
 });
 
 /**
- * /api/roles/:id
+ * GET /api/roles/:id
  */
 router.get('/api/roles/:id', (req: Request, res: Response) => {
   const { id } = req.params;
@@ -47,7 +50,7 @@ router.get('/api/roles/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const role = db.prepare(`SELECT * FROM roles WHERE id = ?`).get(id);
+    const role = roleService.getRoleById(id);
 
     if (!role) {
       return res.status(404).json({ error: 'Role not found' });
@@ -59,6 +62,9 @@ router.get('/api/roles/:id', (req: Request, res: Response) => {
   }
 });
 
+/**
+ * PUT /api/roles/:id
+ */
 router.put('/api/roles/:id', (req: Request, res: Response) => {
   const { id } = req.params;
   const { name } = req.body;
@@ -68,17 +74,9 @@ router.put('/api/roles/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = db
-      .prepare(
-        `
-        UPDATE roles
-        SET name = ?
-        WHERE id = ?
-      `
-      )
-      .run(name, id);
+    const result = roleService.updateRole(id, name);
 
-    if (result.changes === 0) {
+    if (!result.success) {
       return res
         .status(404)
         .json({ error: 'Role not found or no changes made' });
@@ -90,6 +88,9 @@ router.put('/api/roles/:id', (req: Request, res: Response) => {
   }
 });
 
+/**
+ * DELETE /api/roles/:id
+ */
 router.delete('/api/roles/:id', (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -98,9 +99,9 @@ router.delete('/api/roles/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = db.prepare(`DELETE FROM roles WHERE id = ?`).run(id);
+    const result = roleService.deleteRole(id);
 
-    if (result.changes === 0) {
+    if (!result.success) {
       return res.status(404).json({ error: 'Role not found' });
     }
 

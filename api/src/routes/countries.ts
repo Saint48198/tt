@@ -1,17 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../db';
+import { countryService } from '../services/countryService';
 
 const router = Router();
 
-const validColumns = [
-  'name',
-  'abbreviation',
-  'lat',
-  'lng',
-  'slug',
-  'last_visited',
-  'geo_map_id',
-];
 
 // GET /api/countries
 router.get('/api/countries', (req: Request, res: Response) => {
@@ -33,51 +24,20 @@ router.get('/api/countries', (req: Request, res: Response) => {
   const rawSortOrder = Array.isArray(sortOrder) ? sortOrder?.[0] : sortOrder;
   const sortOrderStr = (rawSortOrder ?? 'asc').toString().toLowerCase();
 
-  if (!validColumns.includes(sortByStr)) {
-    return res.status(400).json({ error: 'Invalid sort column.' });
-  }
-
-  if (!['asc', 'desc'].includes(sortOrderStr)) {
-    return res.status(400).json({ error: 'Invalid sort order.' });
-  }
-
   try {
-    if (all === 'true') {
-      const countries = db
-        .prepare(
-          `SELECT * FROM countries ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`
-        )
-        .all();
-
-      return res.status(200).json({
-        total: countries.length,
-        countries,
-      });
-    }
-
-    const offset = (pageNum - 1) * limitNum;
-
-    const totalRow = db
-      .prepare('SELECT COUNT(*) AS count FROM countries')
-      .get() as { count: number };
-
-    const countries = db
-      .prepare(
-        `SELECT * FROM countries
-         ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
-         LIMIT ? OFFSET ?`
-      )
-      .all(limitNum, offset);
-
-    return res.status(200).json({
-      total: totalRow.count,
-      countries,
+    const result = countryService.getCountries({
       page: pageNum,
       limit: limitNum,
+      all: all === 'true',
+      sortBy: sortByStr,
+      sortOrder: sortOrderStr,
     });
+
+    return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch countries:', error);
-    return res.status(500).json({ error: 'Failed to fetch countries.' });
+    const message = error instanceof Error ? error.message : 'Failed to fetch countries.';
+    return res.status(message.includes('Invalid') ? 400 : 500).json({ error: message });
   }
 });
 
@@ -91,15 +51,17 @@ router.post('/api/countries', (req: Request, res: Response) => {
   }
 
   try {
-    const result = db
-      .prepare(
-        `INSERT INTO countries
-         (name, abbreviation, lat, lng, slug, last_visited, geo_map_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
-      )
-      .run(name, abbreviation, lat, lng, slug, last_visited, geo_map_id);
+    const result = countryService.createCountry({
+      name,
+      abbreviation,
+      lat,
+      lng,
+      slug,
+      last_visited,
+      geo_map_id,
+    });
 
-    return res.status(201).json({ id: result.lastInsertRowid });
+    return res.status(201).json({ id: result.id });
   } catch (error) {
     console.error('Failed to create country:', error);
     return res.status(500).json({ error: 'Failed to create country.' });
@@ -111,7 +73,7 @@ router.get('/api/countries/:id', (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const country = db.prepare('SELECT * FROM countries WHERE id = ?').get(id);
+    const country = countryService.getCountryById(id);
 
     if (!country) {
       return res.status(404).json({ message: 'Country not found' });
@@ -131,11 +93,15 @@ router.put('/api/countries/:id', (req: Request, res: Response) => {
     req.body;
 
   try {
-    const result = db
-      .prepare(
-        'UPDATE countries SET name = ?, abbreviation = ?, lat = ?, lng = ?, slug = ?, last_visited = ?, geo_map_id = ? WHERE id = ?'
-      )
-      .run(name, abbreviation, lat, lng, slug, last_visited, geo_map_id, id);
+    const result = countryService.updateCountry(id, {
+      name,
+      abbreviation,
+      lat,
+      lng,
+      slug,
+      last_visited,
+      geo_map_id,
+    });
 
     return res.status(200).json({ changes: result.changes });
   } catch (error) {
@@ -149,7 +115,7 @@ router.delete('/api/countries/:id', (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const result = db.prepare('DELETE FROM countries WHERE id = ?').run(id);
+    const result = countryService.deleteCountry(id);
     return res.status(200).json({ changes: result.changes });
   } catch (error) {
     console.error('Failed to delete country:', error);

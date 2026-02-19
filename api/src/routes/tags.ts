@@ -1,15 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../db';
+import { tagService } from '../services/tagService';
 
 const router = Router();
-
-// Ensure table exists (same behavior as Next.js file-level exec)
-db.exec(`
-  CREATE TABLE IF NOT EXISTS tags (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE
-  )
-`);
 
 // GET /api/tags?query=...
 router.get('/api/tags', (req: Request, res: Response) => {
@@ -17,25 +9,12 @@ router.get('/api/tags', (req: Request, res: Response) => {
     const rawQuery = req.query.query;
     const query = Array.isArray(rawQuery) ? rawQuery[0] : rawQuery;
 
-    if (!query || typeof query !== 'string') {
-      return res.status(400).json({ error: 'Invalid query parameter' });
-    }
-
-    // Convert wildcard query to regex (* -> .* , ? -> .), case-insensitive
-    const regexPattern = query
-      .replace(/\*/g, '.*')
-      .replace(/\?/g, '.');
-
-    const regex = new RegExp(regexPattern, 'i');
-
-    const rows = db.prepare('SELECT name FROM tags').all() as { name: string }[];
-    const allTags = rows.map((row) => row.name);
-    const filteredTags = allTags.filter((tag) => regex.test(tag));
-
-    return res.status(200).json({ tags: filteredTags });
+    const result = tagService.searchTags(query as string);
+    return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch tags:', error);
-    return res.status(500).json({ error: 'Failed to fetch tags' });
+    const message = error instanceof Error ? error.message : 'Failed to fetch tags';
+    return res.status(error instanceof Error && message.includes('Invalid') ? 400 : 500).json({ error: message });
   }
 });
 
@@ -44,22 +23,52 @@ router.post('/api/tags', (req: Request, res: Response) => {
   try {
     const { tags } = req.body;
 
-    if (!Array.isArray(tags) || tags.length === 0) {
-      return res.status(400).json({ error: 'Invalid tags data' });
-    }
-
-    const insertStmt = db.prepare('INSERT OR IGNORE INTO tags (name) VALUES (?)');
-
-    const insertTransaction = db.transaction((items: string[]) => {
-      items.forEach((tag) => insertStmt.run(tag));
-    });
-
-    insertTransaction(tags);
-
+    tagService.addTags(tags);
     return res.status(200).json({ message: 'Tags added successfully' });
   } catch (error) {
     console.error('Failed to add tags:', error);
-    return res.status(500).json({ error: 'Failed to add tags' });
+    const message = error instanceof Error ? error.message : 'Failed to add tags';
+    return res.status(error instanceof Error && message.includes('Invalid') ? 400 : 500).json({ error: message });
+  }
+});
+
+// POST /api/tags/sync
+router.post('/api/tags/sync', async (_req: Request, res: Response) => {
+  try {
+    const result = await tagService.syncTagsFromCloudinary();
+
+    return res.status(200).json({
+      message: 'Tags synced successfully',
+      count: result.count,
+    });
+  } catch (error) {
+    console.error('Failed to sync tags from Cloudinary:', error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch and store tags';
+    const details = error instanceof Error ? error.message : 'Unknown error';
+
+    return res.status(500).json({
+      error: message,
+      details,
+    });
+  }
+});
+
+// POST /api/tags/suggest
+router.post('/api/tags/suggest', async (req: Request, res: Response) => {
+  try {
+    const { imageBase64 } = req.body || {};
+
+    const result = await tagService.suggestTags(imageBase64);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Failed to suggest tags:', error);
+    const message = error instanceof Error ? error.message : 'Server error';
+
+    if (message.includes('Missing')) {
+      return res.status(400).json({ error: message });
+    }
+
+    return res.status(500).json({ error: message });
   }
 });
 

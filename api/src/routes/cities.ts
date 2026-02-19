@@ -1,15 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../db';
+import { cityService } from '../services/cityService';
 
 const router = Router();
 
-const validColumns = [
-  'cities.name',
-  'lat',
-  'lng',
-  'country_name',
-  'state_name',
-];
 
 // GET /api/cities
 router.get('/api/cities', (req: Request, res: Response) => {
@@ -25,75 +18,29 @@ router.get('/api/cities', (req: Request, res: Response) => {
       ? Number(Array.isArray(limit) ? limit[0] : limit)
       : 25;
 
-  const offset = (pageNum - 1) * limitNum;
-
   const rawSortBy = Array.isArray(sortBy) ? sortBy?.[0] : sortBy;
-  let sortByStr = (rawSortBy ?? 'cities.name').toString();
+  const sortByStr = (rawSortBy ?? 'cities.name').toString();
 
   const rawSort = Array.isArray(sort) ? sort?.[0] : sort;
   const sortOrderStr = (rawSort ?? 'asc').toString().toLowerCase();
 
-  if (sortByStr === 'name') {
-    sortByStr = 'cities.name';
-  }
-
-  if (sortByStr && !validColumns.includes(sortByStr)) {
-    return res.status(400).json({ error: 'Invalid sort column.' });
-  }
-
-  if (!['asc', 'desc'].includes(sortOrderStr)) {
-    return res.status(400).json({ error: 'Invalid sort order.' });
-  }
+  const rawCountryId = Array.isArray(country_id) ? country_id?.[0] : country_id;
+  const countryIdNum = rawCountryId !== undefined ? Number(rawCountryId) : undefined;
 
   try {
-    let query = `
-      SELECT 
-        cities.id, 
-        cities.name, 
-        cities.lat, 
-        cities.lng, 
-        cities.last_visited, 
-        countries.name AS country_name, 
-        states.name AS state_name
-      FROM cities
-      JOIN countries ON cities.country_id = countries.id
-      LEFT JOIN states ON cities.state_id = states.id
-    `;
-
-    const params: (string | number)[] = [];
-
-    const rawCountryId = Array.isArray(country_id) ? country_id?.[0] : country_id;
-    const countryId = rawCountryId !== undefined ? Number(rawCountryId) : undefined;
-
-    if (countryId !== undefined && !Number.isNaN(countryId)) {
-      query += ` WHERE cities.country_id = ?`;
-      params.push(countryId);
-    }
-
-    query += ` ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT ? OFFSET ?`;
-    params.push(limitNum, offset);
-
-    const cities = db.prepare(query).all(...params);
-
-    let countQuery = `SELECT COUNT(*) as total FROM cities`;
-    const countParams: (string | number)[] = [];
-
-    if (countryId !== undefined && !Number.isNaN(countryId)) {
-      countQuery += ` WHERE country_id = ?`;
-      countParams.push(countryId);
-    }
-
-    const totalRow = db.prepare(countQuery).get(...countParams) as { total: number };
-
-    return res.status(200).json({
-      cities,
-      total: totalRow.total,
+    const result = cityService.getCities({
+      country_id: countryIdNum,
       page: pageNum,
       limit: limitNum,
+      sortBy: sortByStr,
+      sort: sortOrderStr,
     });
+
+    return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch cities:', error);
-    return res.status(500).json({ error: 'Failed to fetch cities' });
+    const message = error instanceof Error ? error.message : 'Failed to fetch cities';
+    return res.status(message.includes('Invalid') ? 400 : 500).json({ error: message });
   }
 });
 
@@ -109,23 +56,19 @@ router.post('/api/cities', (req: Request, res: Response) => {
   }
 
   try {
-    const stmt = db.prepare(
-      'INSERT INTO cities (name, lat, lng, state_id, country_id, last_visited, wiki_term) VALUES (?, ?, ?, ?, ?, ?, ?)'
-    );
-
-    const result = stmt.run(
+    const result = cityService.createCity({
       name,
       lat,
       lng,
-      state_id || null,
+      state_id,
       country_id,
       last_visited,
-      wiki_term
-    );
+      wiki_term,
+    });
 
     return res.status(201).json({
       message: 'City added successfully.',
-      id: result.lastInsertRowid,
+      id: result.id,
     });
   } catch (error) {
     console.error('Failed to add city:', error);
@@ -138,20 +81,7 @@ router.get('/api/cities/:id', (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const city = db
-      .prepare(
-        `SELECT cities.id, cities.name, cities.lat, cities.lng, cities.last_visited,
-                cities.country_id AS country_id,
-                countries.name AS country_name,
-                cities.state_id AS state_id,
-                states.name AS state_name,
-                cities.wiki_term
-         FROM cities
-         LEFT JOIN countries ON cities.country_id = countries.id
-         LEFT JOIN states ON cities.state_id = states.id
-         WHERE cities.id = ?`
-      )
-      .get(id);
+    const city = cityService.getCityById(id);
 
     if (!city) {
       return res.status(404).json({ error: 'City not found.' });
@@ -177,22 +107,17 @@ router.put('/api/cities/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const stmt = db.prepare(
-      'UPDATE cities SET name = ?, lat = ?, lng = ?, state_id = ?, country_id = ?, last_visited = ?, wiki_term = ? WHERE id = ?'
-    );
-
-    const result = stmt.run(
+    const result = cityService.updateCity(id, {
       name,
       lat,
       lng,
-      state_id || null,
+      state_id,
       country_id,
       last_visited,
       wiki_term,
-      id
-    );
+    });
 
-    if (result.changes === 0) {
+    if (!result.success) {
       return res.status(404).json({ error: 'City not found.' });
     }
 
@@ -208,10 +133,9 @@ router.delete('/api/cities/:id', (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const stmt = db.prepare('DELETE FROM cities WHERE id = ?');
-    const result = stmt.run(id);
+    const result = cityService.deleteCity(id);
 
-    if (result.changes === 0) {
+    if (!result.success) {
       return res.status(404).json({ error: 'City not found.' });
     }
 
