@@ -1,0 +1,305 @@
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
+import { MatNativeDateModule, MAT_DATE_FORMATS } from '@angular/material/core';
+import { MapComponent, MapMarker } from '@shared/components';
+import { AttractionsService } from '../../services/attractions.service';
+import { CountriesService } from '../../services/countries.service';
+import { GeocodeService } from '../../services/geocode.service';
+import { InfoService, InfoResult } from '../../services/info.service';
+import { Attraction, Country } from '../../interfaces';
+
+const MONTH_YEAR_FORMATS = {
+  parse: { dateInput: 'MM/YYYY' },
+  display: {
+    dateInput: { year: 'numeric', month: '2-digit' } as Intl.DateTimeFormatOptions,
+    monthYearLabel: { year: 'numeric', month: 'short' } as Intl.DateTimeFormatOptions,
+    dateA11yLabel: { year: 'numeric', month: 'long' } as Intl.DateTimeFormatOptions,
+    monthYearA11yLabel: { year: 'numeric', month: 'long' } as Intl.DateTimeFormatOptions,
+  },
+};
+
+@Component({
+  selector: 'app-attraction-edit',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MapComponent,
+  ],
+  templateUrl: './attraction-edit.component.html',
+  styleUrl: './attraction-edit.component.scss',
+  providers: [{ provide: MAT_DATE_FORMATS, useValue: MONTH_YEAR_FORMATS }],
+})
+export class AttractionEditComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly attractionsService = inject(AttractionsService);
+  private readonly countriesService = inject(CountriesService);
+  private readonly geocodeService = inject(GeocodeService);
+  private readonly infoService = inject(InfoService);
+  private readonly snackBar = inject(MatSnackBar);
+
+  form!: FormGroup;
+  isEditMode = signal(false);
+  loading = signal(false);
+  saving = signal(false);
+  geocoding = signal(false);
+  loadingWiki = signal(false);
+  wikiInfo = signal<InfoResult | null>(null);
+  attractionId: number | null = null;
+  countries = signal<Country[]>([]);
+  mapMarkers = signal<MapMarker[]>([]);
+  mapCenter = signal<[number, number]>([39.8283, -98.5795]);
+  hasCoordinates = signal(false);
+
+  ngOnInit(): void {
+    this.initForm();
+    this.loadCountries();
+
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id && id !== 'new') {
+      this.isEditMode.set(true);
+      this.attractionId = +id;
+      this.loadAttraction(this.attractionId);
+    }
+
+    this.form.get('lat')?.valueChanges.subscribe(() => this.updateMapFromForm());
+    this.form.get('lng')?.valueChanges.subscribe(() => this.updateMapFromForm());
+  }
+
+  private initForm(): void {
+    this.form = this.fb.group({
+      name: ['', [Validators.required, Validators.maxLength(255)]],
+      country_id: [null, [Validators.required]],
+      lat: [null, [Validators.required]],
+      lng: [null, [Validators.required]],
+      is_unesco: [false],
+      is_national_park: [false],
+      last_visited: [null as Date | null],
+      wiki_term: ['', [Validators.maxLength(255)]],
+    });
+  }
+
+  private parseDate(value: string | undefined): Date | null {
+    if (!value) return null;
+    const parts = value.split('-');
+    if (parts.length >= 2) {
+      return new Date(+parts[0], +parts[1] - 1, 1);
+    }
+    return null;
+  }
+
+  private formatDate(value: Date | null): string | undefined {
+    if (!value || isNaN(value.getTime())) return undefined;
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  }
+
+  private loadCountries(): void {
+    this.countriesService.getAllCountries('name').subscribe({
+      next: (response) => {
+        this.countries.set(response.countries);
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || 'Failed to load countries',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+      },
+    });
+  }
+
+  private loadAttraction(id: number): void {
+    this.loading.set(true);
+    this.attractionsService.getAttraction(id).subscribe({
+      next: (attraction: Attraction) => {
+        this.form.patchValue({
+          name: attraction.name,
+          country_id: attraction.country_id,
+          lat: attraction.lat,
+          lng: attraction.lng,
+          is_unesco: attraction.is_unesco ?? false,
+          is_national_park: attraction.is_national_park ?? false,
+          last_visited: this.parseDate(attraction.last_visited),
+          wiki_term: attraction.wiki_term || '',
+        });
+        this.loading.set(false);
+        this.updateMapFromForm();
+        if (attraction.wiki_term) {
+          this.lookupWikiInfo();
+        }
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || 'Failed to load attraction',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+        this.loading.set(false);
+        this.router.navigate(['/attractions']);
+      },
+    });
+  }
+
+  private updateMapFromForm(): void {
+    const lat = this.form.get('lat')?.value;
+    const lng = this.form.get('lng')?.value;
+
+    if (lat != null && lng != null && lat !== '' && lng !== '') {
+      const latNum = +lat;
+      const lngNum = +lng;
+      if (!isNaN(latNum) && !isNaN(lngNum)) {
+        this.hasCoordinates.set(true);
+        this.mapCenter.set([latNum, lngNum]);
+        this.mapMarkers.set([
+          {
+            lat: latNum,
+            lng: lngNum,
+            title: this.form.get('name')?.value || 'Attraction',
+            popup: `<strong>${this.form.get('name')?.value || 'Attraction'}</strong><br/>Lat: ${latNum}, Lng: ${lngNum}`,
+          },
+        ]);
+        return;
+      }
+    }
+    this.hasCoordinates.set(false);
+    this.mapMarkers.set([]);
+  }
+
+  lookupCoordinates(): void {
+    const name = this.form.get('name')?.value?.trim();
+    if (!name) {
+      this.snackBar.open('Please enter an attraction name first', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const countryId = this.form.get('country_id')?.value;
+    const country = this.countries().find((c) => c.id === countryId);
+
+    this.geocoding.set(true);
+
+    const request = country
+      ? { place: `${name}, ${country.name}` }
+      : { place: name };
+
+    this.geocodeService.forwardGeocode(request).subscribe({
+      next: (result) => {
+        this.form.patchValue({ lat: result.lat, lng: result.lng });
+        this.snackBar.open(
+          `Coordinates found: ${result.lat}, ${result.lng}`,
+          'Close',
+          { duration: 3000 }
+        );
+        this.geocoding.set(false);
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || 'Failed to look up coordinates',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+        this.geocoding.set(false);
+      },
+    });
+  }
+
+  onMonthSelected(date: Date, datepicker: MatDatepicker<Date>): void {
+    this.form.get('last_visited')?.setValue(new Date(date.getFullYear(), date.getMonth(), 1));
+    datepicker.close();
+  }
+
+  lookupWikiInfo(): void {
+    const wikiTerm = this.form.get('wiki_term')?.value?.trim();
+    if (!wikiTerm) {
+      this.snackBar.open('Please enter a wiki term first', 'Close', { duration: 3000 });
+      return;
+    }
+
+    this.loadingWiki.set(true);
+    this.wikiInfo.set(null);
+    this.infoService.getInfo(wikiTerm).subscribe({
+      next: (result) => {
+        this.wikiInfo.set(result);
+        this.loadingWiki.set(false);
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.error || 'Failed to look up wiki info',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+        this.loadingWiki.set(false);
+      },
+    });
+  }
+
+  onSubmit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.saving.set(true);
+    const formValue = this.form.value;
+
+    const payload = {
+      name: formValue.name,
+      country_id: formValue.country_id,
+      lat: +formValue.lat,
+      lng: +formValue.lng,
+      is_unesco: formValue.is_unesco || false,
+      is_national_park: formValue.is_national_park || false,
+      last_visited: this.formatDate(formValue.last_visited),
+      wiki_term: formValue.wiki_term || undefined,
+    };
+
+    const request$ = this.isEditMode() && this.attractionId
+      ? this.attractionsService.updateAttraction(this.attractionId, payload)
+      : this.attractionsService.createAttraction(payload);
+
+    request$.subscribe({
+      next: () => {
+        this.snackBar.open(
+          `Attraction ${this.isEditMode() ? 'updated' : 'created'} successfully`,
+          'Close',
+          { duration: 3000 }
+        );
+        this.router.navigate(['/attractions']);
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || `Failed to ${this.isEditMode() ? 'update' : 'create'} attraction`,
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+        this.saving.set(false);
+      },
+    });
+  }
+}
+

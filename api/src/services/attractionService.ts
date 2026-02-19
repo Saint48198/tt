@@ -105,6 +105,8 @@ class AttractionService {
         attractions.lat,
         attractions.lng,
         attractions.wiki_term,
+        attractions.is_unesco,
+        attractions.is_national_park,
         countries.name AS country_name
       FROM attractions
       JOIN countries ON attractions.country_id = countries.id

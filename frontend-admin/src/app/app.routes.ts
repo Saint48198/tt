@@ -80,6 +80,18 @@ export const appRoutes: Route[] = [
     canActivate: [adminGuard],
   },
   {
+    path: 'attractions/new',
+    loadComponent: () =>
+      import('./pages/attraction-edit/attraction-edit.component').then((m) => m.AttractionEditComponent),
+    canActivate: [adminGuard],
+  },
+  {
+    path: 'attractions/:id',
+    loadComponent: () =>
+      import('./pages/attraction-edit/attraction-edit.component').then((m) => m.AttractionEditComponent),
+    canActivate: [adminGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },
