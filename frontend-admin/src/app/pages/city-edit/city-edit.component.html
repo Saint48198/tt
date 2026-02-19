@@ -1,0 +1,172 @@
+<div class="city-edit-page">
+  <div class="page-header">
+    <button mat-icon-button routerLink="/cities" aria-label="Back to Cities">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>{{ isEditMode() ? 'Edit City' : 'Add City' }}</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="city-form mat-elevation-z2">
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" placeholder="City name" />
+          @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+            <mat-error>Name is required</mat-error>
+          }
+          @if (form.get('name')?.hasError('maxlength')) {
+            <mat-error>Name must be 255 characters or less</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-col">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Country</mat-label>
+          <mat-select formControlName="country_id" placeholder="Select a country">
+            @for (country of countries(); track country.id) {
+              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('country_id')?.hasError('required') && form.get('country_id')?.touched) {
+            <mat-error>Country is required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>State</mat-label>
+          <mat-select formControlName="state_id" placeholder="Select a state (optional)">
+            <mat-option [value]="null">None</mat-option>
+            @for (state of filteredStates; track state.id) {
+              <mat-option [value]="state.id">{{ state.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row-with-action">
+        <div class="form-row two-col">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Latitude</mat-label>
+            <input matInput type="number" formControlName="lat" placeholder="e.g. 37.0902" />
+            @if (form.get('lat')?.hasError('required') && form.get('lat')?.touched) {
+              <mat-error>Latitude is required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Longitude</mat-label>
+            <input matInput type="number" formControlName="lng" placeholder="e.g. -95.7129" />
+            @if (form.get('lng')?.hasError('required') && form.get('lng')?.touched) {
+              <mat-error>Longitude is required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+        <button
+          mat-stroked-button
+          type="button"
+          class="geocode-btn"
+          (click)="lookupCoordinates()"
+          [disabled]="geocoding() || !form.get('name')?.value"
+        >
+          @if (geocoding()) {
+            <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+          } @else {
+            <mat-icon>my_location</mat-icon>
+          }
+          Lookup
+        </button>
+      </div>
+
+      <div class="form-row two-col">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Last Visited</mat-label>
+          <input matInput [matDatepicker]="lastVisitedPicker" formControlName="last_visited" placeholder="YYYY-MM" />
+          <mat-datepicker-toggle matIconSuffix [for]="lastVisitedPicker"></mat-datepicker-toggle>
+          <mat-datepicker #lastVisitedPicker startView="multi-year" (monthSelected)="onMonthSelected($event, lastVisitedPicker)"></mat-datepicker>
+        </mat-form-field>
+
+        <div class="wiki-field-with-action">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Wiki Term</mat-label>
+            <input matInput formControlName="wiki_term" placeholder="Wikipedia search term" />
+            @if (form.get('wiki_term')?.hasError('maxlength')) {
+              <mat-error>Wiki term must be 255 characters or less</mat-error>
+            }
+          </mat-form-field>
+          <button
+            mat-stroked-button
+            type="button"
+            class="wiki-lookup-btn"
+            (click)="lookupWikiInfo()"
+            [disabled]="loadingWiki() || !form.get('wiki_term')?.value"
+          >
+            @if (loadingWiki()) {
+              <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+            } @else {
+              <mat-icon>search</mat-icon>
+            }
+            Lookup
+          </button>
+        </div>
+      </div>
+
+      @if (loadingWiki()) {
+        <div class="wiki-loading">
+          <mat-spinner diameter="24"></mat-spinner>
+        </div>
+      }
+
+      @if (wikiInfo()) {
+        <div class="wiki-info">
+          <h3>{{ wikiInfo()!.title }}</h3>
+          <p>{{ wikiInfo()!.intro }}</p>
+          <a [href]="wikiInfo()!.url" target="_blank" rel="noopener noreferrer">
+            Read more on Wikipedia
+            <mat-icon class="wiki-link-icon">open_in_new</mat-icon>
+          </a>
+        </div>
+      }
+
+    </form>
+
+    @if (hasCoordinates()) {
+      <div class="map-section mat-elevation-z2">
+        <h2>
+          <mat-icon>map</mat-icon>
+          Location
+        </h2>
+        <lib-map
+          [markers]="mapMarkers()"
+          [center]="mapCenter()"
+          [zoom]="10"
+          height="400px"
+          [fitBounds]="false"
+          [showAttribution]="true">
+        </lib-map>
+      </div>
+    }
+
+    <div class="form-actions">
+      <button mat-stroked-button type="button" routerLink="/cities">Cancel</button>
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="saving()"
+      >
+        @if (saving()) {
+          <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+        }
+        {{ isEditMode() ? 'Update City' : 'Create City' }}
+      </button>
+    </div>
+  }
+</div>
+

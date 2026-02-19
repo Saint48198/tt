@@ -1,0 +1,191 @@
+.city-edit-page {
+  padding: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1f2937;
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.city-form {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.form-row {
+  margin-bottom: 0.5rem;
+
+  &.two-col {
+    display: flex;
+    gap: 1rem;
+
+    .form-field {
+      flex: 1;
+    }
+  }
+}
+
+.form-field {
+  &.full-width {
+    width: 100%;
+  }
+}
+
+.form-row-with-action {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+
+  .form-row {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+
+.geocode-btn {
+  margin-top: 0.35rem;
+  white-space: nowrap;
+  height: 56px;
+
+  mat-icon {
+    margin-right: 0.25rem;
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+  }
+}
+
+.wiki-field-with-action {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  .form-field {
+    flex: 1;
+  }
+}
+
+.wiki-lookup-btn {
+  margin-top: 0.35rem;
+  white-space: nowrap;
+  height: 56px;
+
+  mat-icon {
+    margin-right: 0.25rem;
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+  }
+}
+
+.wiki-loading {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.wiki-info {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+
+  h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    color: #1f2937;
+  }
+
+  p {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    color: #4b5563;
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    color: #2563eb;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    .wiki-link-icon {
+      font-size: 16px;
+      height: 16px;
+      width: 16px;
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.button-spinner {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+.map-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  overflow: hidden;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+    font-size: 1.125rem;
+    color: #1f2937;
+
+    mat-icon {
+      color: #6b7280;
+    }
+  }
+
+  lib-map {
+    display: block;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+}
+
+// Snackbar styles
+.error-snackbar {
+  --mdc-snackbar-container-color: #dc2626;
+  --mdc-snackbar-supporting-text-color: white;
+}
+

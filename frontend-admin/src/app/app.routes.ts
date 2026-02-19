@@ -62,6 +62,18 @@ export const appRoutes: Route[] = [
     canActivate: [adminGuard],
   },
   {
+    path: 'cities/new',
+    loadComponent: () =>
+      import('./pages/city-edit/city-edit.component').then((m) => m.CityEditComponent),
+    canActivate: [adminGuard],
+  },
+  {
+    path: 'cities/:id',
+    loadComponent: () =>
+      import('./pages/city-edit/city-edit.component').then((m) => m.CityEditComponent),
+    canActivate: [adminGuard],
+  },
+  {
     path: 'attractions',
     loadComponent: () =>
       import('./pages/attractions-list/attractions-list.component').then((m) => m.AttractionsListComponent),
