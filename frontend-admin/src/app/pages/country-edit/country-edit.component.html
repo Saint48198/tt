@@ -1,0 +1,88 @@
+<div class="country-edit-page">
+  <div class="page-header">
+    <button mat-icon-button routerLink="/countries" aria-label="Back to Countries">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>{{ isEditMode() ? 'Edit Country' : 'Add Country' }}</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="country-form mat-elevation-z2">
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" placeholder="Country name" />
+          @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+            <mat-error>Name is required</mat-error>
+          }
+          @if (form.get('name')?.hasError('maxlength')) {
+            <mat-error>Name must be 255 characters or less</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-col">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Abbreviation</mat-label>
+          <input matInput formControlName="abbreviation" placeholder="e.g. US" />
+          @if (form.get('abbreviation')?.hasError('maxlength')) {
+            <mat-error>Abbreviation must be 10 characters or less</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Slug</mat-label>
+          <input matInput formControlName="slug" placeholder="e.g. united-states" />
+          @if (form.get('slug')?.hasError('maxlength')) {
+            <mat-error>Slug must be 255 characters or less</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-col">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Latitude</mat-label>
+          <input matInput type="number" formControlName="lat" placeholder="e.g. 37.0902" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Longitude</mat-label>
+          <input matInput type="number" formControlName="lng" placeholder="e.g. -95.7129" />
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-col">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Last Visited</mat-label>
+          <input matInput formControlName="last_visited" placeholder="e.g. 2025-06-15" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Geo Map ID</mat-label>
+          <input matInput formControlName="geo_map_id" placeholder="Geo Map ID" />
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button mat-stroked-button type="button" routerLink="/countries">Cancel</button>
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="saving()"
+        >
+          @if (saving()) {
+            <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+          }
+          {{ isEditMode() ? 'Update Country' : 'Create Country' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>
+
+
