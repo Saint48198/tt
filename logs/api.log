@@ -48,3 +48,223 @@ Listening on port 3001
 [1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
 [1m[31m[39m[22m
 Listening on port 3001
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/78189aac-45b5-4133-8a7c-29a1fcab6478[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/78189aac-45b5-4133-8a7c-29a1fcab6478[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/a138fbc1-fa8b-4fd5-a37a-9de12a054eac[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/a138fbc1-fa8b-4fd5-a37a-9de12a054eac[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/3794c496-df6a-4f91-a89b-ba9aea7f88a7[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/3794c496-df6a-4f91-a89b-ba9aea7f88a7[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[1m[31mFailed to add photo: SqliteError: FOREIGN KEY constraint failed[39m[22m
+[1m[31m    at PhotoService.addPhotoToDb [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:378:8[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/photos.ts:306:33[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:149:13[90m)[39m[31m[39m[22m
+[1m[31m    at Route.dispatch [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:119:3[90m)[39m[31m[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:284:15[39m[22m
+[1m[31m    at router.process_params [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m[31m[39m[22m
+[1m[31m    at router.handle [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:175:3[90m)[39m[31m {[39m[22m
+[1m[31m  code: [32m'SQLITE_CONSTRAINT_FOREIGNKEY'[39m[31m[39m[22m
+[1m[31m}[39m[22m
+[1m[31m[39m[22m
+[1m[31mFailed to add photo: SqliteError: FOREIGN KEY constraint failed[39m[22m
+[1m[31m    at PhotoService.addPhotoToDb [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:378:8[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/photos.ts:306:33[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:149:13[90m)[39m[31m[39m[22m
+[1m[31m    at Route.dispatch [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:119:3[90m)[39m[31m[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:284:15[39m[22m
+[1m[31m    at router.process_params [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m[31m[39m[22m
+[1m[31m    at router.handle [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:175:3[90m)[39m[31m {[39m[22m
+[1m[31m  code: [32m'SQLITE_CONSTRAINT_FOREIGNKEY'[39m[31m[39m[22m
+[1m[31m}[39m[22m
+[1m[31m[39m[22m
+[1m[31mFailed to add photo: SqliteError: FOREIGN KEY constraint failed[39m[22m
+[1m[31m    at PhotoService.addPhotoToDb [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:378:8[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/photos.ts:306:33[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:149:13[90m)[39m[31m[39m[22m
+[1m[31m    at Route.dispatch [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:119:3[90m)[39m[31m[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:284:15[39m[22m
+[1m[31m    at router.process_params [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m[31m[39m[22m
+[1m[31m    at router.handle [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:175:3[90m)[39m[31m {[39m[22m
+[1m[31m  code: [32m'SQLITE_CONSTRAINT_FOREIGNKEY'[39m[31m[39m[22m
+[1m[31m}[39m[22m
+[1m[31m[39m[22m
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/6bb68001-ccfe-4f8d-8e06-d9a6aeeb394d[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/6bb68001-ccfe-4f8d-8e06-d9a6aeeb394d[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[1m[31mFailed to add photo: SqliteError: database is locked[39m[22m
+[1m[31m    at PhotoService.addPhotoToDb [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:382:10[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/photos.ts:306:33[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:149:13[90m)[39m[31m[39m[22m
+[1m[31m    at Route.dispatch [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:119:3[90m)[39m[31m[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:284:15[39m[22m
+[1m[31m    at router.process_params [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m[31m[39m[22m
+[1m[31m    at router.handle [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:175:3[90m)[39m[31m {[39m[22m
+[1m[31m  code: [32m'SQLITE_BUSY'[39m[31m[39m[22m
+[1m[31m}[39m[22m
+[1m[31m[39m[22m
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/825cbf8b-74c3-4f52-b293-46e903a15cae[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/825cbf8b-74c3-4f52-b293-46e903a15cae[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[1m[31mFailed to add photo: SqliteError: FOREIGN KEY constraint failed[39m[22m
+[1m[31m    at PhotoService.addPhotoToDb [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:378:8[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/photos.ts:306:33[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:149:13[90m)[39m[31m[39m[22m
+[1m[31m    at Route.dispatch [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:119:3[90m)[39m[31m[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:284:15[39m[22m
+[1m[31m    at router.process_params [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m[31m[39m[22m
+[1m[31m    at router.handle [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:175:3[90m)[39m[31m {[39m[22m
+[1m[31m  code: [32m'SQLITE_CONSTRAINT_FOREIGNKEY'[39m[31m[39m[22m
+[1m[31m}[39m[22m
+[1m[31m[39m[22m
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/32eeb19d-b951-4296-b18e-0e2f52c50ee8[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/32eeb19d-b951-4296-b18e-0e2f52c50ee8[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/81eb8bb7-294b-42f4-b61b-5b20b72030ad[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/81eb8bb7-294b-42f4-b61b-5b20b72030ad[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/63d979b4-564e-421b-abaa-77caad4a5eea[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/63d979b4-564e-421b-abaa-77caad4a5eea[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[1m[31mFailed to add photo: SqliteError: database is locked[39m[22m
+[1m[31m    at PhotoService.addPhotoToDb [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:386:8[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/photos.ts:306:33[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:149:13[90m)[39m[31m[39m[22m
+[1m[31m    at Route.dispatch [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:119:3[90m)[39m[31m[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:284:15[39m[22m
+[1m[31m    at router.process_params [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m[31m[39m[22m
+[1m[31m    at router.handle [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:175:3[90m)[39m[31m {[39m[22m
+[1m[31m  code: [32m'SQLITE_BUSY'[39m[31m[39m[22m
+[1m[31m}[39m[22m
+[1m[31m[39m[22m
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/9ae995b7-abad-4445-a0d4-7864de09db7a[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/9ae995b7-abad-4445-a0d4-7864de09db7a[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+[1m[31m[39m[22m
+[1m[31m[39m[22m
+[1m[31m/Users/scottiedaniels/Web/tt/node_modules/better-sqlite3/lib/methods/pragma.js:11[39m[22m
+[1m[31m	return simple ? stmt.pluck().get() : stmt.all();[39m[22m
+[1m[31m                                           ^[39m[22m
+[1m[31m[39m[22m
+[1m[31mSqliteError: database is locked[39m[22m
+[1m[31m    at Database.pragma (/Users/scottiedaniels/Web/tt/node_modules/better-sqlite3/lib/methods/pragma.js:11:44)[39m[22m
+[1m[31m    at Object.<anonymous> (/Users/scottiedaniels/Web/tt/api/src/db.ts:47:4)[39m[22m
+[1m[31m    at Module._compile (node:internal/modules/cjs/loader:1761:14)[39m[22m
+[1m[31m    at Object..js (node:internal/modules/cjs/loader:1893:10)[39m[22m
+[1m[31m    at Module.load (node:internal/modules/cjs/loader:1481:32)[39m[22m
+[1m[31m    at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12)[39m[22m
+[1m[31m    at Module._load (/Users/scottiedaniels/Web/tt/node_modules/@nx/js/src/executors/node/node-with-require-overrides.js:18:31)[39m[22m
+[1m[31m    at TracingChannel.traceSync (node:diagnostics_channel:328:14)[39m[22m
+[1m[31m    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)[39m[22m
+[1m[31m    at Module.require (node:internal/modules/cjs/loader:1504:12)[39m[22m
+[1m[31m[39m[22m
+[7m[1m[36m NX [39m[22m[27m [1mProcess exited with code 1, waiting for changes to restart...[22m
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/e817e27f-0cd3-4db0-bf1c-d746c1f422ee[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/e817e27f-0cd3-4db0-bf1c-d746c1f422ee[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+[1m[31m[39m[22m
+[1m[31m[39m[22m
+[1m[31m/Users/scottiedaniels/Web/tt/node_modules/better-sqlite3/lib/methods/pragma.js:11[39m[22m
+[1m[31m	return simple ? stmt.pluck().get() : stmt.all();[39m[22m
+[1m[31m                                           ^[39m[22m
+[1m[31m[39m[22m
+[1m[31mSqliteError: database is locked[39m[22m
+[1m[31m    at Database.pragma (/Users/scottiedaniels/Web/tt/node_modules/better-sqlite3/lib/methods/pragma.js:11:44)[39m[22m
+[1m[31m    at Object.<anonymous> (/Users/scottiedaniels/Web/tt/api/src/db.ts:47:4)[39m[22m
+[1m[31m    at Module._compile (node:internal/modules/cjs/loader:1761:14)[39m[22m
+[1m[31m    at Object..js (node:internal/modules/cjs/loader:1893:10)[39m[22m
+[1m[31m    at Module.load (node:internal/modules/cjs/loader:1481:32)[39m[22m
+[1m[31m    at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12)[39m[22m
+[1m[31m    at Module._load (/Users/scottiedaniels/Web/tt/node_modules/@nx/js/src/executors/node/node-with-require-overrides.js:18:31)[39m[22m
+[1m[31m    at TracingChannel.traceSync (node:diagnostics_channel:328:14)[39m[22m
+[1m[31m    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)[39m[22m
+[1m[31m    at Module.require (node:internal/modules/cjs/loader:1504:12)[39m[22m
+[1m[31m[39m[22m
+[7m[1m[36m NX [39m[22m[27m [1mProcess exited with code 1, waiting for changes to restart...[22m
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/89ddb6c1-203a-4095-8fad-47347c8c7360[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/89ddb6c1-203a-4095-8fad-47347c8c7360[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+[1m[31m[39m[22m
+[1m[31m[39m[22m
+[1m[31m/Users/scottiedaniels/Web/tt/node_modules/better-sqlite3/lib/methods/pragma.js:11[39m[22m
+[1m[31m	return simple ? stmt.pluck().get() : stmt.all();[39m[22m
+[1m[31m                                           ^[39m[22m
+[1m[31mSqliteError: database is locked[39m[22m
+[1m[31m    at Database.pragma (/Users/scottiedaniels/Web/tt/node_modules/better-sqlite3/lib/methods/pragma.js:11:44)[39m[22m
+[1m[31m    at Object.<anonymous> (/Users/scottiedaniels/Web/tt/api/src/db.ts:47:4)[39m[22m
+[1m[31m    at Module._compile (node:internal/modules/cjs/loader:1761:14)[39m[22m
+[1m[31m    at Object..js (node:internal/modules/cjs/loader:1893:10)[39m[22m
+[1m[31m    at Module.load (node:internal/modules/cjs/loader:1481:32)[39m[22m
+[1m[31m    at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12)[39m[22m
+[1m[31m    at Module._load (/Users/scottiedaniels/Web/tt/node_modules/@nx/js/src/executors/node/node-with-require-overrides.js:18:31)[39m[22m
+[1m[31m    at TracingChannel.traceSync (node:diagnostics_channel:328:14)[39m[22m
+[1m[31m    at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)[39m[22m
+[1m[31m    at Module.require (node:internal/modules/cjs/loader:1504:12)[39m[22m
+[1m[31m[39m[22m
+[7m[1m[36m NX [39m[22m[27m [1mProcess exited with code 1, waiting for changes to restart...[22m
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/67df886a-b8a9-4a93-a8fa-ab5aff8b3818[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/67df886a-b8a9-4a93-a8fa-ab5aff8b3818[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+[1m[31mCould not set DB pragmas (database may be locked by another process): database is locked[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mWatch error: Daemon closed the connection[39m[22m
+Task "api:serve:development" is continuous but exited with code 1
+
+
+
+ NX   Successfully ran target serve for project api and 2 tasks it depends on
+
+

@@ -19,6 +19,10 @@ import {
   PhotoEditDialogComponent,
   PhotoEditDialogResult,
 } from '../../components/photo-edit-dialog/photo-edit-dialog.component';
+import {
+  PhotoUploadDialogComponent,
+  PhotoUploadDialogResult,
+} from '../../components/photo-upload-dialog/photo-upload-dialog.component';
 
 @Component({
   selector: 'app-photos-list',
@@ -172,6 +176,21 @@ export class PhotosListComponent implements OnInit {
           this.paginator?.pageIndex ? this.paginator.pageIndex + 1 : 1,
           this.paginator?.pageSize || 50
         );
+      }
+    });
+  }
+
+  openUploadDialog(): void {
+    const dialogRef = this.dialog.open(PhotoUploadDialogComponent, {
+      width: '600px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      disableClose: false,
+    });
+
+    dialogRef.afterClosed().subscribe((result: PhotoUploadDialogResult | undefined) => {
+      if (result?.uploaded) {
+        this.loadPhotos();
       }
     });
   }

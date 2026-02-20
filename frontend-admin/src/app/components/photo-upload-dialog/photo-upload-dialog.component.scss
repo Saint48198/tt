@@ -1,0 +1,186 @@
+// Photo Upload Dialog — Material Design 3 styling
+
+// ── Dialog Title ──
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 20px 24px 12px;
+  font-size: 1.25rem;
+  font-weight: 500;
+
+  .dialog-title-icon {
+    color: var(--mat-sys-primary, #6750a4);
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+mat-dialog-content {
+  padding: 0 24px 16px !important;
+  min-width: 480px;
+  max-height: 70vh;
+
+  @media (max-width: 600px) {
+    min-width: unset;
+  }
+}
+
+// ── Drop Zone ──
+.drop-zone {
+  border: 2px dashed var(--mat-sys-outline-variant, #cac4d0);
+  border-radius: 16px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--mat-sys-surface-container-lowest, #fff);
+
+  &:hover {
+    border-color: var(--mat-sys-primary, #6750a4);
+    background: var(--mat-sys-surface-container-low, #f7f2fa);
+  }
+
+  &.drag-over {
+    border-color: var(--mat-sys-primary, #6750a4);
+    border-style: solid;
+    background: rgba(103, 80, 164, 0.08);
+  }
+
+  &.has-files {
+    padding: 1rem;
+  }
+}
+
+.drop-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  .drop-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: var(--mat-sys-primary, #6750a4);
+    margin-bottom: 8px;
+  }
+
+  .drop-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface, #1c1b1f);
+  }
+
+  .drop-subtitle {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--mat-sys-on-surface-variant, #49454f);
+  }
+
+  .drop-hint {
+    margin: 8px 0 0;
+    font-size: 0.75rem;
+    color: var(--mat-sys-outline, #79747e);
+  }
+}
+
+.drop-zone-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--mat-sys-primary, #6750a4);
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// ── Files header ──
+.files-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0 8px;
+
+  .files-count {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--mat-sys-on-surface, #1c1b1f);
+  }
+}
+
+// ── File Previews ──
+.file-previews {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.file-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 8px;
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container-low, #f7f2fa);
+
+  .preview-thumb {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .file-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .file-name {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--mat-sys-on-surface, #1c1b1f);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-size {
+      font-size: 0.7rem;
+      color: var(--mat-sys-outline, #79747e);
+    }
+  }
+}
+
+// ── Progress ──
+.upload-progress {
+  margin-top: 16px;
+  border-radius: 4px;
+}
+
+// ── Actions ──
+mat-dialog-actions {
+  padding: 12px 24px 20px !important;
+  gap: 8px;
+
+  .btn-spinner {
+    display: inline-flex;
+    margin-right: 6px;
+  }
+}
+

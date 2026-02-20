@@ -523,3 +523,425 @@ AggregateError [ECONNREFUSED]:
 [1m[33m[39m[22m
 [1m[33m[39m[22m
 [37mPage reload sent to client(s).[39m
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m                 [2m | [22m  [36m7.04 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37m[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m[39m
+[37m[32mchunk-56NLRVK4.js[39m[37m  [2m | [22m[2mphotos-list-component[22m[2m | [22m[36m124.42 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.405 seconds] - 2026-02-20T11:22:40.290Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8011: Node matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" slot of the "MatButton" component, but will not be projected into the specific slot because the surrounding @else has more than one node at its root. To project the node in the right slot, you can:[39m[22m
+[1m[33m[39m[22m
+[1m[33m1. Wrap the content of the @else block in an <ng-container/> that matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" selector.[39m[22m
+[1m[33m2. Split the content of the @else block across multiple @else blocks such that each one only has a single projectable node at its root.[39m[22m
+[1m[33m3. Remove all content from the @else block, except for the node being projected.[39m[22m
+[1m[33m[39m[22m
+[1m[33mThis check can be disabled using the `extendedDiagnostics.checks.controlFlowPreventingContentProjection = "suppress" compiler option.`[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-edit-dialog/photo-edit-dialog.component.html:249:8:[39m[22m
+[1m[33m[37m      249 │         [32m<mat-icon>[37msave</mat-icon>[39m[22m
+[1m[33m          ╵         [32m~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component PhotoEditDialogComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-edit-dialog/photo-edit-dialog.component.ts:55:15:[39m[22m
+[1m[33m[37m      55 │   templateUrl: [32m'./photo-edit-dialog.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8011: Node matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" slot of the "MatButton" component, but will not be projected into the specific slot because the surrounding @else has more than one node at its root. To project the node in the right slot, you can:[39m[22m
+[1m[33m[39m[22m
+[1m[33m1. Wrap the content of the @else block in an <ng-container/> that matches the ".material-icons:not([iconPosit[39m[22m
+[1m[33mionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" selector.[39m[22m
+[1m[33m2. Split the content of the @else block across multiple @else blocks such that each one only has a single projectable node at its root.[39m[22m
+[1m[33m3. Remove all content from the @else block, except for the node being projected.[39m[22m
+[1m[33m[39m[22m
+[1m[33mThis check can be disabled using the `extendedDiagnostics.checks.controlFlowPreventingContentProjection = "suppress" compiler option.`[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-upload-dialog/photo-upload-dialog.component.html:87:6:[39m[22m
+[1m[33m[37m      87 │       [32m<mat-icon>[37mcloud_upload</mat-icon>[39m[22m
+[1m[33m         ╵       [32m~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component PhotoUploadDialogComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-upload-dialog/photo-upload-dialog.component.ts:45:15:[39m[22m
+[1m[33m[37m      45 │   templateUrl: [32m'./photo-upload-dialog.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-com[39m[22m[1m[33mpiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:33:50:[39m[22m
+[1m[33m[37m      33 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mPage reload sent to client(s).[39m
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m                     [2m | [22m  [36m7.04 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37m[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m[39m
+[37m[32mchunk-KOGXWLNE.js[39m[37m  [2m | [22m[2mphotos-list-component[22m    [2m | [22m[36m124.53 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-GG4IKCWO.js[39m[37m  [2m | [22m[2m-[22m                        [2m | [22m [36m60.98 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-XN3SEJKT.js[39m[37m  [2m | [22m[2mcity-edit-component[22m      [2m | [22m [36m49.04 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-GZNAFOI3.js[39m[37m  [2m | [22m[2mattraction-edit-component[22m[2m | [22m [36m48.73 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-BQUYPZKA.js[39m[37m  [2m | [22m[2m-[22m                        [2m | [22m  [36m2.39 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.280 seconds] - 2026-02-20T11:29:43.488Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8011: Node matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" slot of the "MatButton" component, but will not be projected into the specific slot because the surrounding @else has more than one node at its root. To project the node in the right slot, you can:[39m[22m
+[1m[33m[39m[22m
+[1m[33m1. Wrap the content of the @else block in an <ng-container/> that matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" selector.[39m[22m
+[1m[33m2. Split the content of the @else block across multiple @else blocks such that each one only has a single projectable node at its root.[39m[22m
+[1m[33m3. Remove all content from the @else block, except for the node being projected.[39m[22m
+[1m[33m[39m[22m
+[1m[33mThis check can be disabled using the `extendedDiagnostics.checks.controlFlowPreventingContentProjection = "suppress" compiler option.`[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-edit-dialog/photo-edit-dialog.component.html:249:8:[39m[22m
+[1m[33m[37m      249 │         [32m<mat-icon>[37msave</mat-icon>[39m[22m
+[1m[33m          ╵         [32m~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component PhotoEditDialogComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-edit-dialog/photo-edit-dialog.component.ts:55:15:[39m[22m
+[1m[33m[37m      55 │   templateUrl: [32m'./photo-edit-dialog.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8011: Node matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" slot of the "MatButton" component, but will not be projected into the specific slot because the surrounding @else has more than one node at its root. To project the node in the right slot, you can:[39m[22m
+[1m[33m[39m[22m
+[1m[33m1. Wrap the content of the @else block in an <ng-container/> that matches the ".material-icons:not([iconPosit[39m[22m
+[1m[33mionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" selector.[39m[22m
+[1m[33m2. Split the content of the @else block across multiple @else blocks such that each one only has a single projectable node at its root.[39m[22m
+[1m[33m3. Remove all content from the @else block, except for the node being projected.[39m[22m
+[1m[33m[39m[22m
+[1m[33mThis check can be disabled using the `extendedDiagnostics.checks.controlFlowPreventingContentProjection = "suppress" compiler option.`[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-upload-dialog/photo-upload-dialog.component.html:87:6:[39m[22m
+[1m[33m[37m      87 │       [32m<mat-icon>[37mcloud_upload</mat-icon>[39m[22m
+[1m[33m         ╵       [32m~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component PhotoUploadDialogComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-upload-dialog/photo-upload-dialog.component.ts:45:15:[39m[22m
+[1m[33m[37m      45 │   templateUrl: [32m'./photo-upload-dialog.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-com[39m[22m[1m[33mpiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:33:50:[39m[22m
+[1m[33m[37m      33 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mPage reload sent to client(s).[39m
+[2m6:29:44 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/photos/all?page=1&limit=50[39m
+Error: socket hang up
+    at Socket.socketOnEnd (node:_http_client:599:25)
+    at Socket.emit (node:events:520:35)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m                 [2m | [22m  [36m7.04 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37m[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m [1mRaw size[22m[39m
+[37m[32mchunk-7E6HHNHR.js[39m[37m  [2m | [22m[2mphotos-list-component[22m[2m | [22m[36m124.70 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.190 seconds] - 2026-02-20T12:43:08.800Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8011: Node matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" slot of the "MatButton" component, but will not be projected into the specific slot because the surrounding @else has more than one node at its root. To project the node in the right slot, you can:[39m[22m
+[1m[33m[39m[22m
+[1m[33m1. Wrap the content of the @else block in an <ng-container/> that matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" selector.[39m[22m
+[1m[33m2. Split the content of the @else block across multiple @else blocks such that each one only has a single projectable node at its root.[39m[22m
+[1m[33m3. Remove all content from the @else block, except for the node being projected.[39m[22m
+[1m[33m[39m[22m
+[1m[33mThis check can be disabled using the `extendedDiagnostics.checks.controlFlowPreventingContentProjection = "suppress" compiler option.`[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-edit-dialog/photo-edit-dialog.component.html:249:8:[39m[22m
+[1m[33m[37m      249 │         [32m<mat-icon>[37msave</mat-icon>[39m[22m
+[1m[33m          ╵         [32m~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component PhotoEditDialogComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-edit-dialog/photo-edit-dialog.component.ts:55:15:[39m[22m
+[1m[33m[37m      55 │   templateUrl: [32m'./photo-edit-dialog.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8011: Node matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" slot of the "MatButton" component, but will not be projected into the specific slot because the surrounding @else has more than one node at its root. To project the node in the right slot, you can:[39m[22m
+[1m[33m[39m[22m
+[1m[33m1. Wrap the content of the @else block in an <ng-container/> that matches the ".material-icons:not([iconPosit[39m[22m
+[1m[33mionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" selector.[39m[22m
+[1m[33m2. Split the content of the @else block across multiple @else blocks such that each one only has a single projectable node at its root.[39m[22m
+[1m[33m3. Remove all content from the @else block, except for the node being projected.[39m[22m
+[1m[33m[39m[22m
+[1m[33mThis check can be disabled using the `extendedDiagnostics.checks.controlFlowPreventingContentProjection = "suppress" compiler option.`[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-upload-dialog/photo-upload-dialog.component.html:87:6:[39m[22m
+[1m[33m[37m      87 │       [32m<mat-icon>[37mcloud_upload</mat-icon>[39m[22m
+[1m[33m         ╵       [32m~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component PhotoUploadDialogComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-upload-dialog/photo-upload-dialog.component.ts:45:15:[39m[22m
+[1m[33m[37m      45 │   templateUrl: [32m'./photo-upload-dialog.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-com[39m[22m[1m[33mpiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:33:50:[39m[22m
+[1m[33m[37m      33 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mPage reload sent to client(s).[39m
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m                     [2m | [22m  [36m7.04 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37m[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m[39m
+[37m[32mchunk-SHWQ4UD6.js[39m[37m  [2m | [22m[2mphotos-list-component[22m    [2m | [22m[36m124.60 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-5WIE6UAJ.js[39m[37m  [2m | [22m[2m-[22m                        [2m | [22m [36m60.98 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-E6ZGLKS4.js[39m[37m  [2m | [22m[2mcity-edit-component[22m      [2m | [22m [36m49.04 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-NCUSZSE4.js[39m[37m  [2m | [22m[2mattraction-edit-component[22m[2m | [22m [36m48.73 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-H7V4F3D2.js[39m[37m  [2m | [22m[2m-[22m                        [2m | [22m  [36m2.56 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.157 seconds] - 2026-02-20T12:47:12.973Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8011: Node matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" slot of the "MatButton" component, but will not be projected into the specific slot because the surrounding @else has more than one node at its root. To project the node in the right slot, you can:[39m[22m
+[1m[33m[39m[22m
+[1m[33m1. Wrap the content of the @else block in an <ng-container/> that matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" selector.[39m[22m
+[1m[33m2. Split the content of the @else block across multiple @else blocks such that each one only has a single projectable node at its root.[39m[22m
+[1m[33m3. Remove all content from the @else block, except for the node being projected.[39m[22m
+[1m[33m[39m[22m
+[1m[33mThis check can be disabled using the `extendedDiagnostics.checks.controlFlowPreventingContentProjection = "suppress" compiler option.`[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-edit-dialog/photo-edit-dialog.component.html:249:8:[39m[22m
+[1m[33m[37m      249 │         [32m<mat-icon>[37msave</mat-icon>[39m[22m
+[1m[33m          ╵         [32m~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component PhotoEditDialogComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-edit-dialog/photo-edit-dialog.component.ts:55:15:[39m[22m
+[1m[33m[37m      55 │   templateUrl: [32m'./photo-edit-dialog.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8011: Node matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" slot of the "MatButton" component, but will not be projected into the specific slot because the surrounding @else has more than one node at its root. To project the node in the right slot, you can:[39m[22m
+[1m[33m[39m[22m
+[1m[33m1. Wrap the content of the @else block in an <ng-container/> that matches the ".material-icons:not([iconPosit[39m[22m
+[1m[33mionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" selector.[39m[22m
+[1m[33m2. Split the content of the @else block across multiple @else blocks such that each one only has a single projectable node at its root.[39m[22m
+[1m[33m3. Remove all content from the @else block, except for the node being projected.[39m[22m
+[1m[33m[39m[22m
+[1m[33mThis check can be disabled using the `extendedDiagnostics.checks.controlFlowPreventingContentProjection = "suppress" compiler option.`[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-upload-dialog/photo-upload-dialog.component.html:87:6:[39m[22m
+[1m[33m[37m      87 │       [32m<mat-icon>[37mcloud_upload</mat-icon>[39m[22m
+[1m[33m         ╵       [32m~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component PhotoUploadDialogComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-upload-dialog/photo-upload-dialog.component.ts:45:15:[39m[22m
+[1m[33m[37m      45 │   templateUrl: [32m'./photo-upload-dialog.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-com[39m[22m[1m[33mpiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:33:50:[39m[22m
+[1m[33m[37m      33 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mPage reload sent to client(s).[39m
+[2m7:47:13 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/photos/all?page=1&limit=50[39m
+Error: socket hang up
+    at Socket.socketOnEnd (node:_http_client:599:25)
+    at Socket.emit (node:events:520:35)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m                     [2m | [22m  [36m7.04 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37m[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                    [2m | [22m [1mRaw size[22m[39m
+[37m[32mchunk-556SYFWY.js[39m[37m  [2m | [22m[2mphotos-list-component[22m    [2m | [22m[36m124.82 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-NVXZA6B4.js[39m[37m  [2m | [22m[2m-[22m                        [2m | [22m [36m60.98 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-ZT2H3JUV.js[39m[37m  [2m | [22m[2mcity-edit-component[22m      [2m | [22m [36m49.04 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-CXUSFAOF.js[39m[37m  [2m | [22m[2mattraction-edit-component[22m[2m | [22m [36m48.73 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-CSTHLWZQ.js[39m[37m  [2m | [22m[2m-[22m                        [2m | [22m  [36m2.56 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.253 seconds] - 2026-02-20T13:30:56.990Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8011: Node matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" slot of the "MatButton" component, but will not be projected into the specific slot because the surrounding @else has more than one node at its root. To project the node in the right slot, you can:[39m[22m
+[1m[33m[39m[22m
+[1m[33m1. Wrap the content of the @else block in an <ng-container/> that matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" selector.[39m[22m
+[1m[33m2. Split the content of the @else block across multiple @else blocks such that each one only has a single projectable node at its root.[39m[22m
+[1m[33m3. Remove all content from the @else block, except for the node being projected.[39m[22m
+[1m[33m[39m[22m
+[1m[33mThis check can be disabled using the `extendedDiagnostics.checks.controlFlowPreventingContentProjection = "suppress" compiler option.`[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-edit-dialog/photo-edit-dialog.component.html:249:8:[39m[22m
+[1m[33m[37m      249 │         [32m<mat-icon>[37msave</mat-icon>[39m[22m
+[1m[33m          ╵         [32m~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component PhotoEditDialogComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-edit-dialog/photo-edit-dialog.component.ts:56:15:[39m[22m
+[1m[33m[37m      56 │   templateUrl: [32m'./photo-edit-dialog.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8011: Node matches the ".material-icons:not([iconPositionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" slot of the "MatButton" component, but will not be projected into the specific slot because the surrounding @else has more than one node at its root. To project the node in the right slot, you can:[39m[22m
+[1m[33m[39m[22m
+[1m[33m1. Wrap the content of the @else block in an <ng-container/> that matches the ".material-icons:not([iconPosit[39m[22m
+[1m[33mionEnd]), mat-icon:not([iconPositionEnd]), [matButtonIcon]:not([iconPositionEnd])" selector.[39m[22m
+[1m[33m2. Split the content of the @else block across multiple @else blocks such that each one only has a single projectable node at its root.[39m[22m
+[1m[33m3. Remove all content from the @else block, except for the node being projected.[39m[22m
+[1m[33m[39m[22m
+[1m[33mThis check can be disabled using the `extendedDiagnostics.checks.controlFlowPreventingContentProjection = "suppress" compiler option.`[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-upload-dialog/photo-upload-dialog.component.html:87:6:[39m[22m
+[1m[33m[37m      87 │       [32m<mat-icon>[37mcloud_upload</mat-icon>[39m[22m
+[1m[33m         ╵       [32m~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component PhotoUploadDialogComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    frontend-admin/src/app/components/photo-upload-dialog/photo-upload-dialog.component.ts:45:15:[39m[22m
+[1m[33m[37m      45 │   templateUrl: [32m'./photo-upload-dialog.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-com[39m[22m[1m[33mpiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:33:50:[39m[22m
+[1m[33m[37m      33 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mPage reload sent to client(s).[39m
+[2m8:30:57 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/photos/all?page=1&limit=50[39m
+Error: socket hang up
+    at Socket.socketOnEnd (node:_http_client:599:25)
+    at Socket.emit (node:events:520:35)
+    at endReadableNT (node:internal/streams/readable:1701:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+[2m8:34:35 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/photos/all?page=1&limit=50[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+[2m8:34:44 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/photos/all?page=1&limit=50[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+[2m8:35:10 AM[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/login[39m
+AggregateError [ECONNREFUSED]: 
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)

@@ -23,17 +23,9 @@ interface ListCitiesOptions {
 
 class CityService {
   private static instance: CityService;
-  private validColumns = [
-    'cities.name',
-    'lat',
-    'lng',
-    'country_name',
-    'state_name',
-  ];
+  private validColumns = ['cities.name', 'lat', 'lng', 'country_name', 'state_name'];
 
-  private constructor() {
-    // Private constructor prevents direct instantiation
-  }
+  private constructor() {}
 
   public static getInstance(): CityService {
     if (!CityService.instance) {
@@ -42,185 +34,94 @@ class CityService {
     return CityService.instance;
   }
 
-  /**
-   * Get all cities with pagination and sorting
-   */
-  public getCities(options: ListCitiesOptions): {
+  public async getCities(options: ListCitiesOptions): Promise<{
     cities: City[];
     total: number;
     page: number;
     limit: number;
-  } {
-    const {
-      country_id,
-      page = 1,
-      limit = 25,
-      sortBy = 'cities.name',
-      sort = 'asc',
-    } = options;
-
+  }> {
+    const { country_id, page = 1, limit = 25, sortBy = 'cities.name', sort = 'asc' } = options;
     const offset = (page - 1) * limit;
 
     let sortByStr = sortBy.toString();
     const sortOrderStr = sort.toString().toLowerCase();
+    if (sortByStr === 'name') sortByStr = 'cities.name';
+    if (sortByStr && !this.validColumns.includes(sortByStr)) throw new Error('Invalid sort column.');
+    if (!['asc', 'desc'].includes(sortOrderStr)) throw new Error('Invalid sort order.');
 
-    if (sortByStr === 'name') {
-      sortByStr = 'cities.name';
-    }
+    const params: any[] = [];
+    let paramIdx = 1;
 
-    if (sortByStr && !this.validColumns.includes(sortByStr)) {
-      throw new Error('Invalid sort column.');
-    }
-
-    if (!['asc', 'desc'].includes(sortOrderStr)) {
-      throw new Error('Invalid sort order.');
-    }
-
-    let query = `
-      SELECT
-        cities.id,
-        cities.name,
-        cities.lat,
-        cities.lng,
-        cities.last_visited,
-        countries.name AS country_name,
-        states.name AS state_name
-      FROM cities
-      JOIN countries ON cities.country_id = countries.id
-      LEFT JOIN states ON cities.state_id = states.id
-    `;
-
-    const params: (string | number)[] = [];
-
+    let whereClause = '';
     if (country_id !== undefined && !Number.isNaN(country_id)) {
-      query += ` WHERE cities.country_id = ?`;
+      whereClause = `WHERE cities.country_id = $${paramIdx++}`;
       params.push(country_id);
     }
 
-    query += ` ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT ? OFFSET ?`;
+    const query = `
+      SELECT cities.id, cities.name, cities.lat, cities.lng, cities.last_visited,
+             countries.name AS country_name, states.name AS state_name
+      FROM cities
+      JOIN countries ON cities.country_id = countries.id
+      LEFT JOIN states ON cities.state_id = states.id
+      ${whereClause}
+      ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
+      LIMIT $${paramIdx++} OFFSET $${paramIdx++}`;
     params.push(limit, offset);
 
-    const cities = db.prepare(query).all(...params) as City[];
+    const cities = await db.all<City>(query, params);
 
-    let countQuery = `SELECT COUNT(*) as total FROM cities`;
-    const countParams: (string | number)[] = [];
-
+    const countParams: any[] = [];
+    let countQuery = 'SELECT COUNT(*) as total FROM cities';
     if (country_id !== undefined && !Number.isNaN(country_id)) {
-      countQuery += ` WHERE country_id = ?`;
+      countQuery += ' WHERE country_id = $1';
       countParams.push(country_id);
     }
+    const totalRow = await db.get<{ total: string }>(countQuery, countParams);
 
-    const totalRow = db.prepare(countQuery).get(...countParams) as { total: number };
-
-    return {
-      cities,
-      total: totalRow.total,
-      page,
-      limit,
-    };
+    return { cities, total: Number(totalRow?.total ?? 0), page, limit };
   }
 
-  /**
-   * Get a city by ID
-   */
-  public getCityById(id: number | string): City | undefined {
-    return db
-      .prepare(
-        `SELECT cities.id, cities.name, cities.lat, cities.lng, cities.last_visited,
-                cities.country_id AS country_id,
-                countries.name AS country_name,
-                cities.state_id AS state_id,
-                states.name AS state_name,
-                cities.wiki_term
-         FROM cities
-         LEFT JOIN countries ON cities.country_id = countries.id
-         LEFT JOIN states ON cities.state_id = states.id
-         WHERE cities.id = ?`
-      )
-      .get(id) as City | undefined;
+  public async getCityById(id: number | string): Promise<City | undefined> {
+    return db.get<City>(
+      `SELECT cities.id, cities.name, cities.lat, cities.lng, cities.last_visited,
+              cities.country_id, countries.name AS country_name,
+              cities.state_id, states.name AS state_name, cities.wiki_term
+       FROM cities
+       LEFT JOIN countries ON cities.country_id = countries.id
+       LEFT JOIN states ON cities.state_id = states.id
+       WHERE cities.id = $1`,
+      [id]
+    );
   }
 
-  /**
-   * Create a new city
-   */
-  public createCity(data: {
-    name: string;
-    lat: number;
-    lng: number;
-    state_id?: number;
-    country_id: number;
-    last_visited?: string;
-    wiki_term?: string;
-  }): { id: number } {
-    const { name, lat, lng, state_id, country_id, last_visited, wiki_term } =
-      data;
-
-    const result = db
-      .prepare(
-        'INSERT INTO cities (name, lat, lng, state_id, country_id, last_visited, wiki_term) VALUES (?, ?, ?, ?, ?, ?, ?)'
-      )
-      .run(
-        name,
-        lat,
-        lng,
-        state_id || null,
-        country_id,
-        last_visited,
-        wiki_term
-      );
-
-    return { id: Number(result.lastInsertRowid) };
+  public async createCity(data: {
+    name: string; lat: number; lng: number; state_id?: number;
+    country_id: number; last_visited?: string; wiki_term?: string;
+  }): Promise<{ id: number }> {
+    const { name, lat, lng, state_id, country_id, last_visited, wiki_term } = data;
+    const result = await db.run(
+      'INSERT INTO cities (name, lat, lng, state_id, country_id, last_visited, wiki_term) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
+      [name, lat, lng, state_id || null, country_id, last_visited, wiki_term]
+    );
+    return { id: result.rows[0].id };
   }
 
-  /**
-   * Update a city
-   */
-  public updateCity(
-    id: number | string,
-    data: {
-      name: string;
-      lat: number;
-      lng: number;
-      state_id?: number;
-      country_id: number;
-      last_visited?: string;
-      wiki_term?: string;
-    }
-  ): { success: boolean; changes: number } {
-    const { name, lat, lng, state_id, country_id, last_visited, wiki_term } =
-      data;
-
-    const result = db
-      .prepare(
-        'UPDATE cities SET name = ?, lat = ?, lng = ?, state_id = ?, country_id = ?, last_visited = ?, wiki_term = ? WHERE id = ?'
-      )
-      .run(
-        name,
-        lat,
-        lng,
-        state_id || null,
-        country_id,
-        last_visited,
-        wiki_term,
-        id
-      );
-
-    return {
-      success: result.changes > 0,
-      changes: result.changes,
-    };
+  public async updateCity(id: number | string, data: {
+    name: string; lat: number; lng: number; state_id?: number;
+    country_id: number; last_visited?: string; wiki_term?: string;
+  }): Promise<{ success: boolean; changes: number }> {
+    const { name, lat, lng, state_id, country_id, last_visited, wiki_term } = data;
+    const result = await db.run(
+      'UPDATE cities SET name=$1, lat=$2, lng=$3, state_id=$4, country_id=$5, last_visited=$6, wiki_term=$7 WHERE id=$8',
+      [name, lat, lng, state_id || null, country_id, last_visited, wiki_term, id]
+    );
+    return { success: result.rowCount > 0, changes: result.rowCount };
   }
 
-  /**
-   * Delete a city
-   */
-  public deleteCity(id: number | string): { success: boolean; changes: number } {
-    const result = db.prepare('DELETE FROM cities WHERE id = ?').run(id);
-
-    return {
-      success: result.changes > 0,
-      changes: result.changes,
-    };
+  public async deleteCity(id: number | string): Promise<{ success: boolean; changes: number }> {
+    const result = await db.run('DELETE FROM cities WHERE id = $1', [id]);
+    return { success: result.rowCount > 0, changes: result.rowCount };
   }
 }
 

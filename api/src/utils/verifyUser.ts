@@ -14,15 +14,12 @@ export async function verifyUser(username: string, password: string): Promise<Ve
   }
 
   try {
-    // Fetch user by username
-    const query = 'SELECT * FROM users WHERE username = ? LIMIT 1';
-    const user = db.prepare(query).get(username) as User;
+    const user = await db.get<User>('SELECT * FROM users WHERE username = $1 LIMIT 1', [username]);
 
     if (!user) {
       return { user: null, error: 'Invalid username or password' };
     }
 
-    // Validate password using bcrypt
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
     if (!isPasswordValid) {
@@ -31,6 +28,6 @@ export async function verifyUser(username: string, password: string): Promise<Ve
 
     return { user };
   } catch (error: any) {
-    return { user: null,  error: 'Internal Server Error', details: error.message };
+    return { user: null, error: 'Internal Server Error', details: error.message };
   }
 }

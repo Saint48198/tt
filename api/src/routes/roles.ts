@@ -7,9 +7,9 @@ const router = Router();
 /**
  * GET /api/roles
  */
-router.get('/api/roles', (_req: Request, res: Response) => {
+router.get('/api/roles', async (_req: Request, res: Response) => {
   try {
-    const result = roleService.getAllRoles();
+    const result = await roleService.getAllRoles();
     return res.status(200).json(result.roles);
   } catch (err: unknown) {
     return handleApiError(err, res, 'Failed to fetch roles', 500);
@@ -19,11 +19,11 @@ router.get('/api/roles', (_req: Request, res: Response) => {
 /**
  * POST /api/roles
  */
-router.post('/api/roles', (req: Request, res: Response) => {
+router.post('/api/roles', async (req: Request, res: Response) => {
   const { name } = req.body;
 
   try {
-    const result = roleService.createRole(name);
+    const result = await roleService.createRole(name);
     return res.status(201).json({ id: result.id });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Role creation failed';
@@ -42,7 +42,7 @@ router.all('/api/roles', (_req: Request, res: Response) => {
 /**
  * GET /api/roles/:id
  */
-router.get('/api/roles/:id', (req: Request, res: Response) => {
+router.get('/api/roles/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!id) {
@@ -50,7 +50,7 @@ router.get('/api/roles/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const role = roleService.getRoleById(id);
+    const role = await roleService.getRoleById(id);
 
     if (!role) {
       return res.status(404).json({ error: 'Role not found' });
@@ -65,7 +65,7 @@ router.get('/api/roles/:id', (req: Request, res: Response) => {
 /**
  * PUT /api/roles/:id
  */
-router.put('/api/roles/:id', (req: Request, res: Response) => {
+router.put('/api/roles/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name } = req.body;
 
@@ -74,7 +74,7 @@ router.put('/api/roles/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = roleService.updateRole(id, name);
+    const result = await roleService.updateRole(id, name);
 
     if (!result.success) {
       return res
@@ -91,7 +91,7 @@ router.put('/api/roles/:id', (req: Request, res: Response) => {
 /**
  * DELETE /api/roles/:id
  */
-router.delete('/api/roles/:id', (req: Request, res: Response) => {
+router.delete('/api/roles/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!id) {
@@ -99,7 +99,7 @@ router.delete('/api/roles/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = roleService.deleteRole(id);
+    const result = await roleService.deleteRole(id);
 
     if (!result.success) {
       return res.status(404).json({ error: 'Role not found' });

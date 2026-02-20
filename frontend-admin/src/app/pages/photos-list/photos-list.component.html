@@ -1,7 +1,13 @@
 <div class="photos-list-page">
   <div class="page-header">
-    <h1>Photos</h1>
-    <span class="photo-count" *ngIf="!loading()">{{ total() }} photos</span>
+    <div class="page-header-left">
+      <h1>Photos</h1>
+      <span class="photo-count" *ngIf="!loading()">{{ total() }} photos</span>
+    </div>
+    <button mat-flat-button color="primary" (click)="openUploadDialog()">
+      <mat-icon>cloud_upload</mat-icon>
+      Upload Photos
+    </button>
   </div>
 
   <div class="filters-bar">

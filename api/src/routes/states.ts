@@ -11,7 +11,7 @@ const toError = (err: unknown): Error => (err instanceof Error ? err : new Error
  * GET /api/states
  * POST /api/states
  */
-router.get('/api/states', (req: Request, res: Response) => {
+router.get('/api/states', async (req: Request, res: Response) => {
   const {
     page = '1',
     limit = '10',
@@ -24,7 +24,7 @@ router.get('/api/states', (req: Request, res: Response) => {
   const limitNum = Number(limit);
 
   try {
-    const result = stateService.getStates({
+    const result = await stateService.getStates({
       page: pageNum,
       limit: limitNum,
       all: all === 'true',
@@ -38,7 +38,7 @@ router.get('/api/states', (req: Request, res: Response) => {
   }
 });
 
-router.post('/api/states', (req: Request, res: Response) => {
+router.post('/api/states', async (req: Request, res: Response) => {
   const { name, abbr, country_id, last_visited } = req.body ?? {};
 
   if (!name || !country_id) {
@@ -46,7 +46,7 @@ router.post('/api/states', (req: Request, res: Response) => {
   }
 
   try {
-    const result = stateService.createState({
+    const result = await stateService.createState({
       name,
       abbr,
       country_id,
@@ -72,14 +72,14 @@ router.all('/api/states', (req: Request, res: Response) => {
  * PUT /api/states/:id
  * DELETE /api/states/:id
  */
-router.get('/api/states/:id', (req: Request, res: Response) => {
+router.get('/api/states/:id', async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   if (Number.isNaN(id)) {
     return res.status(400).json({ error: 'Invalid ID format.' });
   }
 
   try {
-    const state = stateService.getStateById(id);
+    const state = await stateService.getStateById(id);
 
     if (!state) {
       return res.status(404).json({ error: 'State not found.' });
@@ -92,7 +92,7 @@ router.get('/api/states/:id', (req: Request, res: Response) => {
   }
 });
 
-router.put('/api/states/:id', (req: Request, res: Response) => {
+router.put('/api/states/:id', async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   if (Number.isNaN(id)) {
     return res.status(400).json({ error: 'Invalid ID format.' });
@@ -105,7 +105,7 @@ router.put('/api/states/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = stateService.updateState(id, {
+    const result = await stateService.updateState(id, {
       name,
       abbr,
       country_id,
@@ -123,14 +123,14 @@ router.put('/api/states/:id', (req: Request, res: Response) => {
   }
 });
 
-router.delete('/api/states/:id', (req: Request, res: Response) => {
+router.delete('/api/states/:id', async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   if (Number.isNaN(id)) {
     return res.status(400).json({ error: 'Invalid ID format.' });
   }
 
   try {
-    const result = stateService.deleteState(id);
+    const result = await stateService.deleteState(id);
 
     if (!result.success) {
       return res.status(404).json({ error: 'State not found.' });

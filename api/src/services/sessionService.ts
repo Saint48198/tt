@@ -3,7 +3,7 @@ import { db } from '../db';
 import { verifyUser } from '../utils/verifyUser';
 import { Role } from '@shared/types';
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 interface LoginRequest {
   username: string;
@@ -55,12 +55,12 @@ class SessionService {
   /**
    * Verify if a token exists in the database
    */
-  public verifyTokenExists(token: string): boolean {
-    const row = db
-      .prepare('SELECT COUNT(*) AS count FROM user_tokens WHERE token = ?')
-      .get(token) as { count: number };
-
-    return row && row.count > 0;
+  public async verifyTokenExists(token: string): Promise<boolean> {
+    const row = await db.get<{ count: string }>(
+      'SELECT COUNT(*) AS count FROM user_tokens WHERE token = $1',
+      [token]
+    );
+    return row ? Number(row.count) > 0 : false;
   }
 
   /**
@@ -76,76 +76,59 @@ class SessionService {
     const { user, error } = await verifyUser(username, password);
 
     if (error) {
-      const errorMsg = error === 'Internal Server Error' ? 'Internal Server Error' : 'Invalid credentials';
-      throw new Error(errorMsg);
+      throw new Error(
+        error === 'Internal Server Error'
+          ? 'Internal Server Error'
+          : 'Invalid credentials'
+      );
     }
 
     if (!user) {
       throw new Error('Invalid credentials');
     }
 
-    // Fetch roles for the user
-    const roles = (db
-      .prepare(
+    const roles = (
+      await db.all<Role>(
         `SELECT roles.name
          FROM roles
          INNER JOIN user_roles ON roles.id = user_roles.role_id
-         WHERE user_roles.user_id = ?`
+         WHERE user_roles.user_id = $1`,
+        [user.id]
       )
-      .all(user.id) as Role[])
-      .map((role: { name: string }) => role.name);
+    ).map((role: { name: string }) => role.name);
 
     if (!JWT_SECRET) {
       throw new Error('Server configuration error: JWT_SECRET not set');
     }
 
-    // Create JWT payload
-    const payload = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      roles,
-    };
-
-    // Generate JWT (no expiration, same as original)
+    const payload = { id: user.id, username: user.username, email: user.email, roles };
     const token = jwt.sign(payload, JWT_SECRET);
 
-    // Store token in database
-    db.prepare(`INSERT INTO user_tokens (user_id, token) VALUES (?, ?)`).run(
+    await db.run('INSERT INTO user_tokens (user_id, token) VALUES ($1, $2)', [
       user.id,
-      token
-    );
-
-    return {
-      message: 'Login successful',
       token,
-    };
+    ]);
+
+    return { message: 'Login successful', token };
   }
 
   /**
    * Logout user by revoking token
    */
-  public logout(token: string): { success: boolean } {
+  public async logout(token: string): Promise<{ success: boolean }> {
     if (!token) {
       throw new Error('Token missing');
     }
-
-    const result = db
-      .prepare(`DELETE FROM user_tokens WHERE token = ?`)
-      .run(token);
-
-    if (result.changes === 0) {
+    const result = await db.run('DELETE FROM user_tokens WHERE token = $1', [token]);
+    if (result.rowCount === 0) {
       throw new Error('Invalid or already logged out');
     }
-
     return { success: true };
   }
 }
 
 export const sessionService = SessionService.getInstance();
 
-// Export the function for backward compatibility
 export function isSessionValid(token: string) {
   return sessionService.isSessionValid(token);
 }
-

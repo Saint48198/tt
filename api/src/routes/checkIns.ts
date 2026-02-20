@@ -5,13 +5,13 @@ import { isUUID } from 'validator';
 const router = Router();
 
 // GET /api/check-ins  (optional ?userId=)
-router.get('/api/check-ins', (req: Request, res: Response) => {
+router.get('/api/check-ins', async (req: Request, res: Response) => {
   // userId can be string | string[] | undefined
   const rawUserId = req.query.userId;
   const userId = Array.isArray(rawUserId) ? rawUserId[0] : rawUserId;
 
   try {
-    const result = checkInService.getCheckIns({
+    const result = await checkInService.getCheckIns({
       userId: userId as string | undefined,
     });
 
@@ -23,7 +23,7 @@ router.get('/api/check-ins', (req: Request, res: Response) => {
 });
 
 // DELETE /api/check-ins?id=...
-router.delete('/api/check-ins', (req: Request, res: Response) => {
+router.delete('/api/check-ins', async (req: Request, res: Response) => {
   const rawId = req.query.id;
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
 
@@ -32,7 +32,7 @@ router.delete('/api/check-ins', (req: Request, res: Response) => {
   }
 
   try {
-    const result = checkInService.deleteCheckIn(id as string);
+    const result = await checkInService.deleteCheckIn(id as string);
 
     if (!result.success) {
       return res.status(404).json({ error: 'Check-in log not found.' });
@@ -48,7 +48,7 @@ router.delete('/api/check-ins', (req: Request, res: Response) => {
 });
 
 // GET /api/check-ins/messages?id=<uuid>
-router.get('/api/check-ins/messages', (req: Request, res: Response) => {
+router.get('/api/check-ins/messages', async (req: Request, res: Response) => {
   const rawId = req.query.id;
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
 
@@ -57,7 +57,7 @@ router.get('/api/check-ins/messages', (req: Request, res: Response) => {
   }
 
   try {
-    const result = checkInService.getCheckInMessages(id);
+    const result = await checkInService.getCheckInMessages(id);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch messages:', error);
@@ -66,7 +66,7 @@ router.get('/api/check-ins/messages', (req: Request, res: Response) => {
 });
 
 // POST /api/check-ins/messages
-router.post('/api/check-ins/messages', (req: Request, res: Response) => {
+router.post('/api/check-ins/messages', async (req: Request, res: Response) => {
   const { checkInId, userId, message } = req.body;
 
   if (!checkInId || !userId || !message) {
@@ -76,7 +76,7 @@ router.post('/api/check-ins/messages', (req: Request, res: Response) => {
   }
 
   try {
-    checkInService.createCheckInMessage({
+    await checkInService.createCheckInMessage({
       checkInId,
       userId,
       message,

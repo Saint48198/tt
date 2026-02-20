@@ -18,6 +18,7 @@ import { AdminPhoto } from '../../interfaces';
 import { PhotosService } from '../../services/photos.service';
 import { CitiesService } from '../../services/cities.service';
 import { AttractionsService } from '../../services/attractions.service';
+import { AuthService, UserPayload } from '@shared/services';
 
 export interface PhotoEditDialogData {
   photo: AdminPhoto;
@@ -61,6 +62,7 @@ export class PhotoEditDialogComponent implements OnInit {
   private readonly photosService = inject(PhotosService);
   private readonly citiesService = inject(CitiesService);
   private readonly attractionsService = inject(AttractionsService);
+  private readonly authService = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
 
   photo = this.data.photo;
@@ -71,35 +73,39 @@ export class PhotoEditDialogComponent implements OnInit {
 
   // City combobox
   cityId: number | null = null;
-  cityInputValue = '';
+  cityInputValue = signal('');
   private allCities = signal<EntityOption[]>([]);
   loadingCities = signal(false);
   filteredCities = computed(() => {
-    const q = this.cityInputValue.toLowerCase();
+    const q = this.cityInputValue().toLowerCase();
     const all = this.allCities();
     return q ? all.filter((c) => c.name.toLowerCase().includes(q)) : all;
   });
 
   // Attraction combobox
   attractionId: number | null = null;
-  attractionInputValue = '';
+  attractionInputValue = signal('');
   private allAttractions = signal<EntityOption[]>([]);
   loadingAttractions = signal(false);
   filteredAttractions = computed(() => {
-    const q = this.attractionInputValue.toLowerCase();
+    const q = this.attractionInputValue().toLowerCase();
     const all = this.allAttractions();
     return q ? all.filter((a) => a.name.toLowerCase().includes(q)) : all;
   });
 
   saving = signal(false);
 
+  private currentUser: UserPayload | null = null;
+
   ngOnInit(): void {
+    this.authService.currentUser$.subscribe((u) => (this.currentUser = u));
+
     this.caption = this.photo.caption || '';
     this.tags = [...(this.photo.tags || [])];
     this.cityId = this.photo.city_id;
-    this.cityInputValue = this.photo.city_name || '';
+    this.cityInputValue.set(this.photo.city_name || '');
     this.attractionId = this.photo.attraction_id;
-    this.attractionInputValue = this.photo.attraction_name || '';
+    this.attractionInputValue.set(this.photo.attraction_name || '');
 
     this.loadCities();
     this.loadAttractions();
@@ -136,8 +142,7 @@ export class PhotoEditDialogComponent implements OnInit {
   // ── City combobox ──
 
   onCityInput(value: string): void {
-    this.cityInputValue = value;
-    // If user clears the text, clear the selection
+    this.cityInputValue.set(value);
     if (!value) {
       this.cityId = null;
     }
@@ -145,12 +150,12 @@ export class PhotoEditDialogComponent implements OnInit {
 
   onCitySelected(option: EntityOption): void {
     this.cityId = option.id;
-    this.cityInputValue = option.name;
+    this.cityInputValue.set(option.name);
   }
 
   clearCity(): void {
     this.cityId = null;
-    this.cityInputValue = '';
+    this.cityInputValue.set('');
   }
 
   displayCityFn = (option: EntityOption): string => option?.name ?? '';
@@ -158,7 +163,7 @@ export class PhotoEditDialogComponent implements OnInit {
   // ── Attraction combobox ──
 
   onAttractionInput(value: string): void {
-    this.attractionInputValue = value;
+    this.attractionInputValue.set(value);
     if (!value) {
       this.attractionId = null;
     }
@@ -166,12 +171,12 @@ export class PhotoEditDialogComponent implements OnInit {
 
   onAttractionSelected(option: EntityOption): void {
     this.attractionId = option.id;
-    this.attractionInputValue = option.name;
+    this.attractionInputValue.set(option.name);
   }
 
   clearAttraction(): void {
     this.attractionId = null;
-    this.attractionInputValue = '';
+    this.attractionInputValue.set('');
   }
 
   displayAttractionFn = (option: EntityOption): string => option?.name ?? '';
@@ -201,38 +206,39 @@ export class PhotoEditDialogComponent implements OnInit {
 
   save(): void {
     if (!this.photo.in_database || this.photo.id == null) {
-      const entityType = this.cityId ? 'cities' : this.attractionId ? 'attractions' : null;
-      const entityId = this.cityId || this.attractionId;
-
-      if (entityType && entityId) {
-        this.saving.set(true);
-        this.photosService
-          .bulkAddPhotos(entityType, entityId, [
-            {
-              photo_id: this.photo.photo_id,
-              url: this.photo.url,
-              caption: this.caption || null,
-            },
-          ])
-          .subscribe({
-            next: () => {
-              this.snackBar.open('Photo added to database', 'Close', { duration: 3000 });
-              this.saving.set(false);
-              this.dialogRef.close({ updated: true });
-            },
-            error: (err) => {
-              this.snackBar.open(err?.error?.message || 'Failed to save', 'Close', { duration: 5000 });
-              this.saving.set(false);
-            },
-          });
-      } else {
+      // Photo only in Cloudinary — needs at least one entity to add to DB
+      if (!this.cityId && !this.attractionId) {
         this.snackBar.open('Select at least a city or attraction to add this photo to the database', 'Close', {
           duration: 5000,
         });
+        return;
       }
+
+      this.saving.set(true);
+      this.photosService
+        .addPhotoToDb({
+          photo_id: this.photo.photo_id,
+          url: this.photo.url,
+          caption: this.caption || null,
+          city_id: this.cityId,
+          attraction_id: this.attractionId,
+          user_id: this.currentUser?.id,
+        })
+        .subscribe({
+          next: () => {
+            this.snackBar.open('Photo added to database', 'Close', { duration: 3000 });
+            this.saving.set(false);
+            this.dialogRef.close({ updated: true });
+          },
+          error: (err) => {
+            this.snackBar.open(err?.error?.error || 'Failed to save', 'Close', { duration: 5000 });
+            this.saving.set(false);
+          },
+        });
       return;
     }
 
+    // Photo exists in DB — update
     this.saving.set(true);
     this.photosService
       .updatePhoto(this.photo.id, {
@@ -242,13 +248,17 @@ export class PhotoEditDialogComponent implements OnInit {
         attraction_id: this.attractionId,
       })
       .subscribe({
-        next: () => {
-          this.snackBar.open('Photo updated successfully', 'Close', { duration: 3000 });
+        next: (res) => {
+          if (res.deleted) {
+            this.snackBar.open('Photo removed from database (no entity links)', 'Close', { duration: 4000 });
+          } else {
+            this.snackBar.open('Photo updated successfully', 'Close', { duration: 3000 });
+          }
           this.saving.set(false);
           this.dialogRef.close({ updated: true });
         },
         error: (err) => {
-          this.snackBar.open(err?.error?.message || 'Failed to update photo', 'Close', { duration: 5000 });
+          this.snackBar.open(err?.error?.error || 'Failed to update photo', 'Close', { duration: 5000 });
           this.saving.set(false);
         },
       });

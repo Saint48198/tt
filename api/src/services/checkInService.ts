@@ -35,19 +35,18 @@ class CheckInService {
   /**
    * Get all check-ins or filter by user ID
    */
-  public getCheckIns(options: ListCheckInsOptions): { checkIns: CheckIn[] } {
+  public async getCheckIns(options: ListCheckInsOptions): Promise<{ checkIns: CheckIn[] }> {
     const { userId } = options;
 
-    let query = 'SELECT * FROM user_locations ORDER BY created_at DESC';
-    const params: (string | undefined)[] = [];
-
     if (userId) {
-      query =
-        'SELECT * FROM user_locations WHERE user_id = ? ORDER BY created_at DESC';
-      params.push(userId);
+      const checkIns = await db.all<CheckIn>(
+        'SELECT * FROM user_locations WHERE user_id = $1 ORDER BY created_at DESC',
+        [userId]
+      );
+      return { checkIns };
     }
 
-    const checkIns = db.prepare(query).all(...params) as CheckIn[];
+    const checkIns = await db.all<CheckIn>('SELECT * FROM user_locations ORDER BY created_at DESC');
 
     return { checkIns };
   }
@@ -55,24 +54,23 @@ class CheckInService {
   /**
    * Delete a check-in by ID
    */
-  public deleteCheckIn(id: string | number): { success: boolean; changes: number } {
-    const result = db.prepare('DELETE FROM user_locations WHERE id = ?').run(id);
+  public async deleteCheckIn(id: string | number): Promise<{ success: boolean; changes: number }> {
+    const result = await db.run('DELETE FROM user_locations WHERE id = $1', [id]);
 
     return {
-      success: result.changes > 0,
-      changes: result.changes,
+      success: result.rowCount > 0,
+      changes: result.rowCount,
     };
   }
 
   /**
    * Get all messages for a check-in
    */
-  public getCheckInMessages(checkInId: string): { messages: CheckInMessage[] } {
-    const messages = db
-      .prepare(
-        'SELECT * FROM check_in_messages WHERE check_in_id = ? ORDER BY created_at ASC'
-      )
-      .all(checkInId) as CheckInMessage[];
+  public async getCheckInMessages(checkInId: string): Promise<{ messages: CheckInMessage[] }> {
+    const messages = await db.all<CheckInMessage>(
+      'SELECT * FROM user_locations_messages WHERE check_in_id = $1 ORDER BY created_at ASC',
+      [checkInId]
+    );
 
     return { messages };
   }
@@ -80,25 +78,24 @@ class CheckInService {
   /**
    * Create a new check-in message
    */
-  public createCheckInMessage(data: {
+  public async createCheckInMessage(data: {
     checkInId: string;
     userId: string;
     message: string;
-  }): { success: boolean } {
+  }): Promise<{ success: boolean }> {
     const { checkInId, userId, message } = data;
 
     // Verify check-in exists
-    const checkInExists = db
-      .prepare('SELECT id FROM user_locations WHERE id = ?')
-      .get(checkInId);
+    const checkInExists = await db.get('SELECT id FROM user_locations WHERE id = $1', [checkInId]);
 
     if (!checkInExists) {
       throw new Error('Check-in not found in user_locations.');
     }
 
-    db.prepare(
-      'INSERT INTO user_locations_messages (check_in_id, user_id, message) VALUES (?, ?, ?)'
-    ).run(checkInId, userId, message);
+    await db.run(
+      'INSERT INTO user_locations_messages (check_in_id, user_id, message) VALUES ($1, $2, $3)',
+      [checkInId, userId, message]
+    );
 
     return { success: true };
   }

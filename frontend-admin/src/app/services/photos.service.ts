@@ -45,8 +45,8 @@ export class PhotosService {
       city_id?: number | null;
       attraction_id?: number | null;
     }
-  ): Observable<{ message: string }> {
-    return this.http.patch<{ message: string }>(`${this.apiUrl}/${photoId}`, data);
+  ): Observable<{ message: string; deleted?: boolean }> {
+    return this.http.patch<{ message: string; deleted?: boolean }>(`${this.apiUrl}/${photoId}`, data);
   }
 
   /**
@@ -56,6 +56,20 @@ export class PhotosService {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/remove/${entityType}/${entityId}`, {
       body: { photoId },
     });
+  }
+
+  /**
+   * Add a Cloudinary-only photo to the database with entity assignments
+   */
+  addPhotoToDb(data: {
+    photo_id: string;
+    url: string;
+    caption?: string | null;
+    city_id?: number | null;
+    attraction_id?: number | null;
+    user_id?: number;
+  }): Observable<{ message: string; id: number }> {
+    return this.http.post<{ message: string; id: number }>(`${this.apiUrl}/add`, data);
   }
 
   /**

@@ -3,8 +3,8 @@ import { db } from '../db';
 interface Attraction {
   id: number;
   name: string;
-  is_unesco: number;
-  is_national_park: number;
+  is_unesco: boolean;
+  is_national_park: boolean;
   lat: number;
   lng: number;
   last_visited?: string;
@@ -45,17 +45,9 @@ interface UpdateAttractionData {
 
 class AttractionService {
   private static instance: AttractionService;
-  private validColumns = [
-    'attractions.name',
-    'lat',
-    'lng',
-    'wiki_term',
-    'country_name',
-  ];
+  private validColumns = ['attractions.name', 'lat', 'lng', 'wiki_term', 'country_name'];
 
-  private constructor() {
-    // Private constructor prevents direct instantiation
-  }
+  private constructor() {}
 
   public static getInstance(): AttractionService {
     if (!AttractionService.instance) {
@@ -64,204 +56,90 @@ class AttractionService {
     return AttractionService.instance;
   }
 
-  /**
-   * Get all attractions or paginated attractions with sorting and filtering
-   */
-  public getAttractions(options: ListAttractionsOptions): {
+  public async getAttractions(options: ListAttractionsOptions): Promise<{
     attractions: Attraction[];
     total: number;
     page: number;
     limit: number;
-  } {
-    const {
-      country_id,
-      page = 1,
-      limit = 25,
-      sortBy = 'attractions.name',
-      sortOrder = 'asc',
-    } = options;
+  }> {
+    const { country_id, page = 1, limit = 25, sortBy = 'attractions.name', sortOrder = 'asc' } = options;
 
     let sortByStr = sortBy.toString();
     const sortOrderStr = sortOrder.toString().toLowerCase();
-
-    if (sortByStr === 'name') {
-      sortByStr = 'attractions.name';
-    }
-
-    if (!this.validColumns.includes(sortByStr)) {
-      throw new Error('Invalid sort column.');
-    }
-
-    if (!['asc', 'desc'].includes(sortOrderStr)) {
-      throw new Error('Invalid sort order.');
-    }
+    if (sortByStr === 'name') sortByStr = 'attractions.name';
+    if (!this.validColumns.includes(sortByStr)) throw new Error('Invalid sort column.');
+    if (!['asc', 'desc'].includes(sortOrderStr)) throw new Error('Invalid sort order.');
 
     const offset = (page - 1) * limit;
+    const params: any[] = [];
+    let paramIdx = 1;
 
-    let query = `
-      SELECT
-        attractions.id,
-        attractions.name,
-        attractions.lat,
-        attractions.lng,
-        attractions.wiki_term,
-        attractions.is_unesco,
-        attractions.is_national_park,
-        countries.name AS country_name
-      FROM attractions
-      JOIN countries ON attractions.country_id = countries.id
-    `;
-
-    const params: (string | number)[] = [];
-
+    let whereClause = '';
     if (country_id !== undefined && !Number.isNaN(country_id)) {
-      query += ` WHERE attractions.country_id = ?`;
+      whereClause = `WHERE attractions.country_id = $${paramIdx++}`;
       params.push(country_id);
     }
 
-    query += ` ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT ? OFFSET ?`;
+    const query = `
+      SELECT attractions.id, attractions.name, attractions.lat, attractions.lng,
+             attractions.wiki_term, attractions.is_unesco, attractions.is_national_park,
+             countries.name AS country_name
+      FROM attractions
+      JOIN countries ON attractions.country_id = countries.id
+      ${whereClause}
+      ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
+      LIMIT $${paramIdx++} OFFSET $${paramIdx++}`;
     params.push(limit, offset);
 
-    const attractions = db.prepare(query).all(...params) as Attraction[];
+    const attractions = await db.all<Attraction>(query, params);
 
-    let countQuery = `SELECT COUNT(*) as total FROM attractions`;
-    const countParams: (string | number)[] = [];
-
+    const countParams: any[] = [];
+    let countQuery = 'SELECT COUNT(*) as total FROM attractions';
     if (country_id !== undefined && !Number.isNaN(country_id)) {
-      countQuery += ` WHERE country_id = ?`;
+      countQuery += ' WHERE country_id = $1';
       countParams.push(country_id);
     }
+    const totalRow = await db.get<{ total: string }>(countQuery, countParams);
 
-    const totalRow = db.prepare(countQuery).get(...countParams) as {
-      total: number;
-    };
-
-    return {
-      attractions,
-      total: totalRow.total,
-      page,
-      limit,
-    };
+    return { attractions, total: Number(totalRow?.total ?? 0), page, limit };
   }
 
-  /**
-   * Get an attraction by ID
-   */
-  public getAttractionById(id: number | string): Attraction | undefined {
-    return db
-      .prepare(
-        `SELECT attractions.id,
-                attractions.name,
-                attractions.is_unesco,
-                attractions.is_national_park,
-                attractions.lat,
-                attractions.lng,
-                attractions.last_visited,
-                attractions.wiki_term,
-                countries.id as country_id
-         FROM attractions
-         JOIN countries ON attractions.country_id = countries.id
-         WHERE attractions.id = ?`
-      )
-      .get(id) as Attraction | undefined;
+  public async getAttractionById(id: number | string): Promise<Attraction | undefined> {
+    return db.get<Attraction>(
+      `SELECT attractions.id, attractions.name, attractions.is_unesco, attractions.is_national_park,
+              attractions.lat, attractions.lng, attractions.last_visited, attractions.wiki_term,
+              countries.id as country_id
+       FROM attractions
+       JOIN countries ON attractions.country_id = countries.id
+       WHERE attractions.id = $1`,
+      [id]
+    );
   }
 
-  /**
-   * Create a new attraction
-   */
-  public createAttraction(data: CreateAttractionData): { id: number } {
-    const {
-      name,
-      country_id,
-      is_unesco,
-      is_national_park,
-      lat,
-      lng,
-      last_visited,
-      wiki_term,
-    } = data;
-
-    const result = db
-      .prepare(
-        `INSERT INTO attractions
-          (name, country_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-      )
-      .run(
-        name,
-        country_id,
-        is_unesco ? 1 : 0,
-        is_national_park ? 1 : 0,
-        lat,
-        lng,
-        last_visited || null,
-        wiki_term
-      );
-
-    return { id: Number(result.lastInsertRowid) };
+  public async createAttraction(data: CreateAttractionData): Promise<{ id: number }> {
+    const { name, country_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term } = data;
+    const result = await db.run(
+      `INSERT INTO attractions (name, country_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+      [name, country_id, !!is_unesco, !!is_national_park, lat, lng, last_visited || null, wiki_term]
+    );
+    return { id: result.rows[0].id };
   }
 
-  /**
-   * Update an attraction
-   */
-  public updateAttraction(
-    id: number | string,
-    data: UpdateAttractionData
-  ): { success: boolean; changes: number } {
-    const {
-      name,
-      country_id,
-      is_unesco,
-      is_national_park,
-      lat,
-      lng,
-      last_visited,
-      wiki_term,
-    } = data;
-
-    const result = db
-      .prepare(
-        `UPDATE attractions
-         SET name = ?,
-             country_id = ?,
-             is_unesco = ?,
-             is_national_park = ?,
-             lat = ?,
-             lng = ?,
-             last_visited = ?,
-             wiki_term = ?
-         WHERE id = ?`
-      )
-      .run(
-        name,
-        country_id,
-        is_unesco ? 1 : 0,
-        is_national_park ? 1 : 0,
-        lat,
-        lng,
-        last_visited || null,
-        wiki_term,
-        id
-      );
-
-    return {
-      success: result.changes > 0,
-      changes: result.changes,
-    };
+  public async updateAttraction(id: number | string, data: UpdateAttractionData): Promise<{ success: boolean; changes: number }> {
+    const { name, country_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term } = data;
+    const result = await db.run(
+      `UPDATE attractions SET name=$1, country_id=$2, is_unesco=$3, is_national_park=$4,
+       lat=$5, lng=$6, last_visited=$7, wiki_term=$8 WHERE id=$9`,
+      [name, country_id, !!is_unesco, !!is_national_park, lat, lng, last_visited || null, wiki_term, id]
+    );
+    return { success: result.rowCount > 0, changes: result.rowCount };
   }
 
-  /**
-   * Delete an attraction
-   */
-  public deleteAttraction(id: number | string): { success: boolean; changes: number } {
-    const result = db.prepare(`DELETE FROM attractions WHERE id = ?`).run(id);
-
-    return {
-      success: result.changes > 0,
-      changes: result.changes,
-    };
+  public async deleteAttraction(id: number | string): Promise<{ success: boolean; changes: number }> {
+    const result = await db.run('DELETE FROM attractions WHERE id = $1', [id]);
+    return { success: result.rowCount > 0, changes: result.rowCount };
   }
 }
 
 export const attractionService = AttractionService.getInstance();
-

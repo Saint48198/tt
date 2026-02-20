@@ -8,7 +8,7 @@ router.post('/api/location/update-visited', async (req: Request, res: Response) 
   const { city, state, country } = req.body;
 
   try {
-    const result = locationService.updateLocationVisited({
+    const result = await locationService.updateLocationVisited({
       city,
       state,
       country,

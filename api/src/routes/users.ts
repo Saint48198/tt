@@ -6,7 +6,7 @@ import { handleApiError } from '../utils/errorHandler';
 const router = Router();
 
 // GET /api/users - List all users with pagination and sorting
-router.get('/api/users', (req: Request, res: Response) => {
+router.get('/api/users', async (req: Request, res: Response) => {
   const { page, limit, all, sortBy, sortOrder } = req.query;
 
   const pageNum =
@@ -26,7 +26,7 @@ router.get('/api/users', (req: Request, res: Response) => {
   const sortOrderStr = (rawSortOrder ?? 'asc').toString().toLowerCase();
 
   try {
-    const result = userService.getUsers({
+    const result = await userService.getUsers({
       page: pageNum,
       limit: limitNum,
       all: all === 'true',
@@ -42,10 +42,8 @@ router.get('/api/users', (req: Request, res: Response) => {
   }
 });
 
-// ...existing code...
-
 // GET /api/users/:id
-router.get('/api/users/:id', (req: Request, res: Response) => {
+router.get('/api/users/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!id) {
@@ -53,7 +51,7 @@ router.get('/api/users/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const user = userService.getUserById(id);
+    const user = await userService.getUserById(id);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -67,7 +65,7 @@ router.get('/api/users/:id', (req: Request, res: Response) => {
 });
 
 // PUT /api/users/:id
-router.put('/api/users/:id', (req: Request, res: Response) => {
+router.put('/api/users/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const { username, email, passwordHash } = req.body;
 
@@ -76,7 +74,7 @@ router.put('/api/users/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = userService.updateUser(id, { username, email, passwordHash });
+    const result = await userService.updateUser(id, { username, email, passwordHash });
 
     if (!result.success) {
       return res
@@ -92,7 +90,7 @@ router.put('/api/users/:id', (req: Request, res: Response) => {
 });
 
 // DELETE /api/users/:id
-router.delete('/api/users/:id', (req: Request, res: Response) => {
+router.delete('/api/users/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!id) {
@@ -100,7 +98,7 @@ router.delete('/api/users/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = userService.deleteUser(id);
+    const result = await userService.deleteUser(id);
 
     if (!result.success) {
       return res.status(404).json({ error: 'User not found' });
@@ -126,7 +124,7 @@ router.put('/api/users/:id/password', async (req: Request, res: Response) => {
   }
 
   try {
-    const passwordHash = userService.getUserPasswordHash(id);
+    const passwordHash = await userService.getUserPasswordHash(id);
 
     if (!passwordHash) {
       return res.status(404).json({ error: 'User not found' });
@@ -155,7 +153,6 @@ router.put('/api/users/:id/password', async (req: Request, res: Response) => {
   }
 });
 
-// ...existing code...
 
 // GET, PUT, etc. not allowed on /api/user-roles
 router.all('/api/user-roles', (req: Request, res: Response) => {

@@ -3,39 +3,19 @@ import { cityService } from '../services/cityService';
 
 const router = Router();
 
-
-// GET /api/cities
-router.get('/api/cities', (req: Request, res: Response) => {
+router.get('/api/cities', async (req: Request, res: Response) => {
   const { country_id, page, limit, sortBy, sort } = req.query;
-
-  const pageNum =
-    page !== undefined
-      ? Number(Array.isArray(page) ? page[0] : page)
-      : 1;
-
-  const limitNum =
-    limit !== undefined
-      ? Number(Array.isArray(limit) ? limit[0] : limit)
-      : 25;
-
+  const pageNum = page !== undefined ? Number(Array.isArray(page) ? page[0] : page) : 1;
+  const limitNum = limit !== undefined ? Number(Array.isArray(limit) ? limit[0] : limit) : 25;
   const rawSortBy = Array.isArray(sortBy) ? sortBy?.[0] : sortBy;
   const sortByStr = (rawSortBy ?? 'cities.name').toString();
-
   const rawSort = Array.isArray(sort) ? sort?.[0] : sort;
   const sortOrderStr = (rawSort ?? 'asc').toString().toLowerCase();
-
   const rawCountryId = Array.isArray(country_id) ? country_id?.[0] : country_id;
   const countryIdNum = rawCountryId !== undefined ? Number(rawCountryId) : undefined;
 
   try {
-    const result = cityService.getCities({
-      country_id: countryIdNum,
-      page: pageNum,
-      limit: limitNum,
-      sortBy: sortByStr,
-      sort: sortOrderStr,
-    });
-
+    const result = await cityService.getCities({ country_id: countryIdNum, page: pageNum, limit: limitNum, sortBy: sortByStr, sort: sortOrderStr });
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch cities:', error);
@@ -45,9 +25,8 @@ router.get('/api/cities', (req: Request, res: Response) => {
 });
 
 // POST /api/cities
-router.post('/api/cities', (req: Request, res: Response) => {
-  const { name, lat, lng, state_id, country_id, last_visited, wiki_term } =
-    req.body;
+router.post('/api/cities', async (req: Request, res: Response) => {
+  const { name, lat, lng, state_id, country_id, last_visited, wiki_term } = req.body;
 
   if (!name || !lat || !lng || !country_id) {
     return res.status(400).json({
@@ -56,7 +35,7 @@ router.post('/api/cities', (req: Request, res: Response) => {
   }
 
   try {
-    const result = cityService.createCity({
+    const result = await cityService.createCity({
       name,
       lat,
       lng,
@@ -77,11 +56,11 @@ router.post('/api/cities', (req: Request, res: Response) => {
 });
 
 // GET /api/cities/:id
-router.get('/api/cities/:id', (req: Request, res: Response) => {
+router.get('/api/cities/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const city = cityService.getCityById(id);
+    const city = await cityService.getCityById(id);
 
     if (!city) {
       return res.status(404).json({ error: 'City not found.' });
@@ -95,7 +74,7 @@ router.get('/api/cities/:id', (req: Request, res: Response) => {
 });
 
 // PUT /api/cities/:id
-router.put('/api/cities/:id', (req: Request, res: Response) => {
+router.put('/api/cities/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, lat, lng, state_id, country_id, last_visited, wiki_term } =
     req.body;
@@ -107,7 +86,7 @@ router.put('/api/cities/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = cityService.updateCity(id, {
+    const result = await cityService.updateCity(id, {
       name,
       lat,
       lng,
@@ -129,11 +108,11 @@ router.put('/api/cities/:id', (req: Request, res: Response) => {
 });
 
 // DELETE /api/cities/:id
-router.delete('/api/cities/:id', (req: Request, res: Response) => {
+router.delete('/api/cities/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const result = cityService.deleteCity(id);
+    const result = await cityService.deleteCity(id);
 
     if (!result.success) {
       return res.status(404).json({ error: 'City not found.' });

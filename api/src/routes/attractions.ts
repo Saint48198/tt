@@ -5,7 +5,7 @@ const router = Router();
 
 
 // GET /api/attractions
-router.get('/api/attractions', (req: Request, res: Response) => {
+router.get('/api/attractions', async (req: Request, res: Response) => {
   const { country_id, page, limit, sortBy, sortOrder } = req.query;
 
   const pageNum =
@@ -28,7 +28,7 @@ router.get('/api/attractions', (req: Request, res: Response) => {
   const countryIdNum = rawCountryId !== undefined ? Number(rawCountryId) : undefined;
 
   try {
-    const result = attractionService.getAttractions({
+    const result = await attractionService.getAttractions({
       country_id: countryIdNum,
       page: pageNum,
       limit: limitNum,
@@ -45,7 +45,7 @@ router.get('/api/attractions', (req: Request, res: Response) => {
 });
 
 // POST /api/attractions
-router.post('/api/attractions', (req: Request, res: Response) => {
+router.post('/api/attractions', async (req: Request, res: Response) => {
   const {
     name,
     country_id,
@@ -64,7 +64,7 @@ router.post('/api/attractions', (req: Request, res: Response) => {
   }
 
   try {
-    const result = attractionService.createAttraction({
+    const result = await attractionService.createAttraction({
       name,
       country_id: Number(country_id),
       is_unesco,
@@ -86,11 +86,11 @@ router.post('/api/attractions', (req: Request, res: Response) => {
 });
 
 // GET /api/attractions/:id
-router.get('/api/attractions/:id', (req: Request, res: Response) => {
+router.get('/api/attractions/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const attraction = attractionService.getAttractionById(id);
+    const attraction = await attractionService.getAttractionById(id);
 
     if (!attraction) {
       return res.status(404).json({ error: 'Attraction not found.' });
@@ -104,7 +104,7 @@ router.get('/api/attractions/:id', (req: Request, res: Response) => {
 });
 
 // PUT /api/attractions/:id
-router.put('/api/attractions/:id', (req: Request, res: Response) => {
+router.put('/api/attractions/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const {
     name,
@@ -124,7 +124,7 @@ router.put('/api/attractions/:id', (req: Request, res: Response) => {
   }
 
   try {
-    const result = attractionService.updateAttraction(id, {
+    const result = await attractionService.updateAttraction(id, {
       name,
       country_id: Number(country_id),
       is_unesco,
@@ -149,11 +149,11 @@ router.put('/api/attractions/:id', (req: Request, res: Response) => {
 });
 
 // DELETE /api/attractions/:id
-router.delete('/api/attractions/:id', (req: Request, res: Response) => {
+router.delete('/api/attractions/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const result = attractionService.deleteAttraction(id);
+    const result = await attractionService.deleteAttraction(id);
 
     if (!result.success) {
       return res.status(404).json({ error: 'Attraction not found.' });

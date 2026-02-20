@@ -102,7 +102,7 @@
                 <mat-label>City</mat-label>
                 <input matInput
                        type="text"
-                       [value]="cityInputValue"
+                       [value]="cityInputValue()"
                        (input)="onCityInput($any($event.target).value)"
                        [matAutocomplete]="cityAuto"
                        placeholder="Type to search cities...">
@@ -141,7 +141,7 @@
                 <mat-label>Attraction</mat-label>
                 <input matInput
                        type="text"
-                       [value]="attractionInputValue"
+                       [value]="attractionInputValue()"
                        (input)="onAttractionInput($any($event.target).value)"
                        [matAutocomplete]="attractionAuto"
                        placeholder="Type to search attractions...">

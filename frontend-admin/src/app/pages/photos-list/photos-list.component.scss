@@ -7,6 +7,13 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  gap: 1rem;
+
+  .page-header-left {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
 
   h1 {
     margin: 0;

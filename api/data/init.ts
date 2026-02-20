@@ -1,246 +1,311 @@
-const Database = require('better-sqlite3');
-const db = new Database('./database/trip-tracker.db', { verbose: console.log });
+import { Pool } from 'pg';
 
-// Enable foreign key constraints
-db.exec('PRAGMA foreign_keys = ON;');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/trip_tracker',
+});
 
-// countries TABLE
-db.exec(`
-    CREATE TABLE IF NOT EXISTS countries (
-                                             id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                             name TEXT NOT NULL,
-                                             alt_name TEXT,
-                                             abbreviation TEXT NOT NULL,
-                                             lat REAL NOT NULL,
-                                             lng REAL NOT NULL,
-                                             slug TEXT NOT NULL,
-                                             last_visited DATETIME,
-                                             geo_map_id TEXT NOT NULL UNIQUE
-    );
-`);
-
-// trips TABLE
-db.exec(`
-    CREATE TABLE IF NOT EXISTS trips (
-                                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                         destination TEXT NOT NULL,
-                                         startDate TEXT NOT NULL,
-                                         endDate TEXT NOT NULL,
-                                         notes TEXT,
-                                         countryId INTEGER NOT NULL,
-                                         FOREIGN KEY (countryId) REFERENCES countries (id) ON DELETE CASCADE
-        );
-`);
-
-// states TABLE
-db.exec(`
-    CREATE TABLE IF NOT EXISTS states (
-                                          id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                          name TEXT NOT NULL,
-                                          abbr TEXT,
-                                          geo_map_id TEXT,
-                                          last_visited DATETIME,
-                                          country_id INTEGER NOT NULL,
-                                          FOREIGN KEY (country_id) REFERENCES countries(id)
-        );
-`);
-
-// cities TABLE
-db.exec(`
-    CREATE TABLE IF NOT EXISTS cities (
-                                          id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                          name TEXT NOT NULL,
-                                          lat REAL NOT NULL,
-                                          lng REAL NOT NULL,
-                                          last_visited DATETIME,
-                                          state_id INTEGER,
-                                          country_id INTEGER NOT NULL,
-                                          wiki_term TEXT,
-                                          FOREIGN KEY (state_id) REFERENCES states(id),
-        FOREIGN KEY (country_id) REFERENCES countries(id)
-        );
-`);
-
-// attractions TABLE
-db.exec(`
-    CREATE TABLE IF NOT EXISTS attractions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+async function init() {
+  const client = await pool.connect();
+  try {
+    // countries TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS countries (
+        id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
-        lat REAL NOT NULL,
-        lng REAL NOT NULL,
+        alt_name TEXT,
+        abbreviation TEXT NOT NULL,
+        lat DOUBLE PRECISION NOT NULL,
+        lng DOUBLE PRECISION NOT NULL,
+        slug TEXT NOT NULL,
+        last_visited TIMESTAMP,
+        geo_map_id TEXT NOT NULL UNIQUE
+      );
+    `);
+
+    // trips TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS trips (
+        id SERIAL PRIMARY KEY,
+        destination TEXT NOT NULL,
+        "startDate" TEXT NOT NULL,
+        "endDate" TEXT NOT NULL,
+        notes TEXT,
+        "countryId" INTEGER NOT NULL,
+        FOREIGN KEY ("countryId") REFERENCES countries (id) ON DELETE CASCADE
+      );
+    `);
+
+    // states TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS states (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        abbr TEXT,
+        geo_map_id TEXT,
+        last_visited TIMESTAMP,
         country_id INTEGER NOT NULL,
-        is_unesco BOOLEAN DEFAULT 0,
-        is_national_park BOOLEAN DEFAULT 0,
-        wiki_term TEXT,
-        last_visited DATETIME,
         FOREIGN KEY (country_id) REFERENCES countries(id)
-    );
-`);
+      );
+    `);
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT NOT NULL UNIQUE,
-      email TEXT NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
-      google_access_token TEXT,
-      google_refresh_token TEXT,
-      google_token_expiry DATETIME
-    );
-  `);
+    // cities TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS cities (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        lat DOUBLE PRECISION NOT NULL,
+        lng DOUBLE PRECISION NOT NULL,
+        last_visited TIMESTAMP,
+        state_id INTEGER,
+        country_id INTEGER NOT NULL,
+        wiki_term TEXT,
+        FOREIGN KEY (state_id) REFERENCES states(id),
+        FOREIGN KEY (country_id) REFERENCES countries(id)
+      );
+    `);
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS roles (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE
-    );
-  `);
+    // attractions TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS attractions (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        lat DOUBLE PRECISION NOT NULL,
+        lng DOUBLE PRECISION NOT NULL,
+        country_id INTEGER NOT NULL,
+        is_unesco BOOLEAN DEFAULT FALSE,
+        is_national_park BOOLEAN DEFAULT FALSE,
+        wiki_term TEXT,
+        last_visited TIMESTAMP,
+        FOREIGN KEY (country_id) REFERENCES countries(id)
+      );
+    `);
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS user_roles (
-      user_id INTEGER NOT NULL,
-      role_id INTEGER NOT NULL,
-      FOREIGN KEY (user_id) REFERENCES users (id),
-      FOREIGN KEY (role_id) REFERENCES roles (id),
-      PRIMARY KEY (user_id, role_id)
-    );
-  `);
+    // users TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        google_access_token TEXT,
+        google_refresh_token TEXT,
+        google_token_expiry TIMESTAMP
+      );
+    `);
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS user_google_accounts (
-    user_id INTEGER PRIMARY KEY,
-    google_account_id TEXT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-`);
+    // roles TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS roles (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE
+      );
+    `);
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS photos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    // user_roles TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_roles (
+        user_id INTEGER NOT NULL,
+        role_id INTEGER NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users (id),
+        FOREIGN KEY (role_id) REFERENCES roles (id),
+        PRIMARY KEY (user_id, role_id)
+      );
+    `);
+
+    // user_google_accounts TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_google_accounts (
+        user_id INTEGER PRIMARY KEY,
+        google_account_id TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      );
+    `);
+
+    // photos TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS photos (
+        id SERIAL PRIMARY KEY,
         url TEXT NOT NULL,
         user_id INTEGER NOT NULL,
         city_id INTEGER,
         attraction_id INTEGER,
         caption TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
         photo_id TEXT,
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (city_id) REFERENCES cities(id),
         FOREIGN KEY (attraction_id) REFERENCES attractions(id)
-        );
-`);
+      );
+    `);
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS tags (
-                                        id SERIAL PRIMARY KEY,
-                                        name TEXT UNIQUE
-    );
-`);
+    // tags TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS tags (
+        id SERIAL PRIMARY KEY,
+        name TEXT UNIQUE
+      );
+    `);
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS photo_tags (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    // photo_tags TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS photo_tags (
+        id SERIAL PRIMARY KEY,
         photo_id INTEGER NOT NULL,
         tag_id INTEGER NOT NULL,
         FOREIGN KEY (photo_id) REFERENCES photos(id) ON DELETE CASCADE,
         FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE,
         UNIQUE(photo_id, tag_id)
-    );
-`);
+      );
+    `);
 
-db.exec(`
-    CREATE TABLE IF NOT EXISTS user_tokens (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    // user_tokens TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_tokens (
+        id SERIAL PRIMARY KEY,
         user_id INTEGER NOT NULL,
         token TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW(),
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-`);
+      );
+    `);
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS user_locations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    latitude REAL NOT NULL,
-    longitude REAL NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-`);
+    // user_locations TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_locations (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        latitude DOUBLE PRECISION NOT NULL,
+        longitude DOUBLE PRECISION NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS user_locations_messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    check_in_id INTEGER NOT NULL,
-    user_id INTEGER,
-    message TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (check_in_id) REFERENCES user_locations(id) ON DELETE CASCADE
-  );
-`);
+    // user_locations_messages TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS user_locations_messages (
+        id SERIAL PRIMARY KEY,
+        check_in_id INTEGER NOT NULL,
+        user_id INTEGER,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        FOREIGN KEY (check_in_id) REFERENCES user_locations(id) ON DELETE CASCADE
+      );
+    `);
 
-// Trigger: Update `countries.last_visited` based on `attractions.last_visited`
-db.exec(`
-  CREATE TRIGGER IF NOT EXISTS update_country_last_visited_from_attraction
-  AFTER INSERT ON attractions
-  BEGIN
-    UPDATE countries
-    SET last_visited = (
-      SELECT MAX(last_visited)
-      FROM attractions
-      WHERE country_id = NEW.country_id
-    )
-    WHERE id = NEW.country_id;
-  END;
-`);
+    // ── Triggers ──
+    // PostgreSQL triggers require a function + trigger pair
 
-// Trigger: Update `countries.last_visited` based on `cities.last_visited`
-db.exec(`
-  CREATE TRIGGER IF NOT EXISTS update_country_last_visited_from_city
-  AFTER INSERT ON cities
-  BEGIN
-    UPDATE countries
-    SET last_visited = (
-      SELECT MAX(last_visited)
-      FROM cities
-      WHERE country_id = NEW.country_id
-    )
-    WHERE id = NEW.country_id;
-  END;
-`);
+    // Trigger function: update country last_visited from attractions
+    await client.query(`
+      CREATE OR REPLACE FUNCTION update_country_last_visited_from_attraction()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        UPDATE countries
+        SET last_visited = (
+          SELECT MAX(last_visited)
+          FROM attractions
+          WHERE country_id = NEW.country_id
+        )
+        WHERE id = NEW.country_id;
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_update_country_last_visited_from_attraction ON attractions;
+      CREATE TRIGGER trg_update_country_last_visited_from_attraction
+      AFTER INSERT ON attractions
+      FOR EACH ROW
+      EXECUTE FUNCTION update_country_last_visited_from_attraction();
+    `);
 
-// Trigger: Update `countries.last_visited` from `states.last_visited`
-db.exec(`
-  CREATE TRIGGER IF NOT EXISTS update_country_last_visited_from_state
-  AFTER UPDATE OF last_visited ON states
-  BEGIN
-    UPDATE countries
-    SET last_visited = (
-      SELECT MAX(last_visited)
-      FROM (
-        SELECT last_visited FROM states WHERE country_id = NEW.country_id
-        UNION ALL
-        SELECT last_visited FROM cities WHERE country_id = NEW.country_id
-      )
-    )
-    WHERE id = NEW.country_id;
-  END;
-`);
+    // Trigger function: update country last_visited from cities
+    await client.query(`
+      CREATE OR REPLACE FUNCTION update_country_last_visited_from_city()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        UPDATE countries
+        SET last_visited = (
+          SELECT MAX(last_visited)
+          FROM cities
+          WHERE country_id = NEW.country_id
+        )
+        WHERE id = NEW.country_id;
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_update_country_last_visited_from_city ON cities;
+      CREATE TRIGGER trg_update_country_last_visited_from_city
+      AFTER INSERT ON cities
+      FOR EACH ROW
+      EXECUTE FUNCTION update_country_last_visited_from_city();
+    `);
 
-// Trigger: Update `states.last_visited` from `cities.last_visited`
-db.exec(`
-  CREATE TRIGGER IF NOT EXISTS update_state_last_visited_from_city
-  AFTER UPDATE OF last_visited ON cities
-  WHEN NEW.state_id IS NOT NULL
-  BEGIN
-    UPDATE states
-    SET last_visited = (
-      SELECT MAX(last_visited)
-      FROM cities
-      WHERE state_id = NEW.state_id
-    )
-    WHERE id = NEW.state_id;
-  END;
-`);
+    // Trigger function: update country last_visited from states
+    await client.query(`
+      CREATE OR REPLACE FUNCTION update_country_last_visited_from_state()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        UPDATE countries
+        SET last_visited = (
+          SELECT MAX(last_visited)
+          FROM (
+            SELECT last_visited FROM states WHERE country_id = NEW.country_id
+            UNION ALL
+            SELECT last_visited FROM cities WHERE country_id = NEW.country_id
+          ) sub
+        )
+        WHERE id = NEW.country_id;
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_update_country_last_visited_from_state ON states;
+      CREATE TRIGGER trg_update_country_last_visited_from_state
+      AFTER UPDATE ON states
+      FOR EACH ROW
+      WHEN (OLD.last_visited IS DISTINCT FROM NEW.last_visited)
+      EXECUTE FUNCTION update_country_last_visited_from_state();
+    `);
 
-console.log('Database initialized');
+    // Trigger function: update state last_visited from cities
+    await client.query(`
+      CREATE OR REPLACE FUNCTION update_state_last_visited_from_city()
+      RETURNS TRIGGER AS $$
+      BEGIN
+        IF NEW.state_id IS NOT NULL THEN
+          UPDATE states
+          SET last_visited = (
+            SELECT MAX(last_visited)
+            FROM cities
+            WHERE state_id = NEW.state_id
+          )
+          WHERE id = NEW.state_id;
+        END IF;
+        RETURN NEW;
+      END;
+      $$ LANGUAGE plpgsql;
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_update_state_last_visited_from_city ON cities;
+      CREATE TRIGGER trg_update_state_last_visited_from_city
+      AFTER UPDATE ON cities
+      FOR EACH ROW
+      WHEN (OLD.last_visited IS DISTINCT FROM NEW.last_visited)
+      EXECUTE FUNCTION update_state_last_visited_from_city();
+    `);
+
+    console.log('Database initialized successfully');
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+
+init().catch((err) => {
+  console.error('Database initialization failed:', err);
+  process.exit(1);
+});

@@ -1,6 +1,7 @@
-// @ts-ignore
-import Database from 'better-sqlite3';
+import { Pool } from 'pg';
 
-const db = new Database('./database/trip-tracker.db');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/trip_tracker',
+});
 
-export default db;
+export default pool;

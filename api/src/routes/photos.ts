@@ -42,7 +42,7 @@ router.get('/api/photos/all', async (req: Request, res: Response) => {
 });
 
 // GET /api/photos/:entityType/:entityId
-router.get('/api/photos/:entityType/:entityId', (req: Request, res: Response) => {
+router.get('/api/photos/:entityType/:entityId', async (req: Request, res: Response) => {
   const { entityType, entityId } = req.params;
 
   if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
@@ -50,7 +50,7 @@ router.get('/api/photos/:entityType/:entityId', (req: Request, res: Response) =>
   }
 
   try {
-    const result = photoService.getPhotosByEntity(entityType, entityId);
+    const result = await photoService.getPhotosByEntity(entityType, entityId);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch photos:', error);
@@ -93,7 +93,7 @@ router.post('/api/photos/suggest-titles', async (req: Request, res: Response) =>
 // POST /api/photos/add/:entityType/:entityId
 router.post(
   '/api/photos/add/:entityType/:entityId',
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     const { entityType, entityId } = req.params;
 
     if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
@@ -103,7 +103,7 @@ router.post(
     const { url, userId, caption } = req.body;
 
     try {
-      const result = photoService.addPhotoByEntity({
+      const result = await photoService.addPhotoByEntity({
         entityType,
         entityId: Number(entityId),
         url,
@@ -140,7 +140,7 @@ router.post('/api/photos/bulk/add', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const result = photoService.bulkAddPhotos({
+    const result = await photoService.bulkAddPhotos({
       entityType,
       entityId,
       photos,
@@ -172,7 +172,7 @@ router.delete('/api/photos/bulk/remove', async (req: Request, res: Response) => 
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const result = photoService.bulkRemovePhotos({
+    const result = await photoService.bulkRemovePhotos({
       entityType,
       entityId,
       photos,
@@ -290,8 +290,37 @@ router.post(
   }
 );
 
+// POST /api/photos/add — add a Cloudinary photo to the database
+router.post('/api/photos/add', async (req: Request, res: Response) => {
+  const { photo_id, url, caption, city_id, attraction_id, user_id } = req.body;
+
+  if (!photo_id || !url) {
+    return res.status(400).json({ error: 'Missing required fields: photo_id and url.' });
+  }
+
+  if (!city_id && !attraction_id) {
+    return res.status(400).json({ error: 'At least one of city_id or attraction_id is required.' });
+  }
+
+  try {
+    const result = await photoService.addPhotoToDb({
+      photo_id,
+      url,
+      caption,
+      city_id,
+      attraction_id,
+      user_id: user_id ? Number(user_id) : undefined,
+    });
+    return res.status(201).json({ message: 'Photo added to database.', id: result.id });
+  } catch (error) {
+    console.error('Failed to add photo:', error);
+    const message = error instanceof Error ? error.message : 'Failed to add photo';
+    return res.status(500).json({ error: message });
+  }
+});
+
 // PATCH /api/photos/:id
-router.patch('/api/photos/:id', (req: Request, res: Response) => {
+router.patch('/api/photos/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!id || Number.isNaN(Number(id))) {
@@ -301,7 +330,10 @@ router.patch('/api/photos/:id', (req: Request, res: Response) => {
   const { caption, tags, city_id, attraction_id } = req.body;
 
   try {
-    photoService.updatePhoto(Number(id), caption ?? null, tags, city_id, attraction_id);
+    const result = await photoService.updatePhoto(Number(id), caption ?? null, tags, city_id, attraction_id);
+    if (result.deleted) {
+      return res.status(200).json({ message: 'Photo removed from database (no entity links).', deleted: true });
+    }
     return res.status(200).json({ message: 'Photo updated successfully.' });
   } catch (error) {
     console.error('Failed to update photo:', error);
@@ -318,7 +350,7 @@ router.patch('/api/photos/:id', (req: Request, res: Response) => {
 // DELETE /api/photos/remove/:entityType/:entityId
 router.delete(
   '/api/photos/remove/:entityType/:entityId',
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     const { entityType, entityId } = req.params;
 
     if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
@@ -332,7 +364,7 @@ router.delete(
     }
 
     try {
-      photoService.removePhoto({
+      await photoService.removePhoto({
         entityType,
         entityId: Number(entityId),
         photoId,

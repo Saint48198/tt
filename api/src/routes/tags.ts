@@ -4,12 +4,12 @@ import { tagService } from '../services/tagService';
 const router = Router();
 
 // GET /api/tags?query=...
-router.get('/api/tags', (req: Request, res: Response) => {
+router.get('/api/tags', async (req: Request, res: Response) => {
   try {
     const rawQuery = req.query.query;
     const query = Array.isArray(rawQuery) ? rawQuery[0] : rawQuery;
 
-    const result = tagService.searchTags(query as string);
+    const result = await tagService.searchTags(query as string);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch tags:', error);
@@ -19,11 +19,11 @@ router.get('/api/tags', (req: Request, res: Response) => {
 });
 
 // POST /api/tags
-router.post('/api/tags', (req: Request, res: Response) => {
+router.post('/api/tags', async (req: Request, res: Response) => {
   try {
     const { tags } = req.body;
 
-    tagService.addTags(tags);
+    await tagService.addTags(tags);
     return res.status(200).json({ message: 'Tags added successfully' });
   } catch (error) {
     console.error('Failed to add tags:', error);

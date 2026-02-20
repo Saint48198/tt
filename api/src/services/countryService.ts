@@ -31,9 +31,7 @@ class CountryService {
     'geo_map_id',
   ];
 
-  private constructor() {
-    // Private constructor prevents direct instantiation
-  }
+  private constructor() {}
 
   public static getInstance(): CountryService {
     if (!CountryService.instance) {
@@ -42,15 +40,12 @@ class CountryService {
     return CountryService.instance;
   }
 
-  /**
-   * Get all countries or paginated countries with sorting
-   */
-  public getCountries(options: ListCountriesOptions): {
+  public async getCountries(options: ListCountriesOptions): Promise<{
     countries: Country[];
     total: number;
     page?: number;
     limit?: number;
-  } {
+  }> {
     const {
       page = 1,
       limit = 10,
@@ -65,57 +60,32 @@ class CountryService {
     if (!this.validColumns.includes(sortByStr)) {
       throw new Error('Invalid sort column.');
     }
-
     if (!['asc', 'desc'].includes(sortOrderStr)) {
       throw new Error('Invalid sort order.');
     }
 
     if (all) {
-      const countries = db
-        .prepare(
-          `SELECT * FROM countries ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`
-        )
-        .all() as Country[];
-
-      return {
-        total: countries.length,
-        countries,
-      };
+      const countries = await db.all<Country>(
+        `SELECT * FROM countries ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`
+      );
+      return { total: countries.length, countries };
     }
 
     const offset = (page - 1) * limit;
+    const totalRow = await db.get<{ count: string }>('SELECT COUNT(*) AS count FROM countries');
+    const countries = await db.all<Country>(
+      `SELECT * FROM countries ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
 
-    const totalRow = db
-      .prepare('SELECT COUNT(*) AS count FROM countries')
-      .get() as { count: number };
-
-    const countries = db
-      .prepare(
-        `SELECT * FROM countries
-         ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
-         LIMIT ? OFFSET ?`
-      )
-      .all(limit, offset) as Country[];
-
-    return {
-      total: totalRow.count,
-      countries,
-      page,
-      limit,
-    };
+    return { total: Number(totalRow?.count ?? 0), countries, page, limit };
   }
 
-  /**
-   * Get a country by ID
-   */
-  public getCountryById(id: number | string): Country | undefined {
-    return db.prepare('SELECT * FROM countries WHERE id = ?').get(id) as Country | undefined;
+  public async getCountryById(id: number | string): Promise<Country | undefined> {
+    return db.get<Country>('SELECT * FROM countries WHERE id = $1', [id]);
   }
 
-  /**
-   * Create a new country
-   */
-  public createCountry(data: {
+  public async createCountry(data: {
     name: string;
     abbreviation?: string;
     lat?: number;
@@ -123,25 +93,17 @@ class CountryService {
     slug?: string;
     last_visited?: string;
     geo_map_id?: string;
-  }): { id: number } {
-    const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } =
-      data;
-
-    const result = db
-      .prepare(
-        `INSERT INTO countries
-         (name, abbreviation, lat, lng, slug, last_visited, geo_map_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
-      )
-      .run(name, abbreviation, lat, lng, slug, last_visited, geo_map_id);
-
-    return { id: Number(result.lastInsertRowid) };
+  }): Promise<{ id: number }> {
+    const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } = data;
+    const result = await db.run(
+      `INSERT INTO countries (name, abbreviation, lat, lng, slug, last_visited, geo_map_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+      [name, abbreviation, lat, lng, slug, last_visited, geo_map_id]
+    );
+    return { id: result.rows[0].id };
   }
 
-  /**
-   * Update a country
-   */
-  public updateCountry(
+  public async updateCountry(
     id: number | string,
     data: {
       name?: string;
@@ -152,34 +114,19 @@ class CountryService {
       last_visited?: string;
       geo_map_id?: string;
     }
-  ): { success: boolean; changes: number } {
-    const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } =
-      data;
-
-    const result = db
-      .prepare(
-        'UPDATE countries SET name = ?, abbreviation = ?, lat = ?, lng = ?, slug = ?, last_visited = ?, geo_map_id = ? WHERE id = ?'
-      )
-      .run(name, abbreviation, lat, lng, slug, last_visited, geo_map_id, id);
-
-    return {
-      success: result.changes > 0,
-      changes: result.changes,
-    };
+  ): Promise<{ success: boolean; changes: number }> {
+    const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } = data;
+    const result = await db.run(
+      'UPDATE countries SET name = $1, abbreviation = $2, lat = $3, lng = $4, slug = $5, last_visited = $6, geo_map_id = $7 WHERE id = $8',
+      [name, abbreviation, lat, lng, slug, last_visited, geo_map_id, id]
+    );
+    return { success: result.rowCount > 0, changes: result.rowCount };
   }
 
-  /**
-   * Delete a country
-   */
-  public deleteCountry(id: number | string): { success: boolean; changes: number } {
-    const result = db.prepare('DELETE FROM countries WHERE id = ?').run(id);
-
-    return {
-      success: result.changes > 0,
-      changes: result.changes,
-    };
+  public async deleteCountry(id: number | string): Promise<{ success: boolean; changes: number }> {
+    const result = await db.run('DELETE FROM countries WHERE id = $1', [id]);
+    return { success: result.rowCount > 0, changes: result.rowCount };
   }
 }
 
 export const countryService = CountryService.getInstance();
-

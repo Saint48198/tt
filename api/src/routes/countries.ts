@@ -5,7 +5,7 @@ const router = Router();
 
 
 // GET /api/countries
-router.get('/api/countries', (req: Request, res: Response) => {
+router.get('/api/countries', async (req: Request, res: Response) => {
   const { page, limit, all, sortBy, sortOrder } = req.query;
 
   const pageNum =
@@ -25,7 +25,7 @@ router.get('/api/countries', (req: Request, res: Response) => {
   const sortOrderStr = (rawSortOrder ?? 'asc').toString().toLowerCase();
 
   try {
-    const result = countryService.getCountries({
+    const result = await countryService.getCountries({
       page: pageNum,
       limit: limitNum,
       all: all === 'true',
@@ -42,7 +42,7 @@ router.get('/api/countries', (req: Request, res: Response) => {
 });
 
 // POST /api/countries
-router.post('/api/countries', (req: Request, res: Response) => {
+router.post('/api/countries', async (req: Request, res: Response) => {
   const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } =
     req.body;
 
@@ -51,7 +51,7 @@ router.post('/api/countries', (req: Request, res: Response) => {
   }
 
   try {
-    const result = countryService.createCountry({
+    const result = await countryService.createCountry({
       name,
       abbreviation,
       lat,
@@ -69,11 +69,11 @@ router.post('/api/countries', (req: Request, res: Response) => {
 });
 
 // GET /api/countries/:id
-router.get('/api/countries/:id', (req: Request, res: Response) => {
+router.get('/api/countries/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const country = countryService.getCountryById(id);
+    const country = await countryService.getCountryById(id);
 
     if (!country) {
       return res.status(404).json({ message: 'Country not found' });
@@ -87,13 +87,13 @@ router.get('/api/countries/:id', (req: Request, res: Response) => {
 });
 
 // PUT /api/countries/:id
-router.put('/api/countries/:id', (req: Request, res: Response) => {
+router.put('/api/countries/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } =
     req.body;
 
   try {
-    const result = countryService.updateCountry(id, {
+    const result = await countryService.updateCountry(id, {
       name,
       abbreviation,
       lat,
@@ -111,11 +111,11 @@ router.put('/api/countries/:id', (req: Request, res: Response) => {
 });
 
 // DELETE /api/countries/:id
-router.delete('/api/countries/:id', (req: Request, res: Response) => {
+router.delete('/api/countries/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const result = countryService.deleteCountry(id);
+    const result = await countryService.deleteCountry(id);
     return res.status(200).json({ changes: result.changes });
   } catch (error) {
     console.error('Failed to delete country:', error);

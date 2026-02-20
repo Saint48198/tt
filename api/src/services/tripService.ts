@@ -43,71 +43,55 @@ class TripService {
   /**
    * Get all trips with country information
    */
-  public getTrips(): Trip[] {
-    return db
-      .prepare(
-        'SELECT trips.*, countries.name as country FROM trips JOIN countries ON trips.countryId = countries.id'
-      )
-      .all() as Trip[];
+  public async getTrips(): Promise<Trip[]> {
+    return db.all<Trip>(
+      'SELECT trips.*, countries.name as country FROM trips JOIN countries ON trips."countryId" = countries.id'
+    );
   }
 
   /**
    * Get a trip by ID with country information
    */
-  public getTripById(id: number | string): Trip | undefined {
-    return db
-      .prepare(
-        'SELECT trips.*, countries.name as country FROM trips JOIN countries ON trips.countryId = countries.id WHERE trips.id = ?'
-      )
-      .get(id) as Trip | undefined;
+  public async getTripById(id: number | string): Promise<Trip | undefined> {
+    return db.get<Trip>(
+      'SELECT trips.*, countries.name as country FROM trips JOIN countries ON trips."countryId" = countries.id WHERE trips.id = $1',
+      [id]
+    );
   }
 
   /**
    * Create a new trip
    */
-  public createTrip(data: CreateTripData): { id: number } {
+  public async createTrip(data: CreateTripData): Promise<{ id: number }> {
     const { destination, startDate, endDate, notes, countryId } = data;
-
-    const result = db
-      .prepare(
-        'INSERT INTO trips (destination, startDate, endDate, notes, countryId) VALUES (?, ?, ?, ?, ?)'
-      )
-      .run(destination, startDate, endDate, notes, countryId);
-
-    return { id: Number(result.lastInsertRowid) };
+    const result = await db.run(
+      'INSERT INTO trips (destination, "startDate", "endDate", notes, "countryId") VALUES ($1,$2,$3,$4,$5) RETURNING id',
+      [destination, startDate, endDate, notes, countryId]
+    );
+    return { id: result.rows[0].id };
   }
 
   /**
    * Update a trip
    */
-  public updateTrip(
+  public async updateTrip(
     id: number | string,
     data: UpdateTripData
-  ): { success: boolean; changes: number } {
+  ): Promise<{ success: boolean; changes: number }> {
     const { destination, startDate, endDate, notes, countryId } = data;
-
-    const result = db
-      .prepare(
-        'UPDATE trips SET destination = ?, startDate = ?, endDate = ?, notes = ?, countryId = ? WHERE id = ?'
-      )
-      .run(destination, startDate, endDate, notes, countryId, id);
-
-    return {
-      success: result.changes > 0,
-      changes: result.changes,
-    };
+    const result = await db.run(
+      'UPDATE trips SET destination=$1, "startDate"=$2, "endDate"=$3, notes=$4, "countryId"=$5 WHERE id=$6',
+      [destination, startDate, endDate, notes, countryId, id]
+    );
+    return { success: result.rowCount > 0, changes: result.rowCount };
   }
 
   /**
    * Delete a trip
    */
-  public deleteTrip(id: number | string): { success: boolean; changes: number } {
-    const result = db.prepare('DELETE FROM trips WHERE id = ?').run(id);
-
-    return {
-      success: result.changes > 0,
-      changes: result.changes,
-    };
+  public async deleteTrip(id: number | string): Promise<{ success: boolean; changes: number }> {
+    const result = await db.run('DELETE FROM trips WHERE id = $1', [id]);
+    return { success: result.rowCount > 0, changes: result.rowCount };
   }
 }
 

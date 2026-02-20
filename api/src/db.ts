@@ -1,46 +1,46 @@
-import fs from 'fs';
-import path from 'path';
-import Database from 'better-sqlite3';
+import { Pool } from 'pg';
 
-// Try multiple path strategies to find the database
-const strategies = [
-  // Strategy 1: From cwd (works when running from project root)
-  () => path.join(process.cwd(), 'api/data/trip-tracker.db'),
-  // Strategy 2: From __dirname
-  () => path.resolve(__dirname, '../../api/data/trip-tracker.db'),
-  // Strategy 3: Relative to source
-  () => path.resolve(__dirname, '../data/trip-tracker.db'),
-];
-
-let dbPath: string | null = null;
-
-for (const strategy of strategies) {
-  try {
-    const candidate = strategy();
-    if (fs.existsSync(candidate)) {
-      dbPath = candidate;
-      break;
-    }
-  } catch (e) {
-    // Continue to next strategy
-  }
-}
-
-// If still not found, use cwd as default
-if (!dbPath) {
-  dbPath = path.join(process.cwd(), 'api/data/trip-tracker.db');
-}
-
-const dbDir = path.dirname(dbPath);
-
-// Ensure the directory exists
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
-}
-
-export const db = new Database(dbPath, {
-  readonly: false,
-  fileMustExist: false
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/trip_tracker',
 });
 
+pool.on('error', (err) => {
+  console.error('Unexpected PG pool error:', err);
+});
 
+/**
+ * Async DB helper wrapping a pg Pool.
+ *
+ * Usage:
+ *   const row  = await db.get<T>('SELECT … WHERE id = $1', [id]);
+ *   const rows = await db.all<T>('SELECT …', []);
+ *   const res  = await db.run('INSERT …', [val]);   // res.rowCount, res.rows
+ *   await db.exec('CREATE TABLE …');
+ */
+export const db = {
+  /** Return the first row or undefined */
+  async get<T = any>(text: string, params: any[] = []): Promise<T | undefined> {
+    const result = await pool.query(text, params);
+    return result.rows[0] as T | undefined;
+  },
+
+  /** Return all rows */
+  async all<T = any>(text: string, params: any[] = []): Promise<T[]> {
+    const result = await pool.query(text, params);
+    return result.rows as T[];
+  },
+
+  /** Execute a statement (INSERT / UPDATE / DELETE). Returns rowCount + rows. */
+  async run(text: string, params: any[] = []): Promise<{ rowCount: number; rows: any[] }> {
+    const result = await pool.query(text, params);
+    return { rowCount: result.rowCount ?? 0, rows: result.rows };
+  },
+
+  /** Execute raw SQL (DDL, multi-statement via single query). */
+  async exec(text: string): Promise<void> {
+    await pool.query(text);
+  },
+
+  /** Get the underlying pool for transactions */
+  pool,
+};

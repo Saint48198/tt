@@ -34,7 +34,7 @@ router.post('/api/login', async (req: Request, res: Response) => {
 });
 
 // POST /api/logout
-router.post('/api/logout', (req: Request, res: Response) => {
+router.post('/api/logout', async (req: Request, res: Response) => {
   // Extract token from Authorization header or cookie
   const authHeader = req.headers.authorization;
   const tokenFromHeader = authHeader?.startsWith('Bearer ')
@@ -44,7 +44,7 @@ router.post('/api/logout', (req: Request, res: Response) => {
   const token = tokenFromHeader || req.cookies?.auth_token;
 
   try {
-    sessionService.logout(token);
+    await sessionService.logout(token);
 
     // Clear auth cookie
     res.setHeader('Set-Cookie', `auth_token=; HttpOnly; Path=/; Max-Age=0`);
@@ -89,7 +89,7 @@ router.get('/api/session', (req: Request, res: Response) => {
 });
 
 // POST /api/verify-token
-router.post('/api/verify-token', (req: Request, res: Response) => {
+router.post('/api/verify-token', async (req: Request, res: Response) => {
   const { token } = req.body;
 
   if (!token) {
@@ -110,7 +110,7 @@ router.post('/api/verify-token', (req: Request, res: Response) => {
     };
 
     // Check if token exists in DB
-    const tokenExists = sessionService.verifyTokenExists(token);
+    const tokenExists = await sessionService.verifyTokenExists(token);
 
     if (!tokenExists) {
       return res
@@ -143,7 +143,7 @@ router.get('/api/users/token', async (req: Request, res: Response) => {
     }
 
     // Fetch google_access_token for this user
-    const token = userService.getGoogleAccessToken(payload.id);
+    const token = await userService.getGoogleAccessToken(payload.id);
 
     if (!token) {
       return res.status(404).json({ error: 'Google access token not found' });
