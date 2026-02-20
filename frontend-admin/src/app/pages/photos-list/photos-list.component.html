@@ -1,0 +1,130 @@
+<div class="photos-list-page">
+  <div class="page-header">
+    <h1>Photos</h1>
+    <span class="photo-count" *ngIf="!loading()">{{ total() }} photos</span>
+  </div>
+
+  <div class="filters-bar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search photos</mat-label>
+      <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Search by caption, URL, entity name, or tag...">
+      @if (searchQuery) {
+        <button matSuffix mat-icon-button (click)="clearSearch()" matTooltip="Clear search">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Source</mat-label>
+      <mat-select [(ngModel)]="sourceFilter" (selectionChange)="onFilterChange()">
+        <mat-option value="">All Sources</mat-option>
+        <mat-option value="database">Database Only</mat-option>
+        <mat-option value="cloudinary">Cloudinary Only</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" (click)="onSearch()">
+      <mat-icon>search</mat-icon>
+      Search
+    </button>
+  </div>
+
+  <div class="grid-container">
+    @if (loading()) {
+      <div class="loading-overlay">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
+
+    @if (!loading() && photos().length === 0) {
+      <div class="empty-state">
+        <mat-icon class="empty-icon">photo_library</mat-icon>
+        <p>No photos found.</p>
+      </div>
+    }
+
+    <div class="masonry-grid">
+      @for (photo of photos(); track photo.url) {
+        <div class="photo-card mat-elevation-z2">
+          <div class="photo-image-wrapper" (click)="openEditDialog(photo)">
+            <img [src]="photo.url" [alt]="photo.caption || 'Photo'" loading="lazy">
+
+            <!-- Source badges -->
+            <div class="source-badges">
+              @if (photo.in_database) {
+                <span class="badge db-badge">DB</span>
+              }
+              @if (photo.in_cloudinary) {
+                <span class="badge cloud-badge">Cloud</span>
+              }
+            </div>
+
+            <!-- Actions overlay -->
+            <div class="photo-actions" (click)="$event.stopPropagation()">
+              <button mat-icon-button
+                      [matMenuTriggerFor]="photoMenu"
+                      class="action-btn"
+                      matTooltip="Actions">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #photoMenu="matMenu">
+                <button mat-menu-item (click)="openEditDialog(photo)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit</span>
+                </button>
+                <button mat-menu-item
+                        (click)="deletePhoto(photo)"
+                        [disabled]="!photo.in_database || (!photo.city_id && !photo.attraction_id)">
+                  <mat-icon color="warn">delete</mat-icon>
+                  <span>Delete</span>
+                </button>
+              </mat-menu>
+            </div>
+          </div>
+
+          <div class="photo-info">
+            @if (photo.caption) {
+              <p class="photo-caption">{{ photo.caption }}</p>
+            }
+
+            @if (photo.city_name) {
+              <div class="photo-entity">
+                <mat-icon class="entity-icon">location_city</mat-icon>
+                <span class="entity-name">{{ photo.city_name }}</span>
+                <mat-chip class="entity-type-chip city-chip">City</mat-chip>
+              </div>
+            }
+
+            @if (photo.attraction_name) {
+              <div class="photo-entity">
+                <mat-icon class="entity-icon">attractions</mat-icon>
+                <span class="entity-name">{{ photo.attraction_name }}</span>
+                <mat-chip class="entity-type-chip attraction-chip">Attraction</mat-chip>
+              </div>
+            }
+
+            @if (photo.tags && photo.tags.length > 0) {
+              <div class="photo-tags">
+                @for (tag of photo.tags; track tag) {
+                  <mat-chip class="tag-chip">{{ tag }}</mat-chip>
+                }
+              </div>
+            }
+
+            <span class="photo-date">{{ photo.created_at | date:'mediumDate' }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <mat-paginator
+    [length]="total()"
+    [pageSize]="50"
+    [pageSizeOptions]="[25, 50, 100]"
+    (page)="onPageChange($event)"
+    showFirstLastButtons
+  ></mat-paginator>
+</div>
+

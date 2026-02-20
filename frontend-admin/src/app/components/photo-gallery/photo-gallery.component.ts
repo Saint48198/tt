@@ -110,7 +110,7 @@ export class PhotoGalleryComponent implements OnChanges {
 
     this.savingEdit.set(true);
     const tags = this.editTags();
-    this.photosService.updatePhoto(photo.id, this.editCaption || null, tags).subscribe({
+    this.photosService.updatePhoto(photo.id, { caption: this.editCaption || null, tags }).subscribe({
       next: () => {
         this.photos.update((list) =>
           list.map((p) => (p.id === photo.id ? { ...p, caption: this.editCaption || null, tags: [...tags] } : p))

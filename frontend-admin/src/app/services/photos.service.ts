@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { EntityPhotosResponse, UploadPhotosResponse } from '../interfaces';
+import { EntityPhotosResponse, UploadPhotosResponse, AllPhotosResponse } from '../interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +11,23 @@ export class PhotosService {
   private readonly apiUrl = '/api/photos';
 
   /**
+   * Get all photos with pagination and optional filtering (merged from Cloudinary + DB)
+   */
+  getAllPhotos(params: {
+    page?: number;
+    limit?: number;
+    source?: string;
+    search?: string;
+  } = {}): Observable<AllPhotosResponse> {
+    const queryParams: Record<string, string> = {};
+    if (params.page) queryParams['page'] = String(params.page);
+    if (params.limit) queryParams['limit'] = String(params.limit);
+    if (params.source) queryParams['source'] = params.source;
+    if (params.search) queryParams['search'] = params.search;
+    return this.http.get<AllPhotosResponse>(`${this.apiUrl}/all`, { params: queryParams });
+  }
+
+  /**
    * Get photos for a specific entity (city or attraction)
    */
   getPhotosByEntity(entityType: 'cities' | 'attractions', entityId: number): Observable<EntityPhotosResponse> {
@@ -18,10 +35,18 @@ export class PhotosService {
   }
 
   /**
-   * Update a photo's caption and tags
+   * Update a photo's caption, tags, and entity assignments
    */
-  updatePhoto(photoId: number, caption: string | null, tags?: string[]): Observable<{ message: string }> {
-    return this.http.patch<{ message: string }>(`${this.apiUrl}/${photoId}`, { caption, tags });
+  updatePhoto(
+    photoId: number,
+    data: {
+      caption?: string | null;
+      tags?: string[];
+      city_id?: number | null;
+      attraction_id?: number | null;
+    }
+  ): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(`${this.apiUrl}/${photoId}`, data);
   }
 
   /**

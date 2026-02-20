@@ -1,0 +1,260 @@
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { AdminPhoto } from '../../interfaces';
+import { PhotosService } from '../../services/photos.service';
+import { CitiesService } from '../../services/cities.service';
+import { AttractionsService } from '../../services/attractions.service';
+
+export interface PhotoEditDialogData {
+  photo: AdminPhoto;
+}
+
+export interface PhotoEditDialogResult {
+  updated: boolean;
+}
+
+interface EntityOption {
+  id: number;
+  name: string;
+}
+
+@Component({
+  selector: 'app-photo-edit-dialog',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatChipsModule,
+    MatProgressSpinnerModule,
+    MatAutocompleteModule,
+    MatSnackBarModule,
+    MatDividerModule,
+    MatTabsModule,
+    MatTooltipModule,
+  ],
+  templateUrl: './photo-edit-dialog.component.html',
+  styleUrl: './photo-edit-dialog.component.scss',
+})
+export class PhotoEditDialogComponent implements OnInit {
+  private readonly dialogRef = inject(MatDialogRef<PhotoEditDialogComponent>);
+  private readonly data: PhotoEditDialogData = inject(MAT_DIALOG_DATA);
+  private readonly photosService = inject(PhotosService);
+  private readonly citiesService = inject(CitiesService);
+  private readonly attractionsService = inject(AttractionsService);
+  private readonly snackBar = inject(MatSnackBar);
+
+  photo = this.data.photo;
+
+  caption = '';
+  tagsInput = '';
+  tags: string[] = [];
+
+  // City combobox
+  cityId: number | null = null;
+  cityInputValue = '';
+  private allCities = signal<EntityOption[]>([]);
+  loadingCities = signal(false);
+  filteredCities = computed(() => {
+    const q = this.cityInputValue.toLowerCase();
+    const all = this.allCities();
+    return q ? all.filter((c) => c.name.toLowerCase().includes(q)) : all;
+  });
+
+  // Attraction combobox
+  attractionId: number | null = null;
+  attractionInputValue = '';
+  private allAttractions = signal<EntityOption[]>([]);
+  loadingAttractions = signal(false);
+  filteredAttractions = computed(() => {
+    const q = this.attractionInputValue.toLowerCase();
+    const all = this.allAttractions();
+    return q ? all.filter((a) => a.name.toLowerCase().includes(q)) : all;
+  });
+
+  saving = signal(false);
+
+  ngOnInit(): void {
+    this.caption = this.photo.caption || '';
+    this.tags = [...(this.photo.tags || [])];
+    this.cityId = this.photo.city_id;
+    this.cityInputValue = this.photo.city_name || '';
+    this.attractionId = this.photo.attraction_id;
+    this.attractionInputValue = this.photo.attraction_name || '';
+
+    this.loadCities();
+    this.loadAttractions();
+  }
+
+  private loadCities(): void {
+    this.loadingCities.set(true);
+    this.citiesService.getCities({ page: 1, limit: 500 }).subscribe({
+      next: (res) => {
+        this.allCities.set(res.cities.map((c) => ({ id: c.id, name: c.name })));
+        this.loadingCities.set(false);
+      },
+      error: () => {
+        this.allCities.set([]);
+        this.loadingCities.set(false);
+      },
+    });
+  }
+
+  private loadAttractions(): void {
+    this.loadingAttractions.set(true);
+    this.attractionsService.getAttractions({ page: 1, limit: 500 }).subscribe({
+      next: (res) => {
+        this.allAttractions.set(res.attractions.map((a) => ({ id: a.id, name: a.name })));
+        this.loadingAttractions.set(false);
+      },
+      error: () => {
+        this.allAttractions.set([]);
+        this.loadingAttractions.set(false);
+      },
+    });
+  }
+
+  // ── City combobox ──
+
+  onCityInput(value: string): void {
+    this.cityInputValue = value;
+    // If user clears the text, clear the selection
+    if (!value) {
+      this.cityId = null;
+    }
+  }
+
+  onCitySelected(option: EntityOption): void {
+    this.cityId = option.id;
+    this.cityInputValue = option.name;
+  }
+
+  clearCity(): void {
+    this.cityId = null;
+    this.cityInputValue = '';
+  }
+
+  displayCityFn = (option: EntityOption): string => option?.name ?? '';
+
+  // ── Attraction combobox ──
+
+  onAttractionInput(value: string): void {
+    this.attractionInputValue = value;
+    if (!value) {
+      this.attractionId = null;
+    }
+  }
+
+  onAttractionSelected(option: EntityOption): void {
+    this.attractionId = option.id;
+    this.attractionInputValue = option.name;
+  }
+
+  clearAttraction(): void {
+    this.attractionId = null;
+    this.attractionInputValue = '';
+  }
+
+  displayAttractionFn = (option: EntityOption): string => option?.name ?? '';
+
+  // ── Tags ──
+
+  addTag(): void {
+    const tag = this.tagsInput.trim();
+    if (tag && !this.tags.includes(tag)) {
+      this.tags.push(tag);
+    }
+    this.tagsInput = '';
+  }
+
+  removeTag(tag: string): void {
+    this.tags = this.tags.filter((t) => t !== tag);
+  }
+
+  onTagKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault();
+      this.addTag();
+    }
+  }
+
+  // ── Save ──
+
+  save(): void {
+    if (!this.photo.in_database || this.photo.id == null) {
+      const entityType = this.cityId ? 'cities' : this.attractionId ? 'attractions' : null;
+      const entityId = this.cityId || this.attractionId;
+
+      if (entityType && entityId) {
+        this.saving.set(true);
+        this.photosService
+          .bulkAddPhotos(entityType, entityId, [
+            {
+              photo_id: this.photo.photo_id,
+              url: this.photo.url,
+              caption: this.caption || null,
+            },
+          ])
+          .subscribe({
+            next: () => {
+              this.snackBar.open('Photo added to database', 'Close', { duration: 3000 });
+              this.saving.set(false);
+              this.dialogRef.close({ updated: true });
+            },
+            error: (err) => {
+              this.snackBar.open(err?.error?.message || 'Failed to save', 'Close', { duration: 5000 });
+              this.saving.set(false);
+            },
+          });
+      } else {
+        this.snackBar.open('Select at least a city or attraction to add this photo to the database', 'Close', {
+          duration: 5000,
+        });
+      }
+      return;
+    }
+
+    this.saving.set(true);
+    this.photosService
+      .updatePhoto(this.photo.id, {
+        caption: this.caption || null,
+        tags: this.tags,
+        city_id: this.cityId,
+        attraction_id: this.attractionId,
+      })
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Photo updated successfully', 'Close', { duration: 3000 });
+          this.saving.set(false);
+          this.dialogRef.close({ updated: true });
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to update photo', 'Close', { duration: 5000 });
+          this.saving.set(false);
+        },
+      });
+  }
+
+  cancel(): void {
+    this.dialogRef.close({ updated: false });
+  }
+}

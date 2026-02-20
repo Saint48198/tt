@@ -24,6 +24,23 @@ router.get('/api/photos', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/photos/all
+router.get('/api/photos/all', async (req: Request, res: Response) => {
+  try {
+
+    const page = req.query.page ? Number(req.query.page) : 1;
+    const limit = req.query.limit ? Number(req.query.limit) : 25;
+    const source = (req.query.source as string) || 'all';
+    const search = req.query.search as string | undefined;
+
+    const result = await photoService.getAllPhotosMerged({ page, limit, source, search });
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Failed to fetch all photos:', error);
+    return res.status(500).json({ error: 'Failed to fetch photos' });
+  }
+});
+
 // GET /api/photos/:entityType/:entityId
 router.get('/api/photos/:entityType/:entityId', (req: Request, res: Response) => {
   const { entityType, entityId } = req.params;
@@ -281,10 +298,10 @@ router.patch('/api/photos/:id', (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Invalid photo id' });
   }
 
-  const { caption, tags } = req.body;
+  const { caption, tags, city_id, attraction_id } = req.body;
 
   try {
-    photoService.updatePhoto(Number(id), caption ?? null, tags);
+    photoService.updatePhoto(Number(id), caption ?? null, tags, city_id, attraction_id);
     return res.status(200).json({ message: 'Photo updated successfully.' });
   } catch (error) {
     console.error('Failed to update photo:', error);

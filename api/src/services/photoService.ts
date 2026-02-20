@@ -665,12 +665,31 @@ class PhotoService {
   }
 
   /**
-   * Update a photo's caption and tags
+   * Update a photo's caption, tags, and entity assignments
    */
-  public updatePhoto(photoId: number, caption: string | null, tags?: string[]): { success: boolean } {
+  public updatePhoto(
+    photoId: number,
+    caption: string | null,
+    tags?: string[],
+    cityId?: number | null,
+    attractionId?: number | null,
+  ): { success: boolean } {
+    const setClauses = ['caption = ?'];
+    const params: any[] = [caption];
+
+    if (cityId !== undefined) {
+      setClauses.push('city_id = ?');
+      params.push(cityId);
+    }
+    if (attractionId !== undefined) {
+      setClauses.push('attraction_id = ?');
+      params.push(attractionId);
+    }
+
+    params.push(photoId);
     const result = db
-      .prepare(`UPDATE photos SET caption = ? WHERE id = ?`)
-      .run(caption, photoId);
+      .prepare(`UPDATE photos SET ${setClauses.join(', ')} WHERE id = ?`)
+      .run(...params);
 
     if (result.changes === 0) {
       throw new Error('Photo not found.');
@@ -681,6 +700,222 @@ class PhotoService {
     }
 
     return { success: true };
+  }
+
+  /**
+   * Get all photos from the database (no pagination applied here, used for merging)
+   */
+  private getAllDbPhotos(): Array<{
+    id: number;
+    url: string;
+    user_id: string;
+    caption: string | null;
+    created_at: string;
+    photo_id: string;
+    city_id: number | null;
+    city_name: string | null;
+    attraction_id: number | null;
+    attraction_name: string | null;
+    entity_type: string | null;
+    entity_id: number | null;
+    entity_name: string | null;
+    tags: string[];
+    source: 'database';
+  }> {
+    const rows = db
+      .prepare(
+        `SELECT p.id, p.url, p.user_id, p.city_id, p.attraction_id, p.caption, p.created_at, p.photo_id,
+                c.name as city_name, a.name as attraction_name
+         FROM photos p
+         LEFT JOIN cities c ON p.city_id = c.id
+         LEFT JOIN attractions a ON p.attraction_id = a.id
+         ORDER BY p.created_at DESC`
+      )
+      .all() as any[];
+
+    return rows.map((row) => ({
+      id: row.id,
+      url: row.url,
+      user_id: row.user_id,
+      caption: row.caption,
+      created_at: row.created_at,
+      photo_id: row.photo_id,
+      city_id: row.city_id || null,
+      city_name: row.city_name || null,
+      attraction_id: row.attraction_id || null,
+      attraction_name: row.attraction_name || null,
+      entity_type: row.city_id ? 'cities' : row.attraction_id ? 'attractions' : null,
+      entity_id: row.city_id || row.attraction_id || null,
+      entity_name: row.city_name || row.attraction_name || null,
+      tags: this.getTagsForPhoto(row.id),
+      source: 'database' as const,
+    }));
+  }
+
+  /**
+   * Get all photos merged from Cloudinary and the database.
+   * Cloudinary-only photos are included; DB photos that match a Cloudinary photo are merged.
+   * Supports filtering by source ('all' | 'database' | 'cloudinary') and search.
+   */
+  public async getAllPhotosMerged(params: {
+    page?: number;
+    limit?: number;
+    source?: string;
+    search?: string;
+  }): Promise<{ photos: any[]; total: number }> {
+    const { page = 1, limit = 25, source = 'all', search } = params;
+
+    // Fetch DB photos
+    const dbPhotos = this.getAllDbPhotos();
+
+    // Build a lookup of DB photos by their photo_id (Cloudinary public_id) for merging
+    const dbByPhotoId = new Map<string, typeof dbPhotos[0]>();
+    const dbByUrl = new Map<string, typeof dbPhotos[0]>();
+    for (const p of dbPhotos) {
+      if (p.photo_id) dbByPhotoId.set(p.photo_id, p);
+      if (p.url) dbByUrl.set(p.url, p);
+    }
+
+    let merged: any[] = [];
+
+    if (source === 'database') {
+      // Only DB photos
+      merged = dbPhotos.map((p) => ({ ...p, source: 'database', in_database: true, in_cloudinary: false }));
+    } else {
+      // Fetch from Cloudinary (source === 'all' or 'cloudinary')
+      const cloudinaryPhotos: any[] = [];
+      try {
+        const folder = process.env.CLOUDINARY_FOLDER || '';
+        let nextCursor: string | undefined;
+        // Paginate through all Cloudinary resources (up to a reasonable cap)
+        const maxFetches = 10; // cap at ~5000 photos
+        for (let i = 0; i < maxFetches; i++) {
+          const options: any = {
+            type: 'upload',
+            prefix: folder,
+            max_results: 500,
+            context: true,
+          };
+          if (nextCursor) options.next_cursor = nextCursor;
+
+          const result = await cloudinary.api.resources(options);
+          const resources = result.resources ?? [];
+
+          for (const r of resources) {
+            cloudinaryPhotos.push({
+              photo_id: r.public_id,
+              url: r.secure_url,
+              caption: r.context?.custom?.caption || r.context?.custom?.alt || null,
+              created_at: r.created_at,
+              format: r.format,
+            });
+          }
+
+          nextCursor = result.next_cursor;
+          if (!nextCursor) break;
+        }
+      } catch (err) {
+        console.error('Failed to fetch Cloudinary photos for merge:', err);
+        // Fall back to DB-only if Cloudinary fails
+        if (source === 'cloudinary') {
+          return { photos: [], total: 0 };
+        }
+      }
+
+      // Merge: start with Cloudinary photos, enrich with DB data
+      const seenPhotoIds = new Set<string>();
+
+      for (const cp of cloudinaryPhotos) {
+        const dbMatch = dbByPhotoId.get(cp.photo_id) || dbByUrl.get(cp.url);
+        seenPhotoIds.add(cp.photo_id);
+        if (cp.url) seenPhotoIds.add(cp.url);
+
+        if (dbMatch) {
+          merged.push({
+            id: dbMatch.id,
+            url: cp.url,
+            user_id: dbMatch.user_id,
+            caption: dbMatch.caption || cp.caption,
+            created_at: cp.created_at,
+            photo_id: cp.photo_id,
+            city_id: dbMatch.city_id,
+            city_name: dbMatch.city_name,
+            attraction_id: dbMatch.attraction_id,
+            attraction_name: dbMatch.attraction_name,
+            entity_type: dbMatch.entity_type,
+            entity_id: dbMatch.entity_id,
+            entity_name: dbMatch.entity_name,
+            tags: dbMatch.tags,
+            source: 'both',
+            in_database: true,
+            in_cloudinary: true,
+          });
+        } else {
+          if (source !== 'database') {
+            merged.push({
+              id: null,
+              url: cp.url,
+              user_id: null,
+              caption: cp.caption,
+              created_at: cp.created_at,
+              photo_id: cp.photo_id,
+              city_id: null,
+              city_name: null,
+              attraction_id: null,
+              attraction_name: null,
+              entity_type: null,
+              entity_id: null,
+              entity_name: null,
+              tags: [],
+              source: 'cloudinary',
+              in_database: false,
+              in_cloudinary: true,
+            });
+          }
+        }
+      }
+
+      // Add DB-only photos (not found in Cloudinary) when source is 'all' or 'database'
+      if (source === 'all') {
+        for (const dp of dbPhotos) {
+          if (!seenPhotoIds.has(dp.photo_id) && !seenPhotoIds.has(dp.url)) {
+            merged.push({
+              ...dp,
+              source: 'database',
+              in_database: true,
+              in_cloudinary: false,
+            });
+          }
+        }
+      }
+    }
+
+    // Filter by source if needed
+    if (source === 'cloudinary') {
+      merged = merged.filter((p) => p.in_cloudinary && !p.in_database);
+    }
+
+    // Apply search filter
+    if (search) {
+      const s = search.toLowerCase();
+      merged = merged.filter(
+        (p) =>
+          (p.caption && p.caption.toLowerCase().includes(s)) ||
+          (p.url && p.url.toLowerCase().includes(s)) ||
+          (p.photo_id && p.photo_id.toLowerCase().includes(s)) ||
+          (p.entity_name && p.entity_name.toLowerCase().includes(s)) ||
+          (p.tags && p.tags.some((t: string) => t.toLowerCase().includes(s)))
+      );
+    }
+
+    // Sort by created_at descending
+    merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const total = merged.length;
+    const offset = (page - 1) * limit;
+    const paginated = merged.slice(offset, offset + limit);
+
+    return { photos: paginated, total };
   }
 
   /**

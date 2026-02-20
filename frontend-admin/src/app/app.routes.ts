@@ -92,6 +92,12 @@ export const appRoutes: Route[] = [
     canActivate: [adminGuard],
   },
   {
+    path: 'photos',
+    loadComponent: () =>
+      import('./pages/photos-list/photos-list.component').then((m) => m.PhotosListComponent),
+    canActivate: [adminGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },

@@ -1,0 +1,246 @@
+// Photo Edit Dialog — Material Design 3 styling
+
+:host {
+  display: block;
+}
+
+.photo-edit-dialog {
+  min-width: 700px;
+  max-width: 960px;
+
+  @media (max-width: 768px) {
+    min-width: unset;
+  }
+}
+
+// ── Dialog Title ──
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 20px 24px 12px;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface, #1c1b1f);
+
+  .dialog-title-icon {
+    color: var(--mat-sys-primary, #6750a4);
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+// ── Content ──
+mat-dialog-content {
+  padding: 0 24px 16px !important;
+  max-height: 72vh;
+  overflow-y: auto;
+}
+
+// ── Layout ──
+.dialog-layout {
+  display: flex;
+  gap: 24px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+// ── Photo Preview ──
+.photo-preview {
+  flex: 0 0 300px;
+  position: relative;
+  align-self: flex-start;
+
+  @media (max-width: 768px) {
+    flex: none;
+    max-height: 320px;
+    overflow: hidden;
+  }
+
+  .preview-image {
+    width: 100%;
+    display: block;
+    border-radius: 16px;
+    object-fit: cover;
+  }
+}
+
+.source-badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  backdrop-filter: blur(8px);
+
+  .badge-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.badge-db {
+  background: rgba(16, 185, 129, 0.9);
+  color: #fff;
+}
+
+.badge-cloud {
+  background: rgba(99, 102, 241, 0.9);
+  color: #fff;
+}
+
+// ── Edit Form ──
+.edit-form {
+  flex: 1;
+  min-width: 0;
+}
+
+.tab-icon {
+  margin-right: 6px;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.tab-content {
+  padding: 20px 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+// ── Tags ──
+.tags-section {
+  margin-top: 4px;
+}
+
+.tags-chip-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.no-tags-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant, #49454f);
+  font-style: italic;
+
+  .hint-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--mat-sys-outline, #79747e);
+  }
+}
+
+
+// ── Combobox ──
+.option-spinner {
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+// ── Metadata ──
+.metadata-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.metadata-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 4px;
+
+  .meta-icon {
+    color: var(--mat-sys-on-surface-variant, #49454f);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+  }
+
+  .meta-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    .meta-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--mat-sys-on-surface-variant, #49454f);
+      font-weight: 500;
+    }
+
+    .meta-value {
+      font-size: 0.85rem;
+      color: var(--mat-sys-on-surface, #1c1b1f);
+      word-break: break-all;
+    }
+  }
+}
+
+.source-value {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.source-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.source-db {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.source-cloud {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+// ── Dialog Actions ──
+mat-dialog-actions {
+  padding: 12px 24px 20px !important;
+  gap: 8px;
+
+  .btn-spinner {
+    display: inline-flex;
+    margin-right: 4px;
+  }
+}

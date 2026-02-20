@@ -23,5 +23,6 @@ export class App {
     { label: 'Users', path: '/users' },
     { label: 'Countries', path: '/countries' },
     { label: 'States', path: '/states' },
+    { label: 'Photos', path: '/photos' },
   ];
 }
