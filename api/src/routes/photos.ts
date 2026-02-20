@@ -273,6 +273,31 @@ router.post(
   }
 );
 
+// PATCH /api/photos/:id
+router.patch('/api/photos/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id || Number.isNaN(Number(id))) {
+    return res.status(400).json({ error: 'Invalid photo id' });
+  }
+
+  const { caption, tags } = req.body;
+
+  try {
+    photoService.updatePhoto(Number(id), caption ?? null, tags);
+    return res.status(200).json({ message: 'Photo updated successfully.' });
+  } catch (error) {
+    console.error('Failed to update photo:', error);
+    const message = error instanceof Error ? error.message : 'Failed to update photo';
+
+    if (message.includes('not found')) {
+      return res.status(404).json({ error: message });
+    }
+
+    return res.status(500).json({ error: message });
+  }
+});
+
 // DELETE /api/photos/remove/:entityType/:entityId
 router.delete(
   '/api/photos/remove/:entityType/:entityId',

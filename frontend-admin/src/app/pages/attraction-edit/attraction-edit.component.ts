@@ -13,6 +13,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MapComponent, MapMarker } from '@shared/components';
+import { PhotoGalleryComponent } from '../../components/photo-gallery/photo-gallery.component';
 import { AttractionsService } from '../../services/attractions.service';
 import { CountriesService } from '../../services/countries.service';
 import { GeocodeService } from '../../services/geocode.service';
@@ -47,6 +48,7 @@ const MONTH_YEAR_FORMATS = {
     MatDatepickerModule,
     MatNativeDateModule,
     MapComponent,
+    PhotoGalleryComponent,
   ],
   templateUrl: './attraction-edit.component.html',
   styleUrl: './attraction-edit.component.scss',

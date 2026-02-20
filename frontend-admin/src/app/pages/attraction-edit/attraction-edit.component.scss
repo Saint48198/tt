@@ -189,6 +189,42 @@
   }
 }
 
+.photos-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
+      font-size: 1.125rem;
+      color: #1f2937;
+
+      mat-icon {
+        color: #6b7280;
+      }
+    }
+
+    button {
+      mat-icon {
+        margin-right: 0.25rem;
+        font-size: 20px;
+        height: 20px;
+        width: 20px;
+      }
+    }
+  }
+}
+
 // Snackbar styles
 .error-snackbar {
   --mdc-snackbar-container-color: #dc2626;

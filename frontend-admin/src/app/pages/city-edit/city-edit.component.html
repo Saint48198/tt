@@ -152,6 +152,26 @@
       </div>
     }
 
+    @if (isEditMode() && cityId) {
+      <div class="photos-section mat-elevation-z2">
+        <div class="section-header">
+          <h2>
+            <mat-icon>photo_library</mat-icon>
+            Photos
+          </h2>
+          <button mat-stroked-button type="button" (click)="photoGallery.openUploadModal()">
+            <mat-icon>add_photo_alternate</mat-icon>
+            Upload Photos
+          </button>
+        </div>
+        <app-photo-gallery
+          #photoGallery
+          entityType="cities"
+          [entityId]="cityId">
+        </app-photo-gallery>
+      </div>
+    }
+
     <div class="form-actions">
       <button mat-stroked-button type="button" routerLink="/cities">Cancel</button>
       <button

@@ -13,5 +13,8 @@ export * from './geocode.interface';
 // State interfaces
 export * from './state.interface';
 
+// Photo interfaces
+export * from './photo.interface';
+
 // User interfaces
 export * from './user.interface';

@@ -128,6 +128,7 @@ interface PhotosByEntityResponse {
     caption?: string | null;
     created_at: string;
     photo_id: string;
+    tags: string[];
   }>;
 }
 
@@ -143,6 +144,18 @@ class PhotoService {
       api_key: process.env.CLOUDINARY_API_KEY,
       api_secret: process.env.CLOUDINARY_API_SECRET,
     });
+
+    // Ensure photo_tags junction table exists
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS photo_tags (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        photo_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+        FOREIGN KEY (photo_id) REFERENCES photos(id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE,
+        UNIQUE(photo_id, tag_id)
+      )
+    `);
   }
 
   public static getInstance(): PhotoService {
@@ -431,7 +444,7 @@ class PhotoService {
 
     const column = entityType === 'cities' ? 'city_id' : 'attraction_id';
 
-    const photos = db
+    const rows = db
       .prepare(
         `
         SELECT id, url, user_id, ${column} AS entity_id, caption, created_at, photo_id
@@ -448,6 +461,11 @@ class PhotoService {
       created_at: string;
       photo_id: string;
     }>;
+
+    const photos = rows.map((row) => ({
+      ...row,
+      tags: this.getTagsForPhoto(row.id),
+    }));
 
     return { photos };
   }
@@ -607,6 +625,62 @@ class PhotoService {
     }));
 
     return { success: true, images: processedPhotos };
+  }
+
+  /**
+   * Get tags for a photo
+   */
+  public getTagsForPhoto(photoId: number): string[] {
+    const rows = db
+      .prepare(
+        `SELECT t.name FROM tags t
+         JOIN photo_tags pt ON pt.tag_id = t.id
+         WHERE pt.photo_id = ?
+         ORDER BY t.name`
+      )
+      .all(photoId) as Array<{ name: string }>;
+    return rows.map((r) => r.name);
+  }
+
+  /**
+   * Set tags for a photo (replaces existing tags)
+   */
+  public setTagsForPhoto(photoId: number, tags: string[]): void {
+    const uniqueTags = [...new Set(tags.map((t) => t.trim().toLowerCase()).filter(Boolean))];
+
+    const setTags = db.transaction((tagNames: string[]) => {
+      // Remove existing tags for this photo
+      db.prepare(`DELETE FROM photo_tags WHERE photo_id = ?`).run(photoId);
+
+      for (const name of tagNames) {
+        // Ensure tag exists
+        db.prepare(`INSERT OR IGNORE INTO tags (name) VALUES (?)`).run(name);
+        const tag = db.prepare(`SELECT id FROM tags WHERE name = ?`).get(name) as { id: number };
+        // Link tag to photo
+        db.prepare(`INSERT OR IGNORE INTO photo_tags (photo_id, tag_id) VALUES (?, ?)`).run(photoId, tag.id);
+      }
+    });
+
+    setTags(uniqueTags);
+  }
+
+  /**
+   * Update a photo's caption and tags
+   */
+  public updatePhoto(photoId: number, caption: string | null, tags?: string[]): { success: boolean } {
+    const result = db
+      .prepare(`UPDATE photos SET caption = ? WHERE id = ?`)
+      .run(caption, photoId);
+
+    if (result.changes === 0) {
+      throw new Error('Photo not found.');
+    }
+
+    if (tags !== undefined) {
+      this.setTagsForPhoto(photoId, tags);
+    }
+
+    return { success: true };
   }
 
   /**
