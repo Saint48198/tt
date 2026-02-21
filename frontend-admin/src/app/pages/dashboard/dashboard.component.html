@@ -11,10 +11,6 @@
         <span class="nav-icon">📊</span>
         <span>Dashboard</span>
       </a>
-      <a routerLink="/users" routerLinkActive="active" class="nav-item">
-        <span class="nav-icon">👥</span>
-        <span>Users</span>
-      </a>
       <a routerLink="/countries" routerLinkActive="active" class="nav-item">
         <span class="nav-icon">🌍</span>
         <span>Countries</span>
@@ -31,17 +27,9 @@
         <span class="nav-icon">🏰</span>
         <span>Attractions</span>
       </a>
-      <a href="#" class="nav-item">
-        <span class="nav-icon">🗺️</span>
-        <span>Trips</span>
-      </a>
       <a routerLink="/photos" routerLinkActive="active" class="nav-item">
         <span class="nav-icon">📸</span>
         <span>Photos</span>
-      </a>
-      <a href="#" class="nav-item">
-        <span class="nav-icon">⚙️</span>
-        <span>Settings</span>
       </a>
     </nav>
   </aside>
@@ -50,7 +38,7 @@
     <header class="top-bar">
       <h1>Dashboard</h1>
       <div class="user-menu">
-        @if (currentUser$ | async; as user) {
+        @if (currentUser(); as user) {
           <span class="username">{{ user.username }}</span>
         }
         <button class="logout-btn" (click)="logout()">Sign Out</button>
@@ -58,71 +46,100 @@
     </header>
 
     <main class="content">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">👥</div>
-          <div class="stat-info">
-            <span class="stat-value">1,234</span>
-            <span class="stat-label">Total Users</span>
-          </div>
+      @if (loading()) {
+        <div class="loading-overlay">
+          <div class="loading-spinner"></div>
+          <span class="loading-text">Loading dashboard...</span>
         </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">🗺️</div>
-          <div class="stat-info">
-            <span class="stat-value">5,678</span>
-            <span class="stat-label">Total Trips</span>
-          </div>
+      } @else if (error()) {
+        <div class="error-state">
+          <span class="error-icon">⚠️</span>
+          <p class="error-message">{{ error() }}</p>
+          <button class="retry-btn" (click)="ngOnInit()">Retry</button>
         </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">📍</div>
-          <div class="stat-info">
-            <span class="stat-value">892</span>
-            <span class="stat-label">Locations</span>
-          </div>
-        </div>
-
-        <div class="stat-card">
-          <div class="stat-icon">📸</div>
-          <div class="stat-info">
-            <span class="stat-value">15,432</span>
-            <span class="stat-label">Photos</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="recent-section">
-        <h2>Recent Activity</h2>
-        <div class="activity-list">
-          <div class="activity-item">
-            <span class="activity-icon">🆕</span>
-            <div class="activity-content">
-              <span class="activity-text">New user registered</span>
-              <span class="activity-time">2 minutes ago</span>
+      } @else {
+        <div class="stats-grid">
+          <div class="stat-card" routerLink="/countries">
+            <div class="stat-icon">🌍</div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats().totalCountries }}</span>
+              <span class="stat-label">Countries</span>
             </div>
           </div>
-          <div class="activity-item">
-            <span class="activity-icon">✈️</span>
-            <div class="activity-content">
-              <span class="activity-text">New trip created to Paris</span>
-              <span class="activity-time">15 minutes ago</span>
+
+          <div class="stat-card" routerLink="/states">
+            <div class="stat-icon">🏛️</div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats().totalStates }}</span>
+              <span class="stat-label">States</span>
             </div>
           </div>
-          <div class="activity-item">
-            <span class="activity-icon">📸</span>
-            <div class="activity-content">
-              <span class="activity-text">25 new photos uploaded</span>
-              <span class="activity-time">1 hour ago</span>
+
+          <div class="stat-card" routerLink="/cities">
+            <div class="stat-icon">🏙️</div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats().totalCities }}</span>
+              <span class="stat-label">Cities</span>
+            </div>
+          </div>
+
+          <div class="stat-card" routerLink="/attractions">
+            <div class="stat-icon">🏰</div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats().totalAttractions }}</span>
+              <span class="stat-label">Attractions</span>
+            </div>
+          </div>
+
+          <div class="stat-card" routerLink="/photos">
+            <div class="stat-icon">📸</div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats().totalPhotos }}</span>
+              <span class="stat-label">Photos</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats().totalUsers }}</span>
+              <span class="stat-label">Users</span>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Map Widget showing popular destinations -->
-      <div class="map-section">
-        <app-dashboard-map></app-dashboard-map>
-      </div>
+        <div class="recent-section">
+          <h2>Recent Activity</h2>
+          <div class="activity-list">
+            <div class="activity-item">
+              <span class="activity-icon">🆕</span>
+              <div class="activity-content">
+                <span class="activity-text">New user registered</span>
+                <span class="activity-time">2 minutes ago</span>
+              </div>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">✈️</span>
+              <div class="activity-content">
+                <span class="activity-text">New trip created to Paris</span>
+                <span class="activity-time">15 minutes ago</span>
+              </div>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">📸</span>
+              <div class="activity-content">
+                <span class="activity-text">25 new photos uploaded</span>
+                <span class="activity-time">1 hour ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Map Widget showing popular destinations -->
+        <div class="map-section">
+          <app-dashboard-map></app-dashboard-map>
+        </div>
+      }
     </main>
   </div>
 </div>

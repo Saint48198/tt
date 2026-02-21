@@ -44,3 +44,10 @@
 [37mWatch mode enabled. Watching for file changes...[39m
 [37mNOTE: Raw file sizes do not reflect development server per-request transformations.[39m
   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4200[22m/[39m
+Task "frontend-app:serve:development" is continuous but exited with code 128
+
+
+
+ NX   Successfully ran target serve for project frontend-app
+
+

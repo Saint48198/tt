@@ -20,9 +20,10 @@ export class App {
 
   navLinks = [
     { label: 'Dashboard', path: '/' },
-    { label: 'Users', path: '/users' },
     { label: 'Countries', path: '/countries' },
     { label: 'States', path: '/states' },
+    { label: 'Cities', path: '/cities' },
+    { label: 'Attractions', path: '/attractions' },
     { label: 'Photos', path: '/photos' },
   ];
 }

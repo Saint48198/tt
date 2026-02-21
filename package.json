@@ -85,7 +85,6 @@
     "axios": "^1.6.0",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.6.2",
-    "pg": "^8.13.0",
     "cloudinary": "^2.8.0",
     "concurrently": "^8.0.0",
     "cookie-parser": "^1.4.7",

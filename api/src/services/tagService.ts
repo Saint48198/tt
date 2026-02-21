@@ -31,7 +31,7 @@ class TagService {
     if (this.initialized) return;
     await db.exec(`
       CREATE TABLE IF NOT EXISTS tags (
-        id SERIAL PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT UNIQUE
       )
     `);
@@ -69,7 +69,7 @@ class TagService {
     await this.ensureTable();
 
     for (const tag of tags) {
-      await db.run('INSERT INTO tags (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [tag]);
+      await db.run('INSERT OR IGNORE INTO tags (name) VALUES ($1)', [tag]);
     }
     return { success: true };
   }
@@ -103,7 +103,7 @@ class TagService {
     } while (nextCursor);
 
     for (const tag of allTags) {
-      await db.run('INSERT INTO tags (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [tag]);
+      await db.run('INSERT OR IGNORE INTO tags (name) VALUES ($1)', [tag]);
     }
     return { count: allTags.size };
   }

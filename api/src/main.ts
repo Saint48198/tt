@@ -16,6 +16,7 @@ import photosRouter from './routes/photos';
 import rolesRouter from './routes/roles';
 import statesRouter from './routes/states';
 import tripsRouter from './routes/trips';
+import statsRouter from './routes/stats';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use(photosRouter);
 app.use(rolesRouter);
 app.use(statesRouter);
 app.use(tripsRouter);
+app.use(statsRouter);
 
 const port = process.env.PORT || 3001;
 
