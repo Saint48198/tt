@@ -95,7 +95,7 @@ export class StateEditComponent implements OnInit {
     if (!value || !(value instanceof Date) || isNaN(value.getTime())) return undefined;
     const year = value.getFullYear();
     const month = String(value.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
+    return `${year}-${month}-01`;
   }
 
   private loadCountries(): void {

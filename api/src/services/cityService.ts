@@ -15,6 +15,7 @@ interface City {
 
 interface ListCitiesOptions {
   country_id?: number;
+  search?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -23,7 +24,7 @@ interface ListCitiesOptions {
 
 class CityService {
   private static instance: CityService;
-  private validColumns = ['cities.name', 'lat', 'lng', 'country_name', 'state_name'];
+  private validColumns = ['cities.name', 'lat', 'lng', 'country_name', 'state_name', 'last_visited'];
 
   private constructor() {}
 
@@ -40,7 +41,7 @@ class CityService {
     page: number;
     limit: number;
   }> {
-    const { country_id, page = 1, limit = 25, sortBy = 'cities.name', sort = 'asc' } = options;
+    const { country_id, search, page = 1, limit = 25, sortBy = 'cities.name', sort = 'asc' } = options;
     const offset = (page - 1) * limit;
 
     let sortByStr = sortBy.toString();
@@ -51,12 +52,20 @@ class CityService {
 
     const params: any[] = [];
     let paramIdx = 1;
+    const whereClauses: string[] = [];
 
-    let whereClause = '';
     if (country_id !== undefined && !Number.isNaN(country_id)) {
-      whereClause = `WHERE cities.country_id = $${paramIdx++}`;
+      whereClauses.push(`cities.country_id = $${paramIdx++}`);
       params.push(country_id);
     }
+
+    if (search && search.trim()) {
+      whereClauses.push(`(cities.name ILIKE $${paramIdx} OR countries.name ILIKE $${paramIdx} OR states.name ILIKE $${paramIdx})`);
+      params.push(`%${search.trim()}%`);
+      paramIdx++;
+    }
+
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     const query = `
       SELECT cities.id, cities.name, cities.lat, cities.lng, cities.last_visited,
@@ -72,10 +81,24 @@ class CityService {
     const cities = await db.all<City>(query, params);
 
     const countParams: any[] = [];
-    let countQuery = 'SELECT COUNT(*) as total FROM cities';
+    let countParamIdx = 1;
+    const countWhereClauses: string[] = [];
+
     if (country_id !== undefined && !Number.isNaN(country_id)) {
-      countQuery += ' WHERE country_id = $1';
+      countWhereClauses.push(`cities.country_id = $${countParamIdx++}`);
       countParams.push(country_id);
+    }
+    if (search && search.trim()) {
+      countWhereClauses.push(`(cities.name ILIKE $${countParamIdx} OR countries.name ILIKE $${countParamIdx} OR states.name ILIKE $${countParamIdx})`);
+      countParams.push(`%${search.trim()}%`);
+      countParamIdx++;
+    }
+
+    let countQuery = `SELECT COUNT(*) as total FROM cities
+      JOIN countries ON cities.country_id = countries.id
+      LEFT JOIN states ON cities.state_id = states.id`;
+    if (countWhereClauses.length > 0) {
+      countQuery += ` WHERE ${countWhereClauses.join(' AND ')}`;
     }
     const totalRow = await db.get<{ total: string }>(countQuery, countParams);
 

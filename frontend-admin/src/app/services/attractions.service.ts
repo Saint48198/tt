@@ -25,6 +25,9 @@ export class AttractionsService {
     if (params?.country_id) {
       httpParams = httpParams.set('country_id', params.country_id.toString());
     }
+    if (params?.search) {
+      httpParams = httpParams.set('search', params.search);
+    }
     if (params?.page) {
       httpParams = httpParams.set('page', params.page.toString());
     }

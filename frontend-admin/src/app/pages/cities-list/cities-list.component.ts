@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
@@ -9,6 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { CitiesService } from '../../services/cities.service';
 import { City } from '../../interfaces';
 
@@ -18,6 +21,7 @@ import { City } from '../../interfaces';
   imports: [
     CommonModule,
     RouterModule,
+    FormsModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
@@ -26,6 +30,8 @@ import { City } from '../../interfaces';
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTooltipModule,
+    MatFormFieldModule,
+    MatInputModule,
   ],
   templateUrl: './cities-list.component.html',
   styleUrl: './cities-list.component.scss',
@@ -33,12 +39,14 @@ import { City } from '../../interfaces';
 export class CitiesListComponent implements OnInit, AfterViewInit {
   private readonly citiesService = inject(CitiesService);
   private readonly snackBar = inject(MatSnackBar);
+  private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   displayedColumns: string[] = ['name', 'country_name', 'state_name', 'lat', 'lng', 'last_visited', 'actions'];
   dataSource = new MatTableDataSource<City>([]);
 
   total = signal(0);
   loading = signal(false);
+  searchQuery = signal('');
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -60,6 +68,7 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
         limit,
         sortBy: sortBy as 'name' | 'lat' | 'lng' | 'country_name' | 'state_name',
         sort: sortOrder,
+        search: this.searchQuery() || undefined,
       })
       .subscribe({
         next: (response) => {
@@ -76,6 +85,27 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
           this.loading.set(false);
         },
       });
+  }
+
+  onSearch(value: string): void {
+    this.searchQuery.set(value);
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    this.searchTimeout = setTimeout(() => {
+      if (this.paginator) {
+        this.paginator.firstPage();
+      }
+      this.loadCities();
+    }, 300);
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadCities();
   }
 
   onPageChange(event: PageEvent): void {

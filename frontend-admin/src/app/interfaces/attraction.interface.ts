@@ -20,6 +20,7 @@ export interface AttractionListResponse {
 
 export interface AttractionListParams {
   country_id?: number;
+  search?: string;
   page?: number;
   limit?: number;
   sortBy?: 'name' | 'lat' | 'lng' | 'wiki_term' | 'country_name';

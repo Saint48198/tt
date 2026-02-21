@@ -7,6 +7,22 @@
     </button>
   </div>
 
+  <div class="search-bar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Search attractions...</mat-label>
+      <input matInput
+             [value]="searchQuery()"
+             (input)="onSearch($any($event.target).value)"
+             placeholder="Search by name or country">
+      @if (searchQuery()) {
+        <button matSuffix mat-icon-button (click)="clearSearch()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+  </div>
+
   <div class="table-container mat-elevation-z2">
     @if (loading()) {
       <div class="loading-overlay">
@@ -59,8 +75,8 @@
 
       <!-- Last Visited Column -->
       <ng-container matColumnDef="last_visited">
-        <th mat-header-cell *matHeaderCellDef>Last Visited</th>
-        <td mat-cell *matCellDef="let attraction">{{ attraction.last_visited || 'Never' }}</td>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Visited</th>
+        <td mat-cell *matCellDef="let attraction">{{ attraction.last_visited ? (attraction.last_visited | date:'yyyy-MM') : 'Never' }}</td>
       </ng-container>
 
       <!-- Actions Column -->

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
@@ -10,6 +11,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { AttractionsService } from '../../services/attractions.service';
 import { Attraction } from '../../interfaces';
 
@@ -19,6 +22,7 @@ import { Attraction } from '../../interfaces';
   imports: [
     CommonModule,
     RouterModule,
+    FormsModule,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
@@ -28,6 +32,8 @@ import { Attraction } from '../../interfaces';
     MatSnackBarModule,
     MatTooltipModule,
     MatChipsModule,
+    MatFormFieldModule,
+    MatInputModule,
   ],
   templateUrl: './attractions-list.component.html',
   styleUrl: './attractions-list.component.scss',
@@ -35,12 +41,14 @@ import { Attraction } from '../../interfaces';
 export class AttractionsListComponent implements OnInit, AfterViewInit {
   private readonly attractionsService = inject(AttractionsService);
   private readonly snackBar = inject(MatSnackBar);
+  private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   displayedColumns: string[] = ['name', 'country_name', 'tags', 'lat', 'lng', 'last_visited', 'actions'];
   dataSource = new MatTableDataSource<Attraction>([]);
 
   total = signal(0);
   loading = signal(false);
+  searchQuery = signal('');
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -62,6 +70,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
         limit,
         sortBy: sortBy as 'name' | 'lat' | 'lng' | 'wiki_term' | 'country_name',
         sortOrder,
+        search: this.searchQuery() || undefined,
       })
       .subscribe({
         next: (response) => {
@@ -78,6 +87,27 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
           this.loading.set(false);
         },
       });
+  }
+
+  onSearch(value: string): void {
+    this.searchQuery.set(value);
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+    this.searchTimeout = setTimeout(() => {
+      if (this.paginator) {
+        this.paginator.firstPage();
+      }
+      this.loadAttractions();
+    }, 300);
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadAttractions();
   }
 
   onPageChange(event: PageEvent): void {

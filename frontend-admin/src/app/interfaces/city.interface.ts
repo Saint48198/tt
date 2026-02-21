@@ -20,6 +20,7 @@ export interface CityListResponse {
 
 export interface CityListParams {
   country_id?: number;
+  search?: string;
   page?: number;
   limit?: number;
   sortBy?: 'name' | 'lat' | 'lng' | 'country_name' | 'state_name';

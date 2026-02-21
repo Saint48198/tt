@@ -6,7 +6,7 @@ const router = Router();
 
 // GET /api/attractions
 router.get('/api/attractions', async (req: Request, res: Response) => {
-  const { country_id, page, limit, sortBy, sortOrder } = req.query;
+  const { country_id, search, page, limit, sortBy, sortOrder } = req.query;
 
   const pageNum =
     page !== undefined
@@ -27,9 +27,13 @@ router.get('/api/attractions', async (req: Request, res: Response) => {
   const rawCountryId = Array.isArray(country_id) ? country_id?.[0] : country_id;
   const countryIdNum = rawCountryId !== undefined ? Number(rawCountryId) : undefined;
 
+  const rawSearch = Array.isArray(search) ? search?.[0] : search;
+  const searchStr = rawSearch ? rawSearch.toString() : undefined;
+
   try {
     const result = await attractionService.getAttractions({
       country_id: countryIdNum,
+      search: searchStr,
       page: pageNum,
       limit: limitNum,
       sortBy: sortByStr,

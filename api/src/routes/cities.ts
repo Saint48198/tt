@@ -4,7 +4,7 @@ import { cityService } from '../services/cityService';
 const router = Router();
 
 router.get('/api/cities', async (req: Request, res: Response) => {
-  const { country_id, page, limit, sortBy, sort } = req.query;
+  const { country_id, search, page, limit, sortBy, sort } = req.query;
   const pageNum = page !== undefined ? Number(Array.isArray(page) ? page[0] : page) : 1;
   const limitNum = limit !== undefined ? Number(Array.isArray(limit) ? limit[0] : limit) : 25;
   const rawSortBy = Array.isArray(sortBy) ? sortBy?.[0] : sortBy;
@@ -13,9 +13,11 @@ router.get('/api/cities', async (req: Request, res: Response) => {
   const sortOrderStr = (rawSort ?? 'asc').toString().toLowerCase();
   const rawCountryId = Array.isArray(country_id) ? country_id?.[0] : country_id;
   const countryIdNum = rawCountryId !== undefined ? Number(rawCountryId) : undefined;
+  const rawSearch = Array.isArray(search) ? search?.[0] : search;
+  const searchStr = rawSearch ? rawSearch.toString() : undefined;
 
   try {
-    const result = await cityService.getCities({ country_id: countryIdNum, page: pageNum, limit: limitNum, sortBy: sortByStr, sort: sortOrderStr });
+    const result = await cityService.getCities({ country_id: countryIdNum, search: searchStr, page: pageNum, limit: limitNum, sortBy: sortByStr, sort: sortOrderStr });
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch cities:', error);

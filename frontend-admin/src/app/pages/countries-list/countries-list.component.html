@@ -42,7 +42,7 @@
       <!-- Last Visited Column -->
       <ng-container matColumnDef="last_visited">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Visited</th>
-        <td mat-cell *matCellDef="let country">{{ country.last_visited || 'Never' }}</td>
+        <td mat-cell *matCellDef="let country">{{ country.last_visited ? (country.last_visited | date:'yyyy-MM') : 'Never' }}</td>
       </ng-container>
 
       <!-- Actions Column -->

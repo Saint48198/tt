@@ -15,6 +15,7 @@ interface Attraction {
 
 interface ListAttractionsOptions {
   country_id?: number;
+  search?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
@@ -45,7 +46,7 @@ interface UpdateAttractionData {
 
 class AttractionService {
   private static instance: AttractionService;
-  private validColumns = ['attractions.name', 'lat', 'lng', 'wiki_term', 'country_name'];
+  private validColumns = ['attractions.name', 'lat', 'lng', 'wiki_term', 'country_name', 'last_visited'];
 
   private constructor() {}
 
@@ -62,7 +63,7 @@ class AttractionService {
     page: number;
     limit: number;
   }> {
-    const { country_id, page = 1, limit = 25, sortBy = 'attractions.name', sortOrder = 'asc' } = options;
+    const { country_id, search, page = 1, limit = 25, sortBy = 'attractions.name', sortOrder = 'asc' } = options;
 
     let sortByStr = sortBy.toString();
     const sortOrderStr = sortOrder.toString().toLowerCase();
@@ -73,12 +74,20 @@ class AttractionService {
     const offset = (page - 1) * limit;
     const params: any[] = [];
     let paramIdx = 1;
+    const whereClauses: string[] = [];
 
-    let whereClause = '';
     if (country_id !== undefined && !Number.isNaN(country_id)) {
-      whereClause = `WHERE attractions.country_id = $${paramIdx++}`;
+      whereClauses.push(`attractions.country_id = $${paramIdx++}`);
       params.push(country_id);
     }
+
+    if (search && search.trim()) {
+      whereClauses.push(`(attractions.name ILIKE $${paramIdx} OR countries.name ILIKE $${paramIdx})`);
+      params.push(`%${search.trim()}%`);
+      paramIdx++;
+    }
+
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     const query = `
       SELECT attractions.id, attractions.name, attractions.lat, attractions.lng,
@@ -94,10 +103,23 @@ class AttractionService {
     const attractions = await db.all<Attraction>(query, params);
 
     const countParams: any[] = [];
-    let countQuery = 'SELECT COUNT(*) as total FROM attractions';
+    let countParamIdx = 1;
+    const countWhereClauses: string[] = [];
+
     if (country_id !== undefined && !Number.isNaN(country_id)) {
-      countQuery += ' WHERE country_id = $1';
+      countWhereClauses.push(`attractions.country_id = $${countParamIdx++}`);
       countParams.push(country_id);
+    }
+    if (search && search.trim()) {
+      countWhereClauses.push(`(attractions.name ILIKE $${countParamIdx} OR countries.name ILIKE $${countParamIdx})`);
+      countParams.push(`%${search.trim()}%`);
+      countParamIdx++;
+    }
+
+    let countQuery = `SELECT COUNT(*) as total FROM attractions
+      JOIN countries ON attractions.country_id = countries.id`;
+    if (countWhereClauses.length > 0) {
+      countQuery += ` WHERE ${countWhereClauses.join(' AND ')}`;
     }
     const totalRow = await db.get<{ total: string }>(countQuery, countParams);
 
