@@ -8,7 +8,7 @@ interface User {
 }
 
 interface ListUsersOptions {
-  page?: number; limit?: number; all?: boolean; sortBy?: string; sortOrder?: string;
+  page?: number; limit?: number; all?: boolean; sortBy?: string; sortOrder?: string; includeDisabled?: boolean;
 }
 
 class UserService {
@@ -23,12 +23,14 @@ class UserService {
    * Get all users or paginated users with sorting
    */
   public async getUsers(options: ListUsersOptions): Promise<{ total: number; users: User[]; page?: number; limit?: number }> {
-    const { page = 1, limit = 10, all = false, sortBy = 'username', sortOrder = 'asc' } = options;
+    const { page = 1, limit = 10, all = false, sortBy = 'username', sortOrder = 'asc', includeDisabled = false } = options;
     const sortByStr = sortBy.toString();
     const sortOrderStr = sortOrder.toString().toLowerCase();
     const validColumns = ['username', 'email', 'id'];
     if (!validColumns.includes(sortByStr)) throw new Error('Invalid sort column.');
     if (!['asc', 'desc'].includes(sortOrderStr)) throw new Error('Invalid sort order.');
+
+    const disabledFilter = includeDisabled ? '' : 'WHERE u.disabled_date IS NULL';
 
     const baseSelect = `
       SELECT u.id, u.username, u.email, u.google_access_token, u.google_refresh_token, u.google_token_expiry,
@@ -36,6 +38,7 @@ class UserService {
       FROM users u
       LEFT JOIN user_roles ur ON u.id = ur.user_id
       LEFT JOIN roles r ON ur.role_id = r.id
+      ${disabledFilter}
       GROUP BY u.id`;
 
     if (all) {
@@ -44,7 +47,8 @@ class UserService {
     }
 
     const offset = (page - 1) * limit;
-    const totalRow = await db.get<{ count: string }>('SELECT COUNT(*) AS count FROM users');
+    const countFilter = includeDisabled ? '' : 'WHERE disabled_date IS NULL';
+    const totalRow = await db.get<{ count: string }>(`SELECT COUNT(*) AS count FROM users ${countFilter}`);
     const users = await db.all<User>(
       `${baseSelect} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT $1 OFFSET $2`,
       [limit, offset]
@@ -62,7 +66,7 @@ class UserService {
        FROM users u
        LEFT JOIN user_roles ur ON u.id = ur.user_id
        LEFT JOIN roles r ON ur.role_id = r.id
-       WHERE u.id = $1
+       WHERE u.id = $1 AND u.disabled_date IS NULL
        GROUP BY u.id`,
       [id]
     );
@@ -84,7 +88,7 @@ class UserService {
    * Delete a user
    */
   public async deleteUser(id: number | string): Promise<{ success: boolean; changes: number }> {
-    const result = await db.run('DELETE FROM users WHERE id = $1', [id]);
+    const result = await db.run('UPDATE users SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL', [id]);
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 

@@ -40,6 +40,9 @@ export class CitiesService {
     if (params?.sort) {
       httpParams = httpParams.set('sort', params.sort);
     }
+    if (params?.includeDisabled) {
+      httpParams = httpParams.set('includeDisabled', 'true');
+    }
 
     return this.http.get<CityListResponse>(this.apiUrl, { params: httpParams });
   }

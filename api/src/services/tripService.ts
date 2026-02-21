@@ -115,7 +115,7 @@ class TripService {
          lat,
          lng
        FROM countries
-       WHERE last_visited >= $1
+       WHERE last_visited >= $1 AND disabled_date IS NULL
        ORDER BY last_visited DESC`,
       [fiveYearsAgo]
     );

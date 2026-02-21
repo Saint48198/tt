@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CitiesService } from '../../services/cities.service';
 import { City } from '../../interfaces';
 
@@ -32,6 +33,7 @@ import { City } from '../../interfaces';
     MatTooltipModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSlideToggleModule,
   ],
   templateUrl: './cities-list.component.html',
   styleUrl: './cities-list.component.scss',
@@ -47,6 +49,7 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
   total = signal(0);
   loading = signal(false);
   searchQuery = signal('');
+  includeDisabled = signal(false);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -69,6 +72,7 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
         sortBy: sortBy as 'name' | 'lat' | 'lng' | 'country_name' | 'state_name',
         sort: sortOrder,
         search: this.searchQuery() || undefined,
+        includeDisabled: this.includeDisabled(),
       })
       .subscribe({
         next: (response) => {
@@ -128,6 +132,14 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
       event.active,
       (event.direction || 'asc') as 'asc' | 'desc'
     );
+  }
+
+  onToggleDisabled(checked: boolean): void {
+    this.includeDisabled.set(checked);
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadCities();
   }
 
   deleteCity(city: City): void {

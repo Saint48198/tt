@@ -6,7 +6,7 @@ const router = Router();
 
 // GET /api/countries
 router.get('/api/countries', async (req: Request, res: Response) => {
-  const { page, limit, all, sortBy, sortOrder } = req.query;
+  const { page, limit, all, sortBy, sortOrder, includeDisabled } = req.query;
 
   const pageNum =
     page !== undefined
@@ -31,6 +31,7 @@ router.get('/api/countries', async (req: Request, res: Response) => {
       all: all === 'true',
       sortBy: sortByStr,
       sortOrder: sortOrderStr,
+      includeDisabled: includeDisabled === 'true',
     });
 
     return res.status(200).json(result);

@@ -7,6 +7,9 @@ export interface EntityPhoto {
   created_at: string;
   photo_id: string;
   tags: string[];
+  created_date?: string;
+  updated_date?: string;
+  disabled_date?: string;
 }
 
 export interface EntityPhotosResponse {
@@ -34,6 +37,9 @@ export interface AdminPhoto {
   source: 'database' | 'cloudinary' | 'both';
   in_database: boolean;
   in_cloudinary: boolean;
+  created_date?: string;
+  updated_date?: string;
+  disabled_date?: string;
 }
 
 export interface AllPhotosResponse {

@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { StatesService } from '../../services/states.service';
 import { State } from '../../interfaces';
 
@@ -26,6 +27,7 @@ import { State } from '../../interfaces';
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTooltipModule,
+    MatSlideToggleModule,
   ],
   templateUrl: './states-list.component.html',
   styleUrl: './states-list.component.scss',
@@ -39,6 +41,7 @@ export class StatesListComponent implements OnInit, AfterViewInit {
 
   total = signal(0);
   loading = signal(false);
+  includeDisabled = signal(false);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -60,6 +63,7 @@ export class StatesListComponent implements OnInit, AfterViewInit {
         limit,
         sortBy: sortBy as any,
         sortOrder,
+        includeDisabled: this.includeDisabled(),
       })
       .subscribe({
         next: (response) => {
@@ -98,6 +102,14 @@ export class StatesListComponent implements OnInit, AfterViewInit {
       event.active,
       (event.direction || 'asc') as 'asc' | 'desc'
     );
+  }
+
+  onToggleDisabled(checked: boolean): void {
+    this.includeDisabled.set(checked);
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadStates();
   }
 
   deleteState(state: State): void {

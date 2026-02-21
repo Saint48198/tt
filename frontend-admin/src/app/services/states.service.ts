@@ -37,6 +37,9 @@ export class StatesService {
     if (params?.sortOrder) {
       httpParams = httpParams.set('sortOrder', params.sortOrder);
     }
+    if (params?.includeDisabled) {
+      httpParams = httpParams.set('includeDisabled', 'true');
+    }
 
     return this.http.get<StateListResponse>(this.apiUrl, { params: httpParams });
   }

@@ -5,6 +5,9 @@ export interface State {
   country_id: number;
   country_name?: string;
   last_visited?: string;
+  created_date?: string;
+  updated_date?: string;
+  disabled_date?: string;
 }
 
 export interface StateListResponse {
@@ -20,6 +23,7 @@ export interface StateListParams {
   all?: boolean;
   sortBy?: 'name' | 'abbr' | 'country_id' | 'last_visited' | 'country_name';
   sortOrder?: 'asc' | 'desc';
+  includeDisabled?: boolean;
 }
 
 export interface CreateStateRequest {

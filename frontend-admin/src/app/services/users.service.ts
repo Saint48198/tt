@@ -38,6 +38,9 @@ export class UsersService {
     if (params?.sortOrder) {
       httpParams = httpParams.set('sortOrder', params.sortOrder);
     }
+    if (params?.includeDisabled) {
+      httpParams = httpParams.set('includeDisabled', 'true');
+    }
 
     return this.http.get<UserListResponse>(this.apiUrl, { params: httpParams });
   }

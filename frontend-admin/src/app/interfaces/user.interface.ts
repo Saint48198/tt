@@ -6,6 +6,9 @@ export interface User {
   google_refresh_token?: string | null;
   google_token_expiry?: string | null;
   roles?: string | string[];
+  created_date?: string;
+  updated_date?: string;
+  disabled_date?: string;
 }
 
 export interface UserListResponse {
@@ -21,6 +24,7 @@ export interface UserListParams {
   all?: boolean;
   sortBy?: 'username' | 'email' | 'id';
   sortOrder?: 'asc' | 'desc';
+  includeDisabled?: boolean;
 }
 
 export interface CreateUserRequest {

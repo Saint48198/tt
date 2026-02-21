@@ -26,7 +26,7 @@ class StatsService {
   public async getDashboardStats(): Promise<DashboardStats> {
     const safeCount = async (table: string): Promise<number> => {
       try {
-        const row = await db.get<{ count: string }>(`SELECT COUNT(*) AS count FROM ${table}`);
+        const row = await db.get<{ count: string }>(`SELECT COUNT(*) AS count FROM ${table} WHERE disabled_date IS NULL`);
         return Number(row?.count ?? 0);
       } catch (err) {
         console.error(`Failed to count ${table}:`, err);

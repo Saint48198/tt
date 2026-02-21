@@ -7,6 +7,9 @@ export interface Country {
   slug?: string;
   last_visited?: string;
   geo_map_id?: string;
+  created_date?: string;
+  updated_date?: string;
+  disabled_date?: string;
 }
 
 export interface CountryListResponse {
@@ -22,6 +25,7 @@ export interface CountryListParams {
   all?: boolean;
   sortBy?: 'name' | 'abbreviation' | 'lat' | 'lng' | 'slug' | 'last_visited' | 'geo_map_id';
   sortOrder?: 'asc' | 'desc';
+  includeDisabled?: boolean;
 }
 
 export interface CreateCountryRequest {

@@ -18,7 +18,10 @@ async function init() {
         lng DOUBLE PRECISION NOT NULL,
         slug TEXT NOT NULL,
         last_visited TIMESTAMP,
-        geo_map_id TEXT NOT NULL UNIQUE
+        geo_map_id TEXT NOT NULL UNIQUE,
+        created_date TIMESTAMP DEFAULT NOW(),
+        updated_date TIMESTAMP DEFAULT NOW(),
+        disabled_date TIMESTAMP
       );
     `);
 
@@ -44,6 +47,9 @@ async function init() {
         geo_map_id TEXT,
         last_visited TIMESTAMP,
         country_id INTEGER NOT NULL,
+        created_date TIMESTAMP DEFAULT NOW(),
+        updated_date TIMESTAMP DEFAULT NOW(),
+        disabled_date TIMESTAMP,
         FOREIGN KEY (country_id) REFERENCES countries(id)
       );
     `);
@@ -59,6 +65,9 @@ async function init() {
         state_id INTEGER,
         country_id INTEGER NOT NULL,
         wiki_term TEXT,
+        created_date TIMESTAMP DEFAULT NOW(),
+        updated_date TIMESTAMP DEFAULT NOW(),
+        disabled_date TIMESTAMP,
         FOREIGN KEY (state_id) REFERENCES states(id),
         FOREIGN KEY (country_id) REFERENCES countries(id)
       );
@@ -76,6 +85,9 @@ async function init() {
         is_national_park BOOLEAN DEFAULT FALSE,
         wiki_term TEXT,
         last_visited TIMESTAMP,
+        created_date TIMESTAMP DEFAULT NOW(),
+        updated_date TIMESTAMP DEFAULT NOW(),
+        disabled_date TIMESTAMP,
         FOREIGN KEY (country_id) REFERENCES countries(id)
       );
     `);
@@ -89,7 +101,10 @@ async function init() {
         password_hash TEXT NOT NULL,
         google_access_token TEXT,
         google_refresh_token TEXT,
-        google_token_expiry TIMESTAMP
+        google_token_expiry TIMESTAMP,
+        created_date TIMESTAMP DEFAULT NOW(),
+        updated_date TIMESTAMP DEFAULT NOW(),
+        disabled_date TIMESTAMP
       );
     `);
 
@@ -132,6 +147,9 @@ async function init() {
         caption TEXT,
         created_at TIMESTAMP DEFAULT NOW(),
         photo_id TEXT,
+        created_date TIMESTAMP DEFAULT NOW(),
+        updated_date TIMESTAMP DEFAULT NOW(),
+        disabled_date TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (city_id) REFERENCES cities(id),
         FOREIGN KEY (attraction_id) REFERENCES attractions(id)

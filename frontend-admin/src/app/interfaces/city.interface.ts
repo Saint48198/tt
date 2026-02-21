@@ -9,6 +9,9 @@ export interface City {
   state_name?: string;
   last_visited?: string;
   wiki_term?: string;
+  created_date?: string;
+  updated_date?: string;
+  disabled_date?: string;
 }
 
 export interface CityListResponse {
@@ -25,6 +28,7 @@ export interface CityListParams {
   limit?: number;
   sortBy?: 'name' | 'lat' | 'lng' | 'country_name' | 'state_name';
   sort?: 'asc' | 'desc';
+  includeDisabled?: boolean;
 }
 
 export interface CreateCityRequest {

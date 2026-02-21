@@ -11,6 +11,9 @@ interface Attraction {
   wiki_term?: string;
   country_id: number;
   country_name?: string;
+  created_date?: string;
+  updated_date?: string;
+  disabled_date?: string;
 }
 
 interface ListAttractionsOptions {
@@ -20,6 +23,7 @@ interface ListAttractionsOptions {
   limit?: number;
   sortBy?: string;
   sortOrder?: string;
+  includeDisabled?: boolean;
 }
 
 interface CreateAttractionData {
@@ -46,7 +50,7 @@ interface UpdateAttractionData {
 
 class AttractionService {
   private static instance: AttractionService;
-  private validColumns = ['attractions.name', 'lat', 'lng', 'wiki_term', 'country_name', 'last_visited'];
+  private validColumns = ['attractions.name', 'lat', 'lng', 'wiki_term', 'country_name', 'last_visited', 'created_date', 'updated_date', 'disabled_date'];
 
   private constructor() {}
 
@@ -63,7 +67,7 @@ class AttractionService {
     page: number;
     limit: number;
   }> {
-    const { country_id, search, page = 1, limit = 25, sortBy = 'attractions.name', sortOrder = 'asc' } = options;
+    const { country_id, search, page = 1, limit = 25, sortBy = 'attractions.name', sortOrder = 'asc', includeDisabled = false } = options;
 
     let sortByStr = sortBy.toString();
     const sortOrderStr = sortOrder.toString().toLowerCase();
@@ -74,7 +78,7 @@ class AttractionService {
     const offset = (page - 1) * limit;
     const params: any[] = [];
     let paramIdx = 1;
-    const whereClauses: string[] = [];
+    const whereClauses: string[] = includeDisabled ? [] : ['attractions.disabled_date IS NULL'];
 
     if (country_id !== undefined && !Number.isNaN(country_id)) {
       whereClauses.push(`attractions.country_id = $${paramIdx++}`);
@@ -92,6 +96,7 @@ class AttractionService {
     const query = `
       SELECT attractions.id, attractions.name, attractions.lat, attractions.lng,
              attractions.wiki_term, attractions.is_unesco, attractions.is_national_park,
+             attractions.created_date, attractions.updated_date, attractions.disabled_date,
              countries.name AS country_name
       FROM attractions
       JOIN countries ON attractions.country_id = countries.id
@@ -104,7 +109,7 @@ class AttractionService {
 
     const countParams: any[] = [];
     let countParamIdx = 1;
-    const countWhereClauses: string[] = [];
+    const countWhereClauses: string[] = includeDisabled ? [] : ['attractions.disabled_date IS NULL'];
 
     if (country_id !== undefined && !Number.isNaN(country_id)) {
       countWhereClauses.push(`attractions.country_id = $${countParamIdx++}`);
@@ -130,10 +135,11 @@ class AttractionService {
     return db.get<Attraction>(
       `SELECT attractions.id, attractions.name, attractions.is_unesco, attractions.is_national_park,
               attractions.lat, attractions.lng, attractions.last_visited, attractions.wiki_term,
+              attractions.created_date, attractions.updated_date, attractions.disabled_date,
               countries.id as country_id
        FROM attractions
        JOIN countries ON attractions.country_id = countries.id
-       WHERE attractions.id = $1`,
+       WHERE attractions.id = $1 AND attractions.disabled_date IS NULL`,
       [id]
     );
   }
@@ -152,14 +158,14 @@ class AttractionService {
     const { name, country_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term } = data;
     const result = await db.run(
       `UPDATE attractions SET name=$1, country_id=$2, is_unesco=$3, is_national_park=$4,
-       lat=$5, lng=$6, last_visited=$7, wiki_term=$8 WHERE id=$9`,
+       lat=$5, lng=$6, last_visited=$7, wiki_term=$8, updated_date=NOW() WHERE id=$9`,
       [name, country_id, !!is_unesco, !!is_national_park, lat, lng, last_visited || null, wiki_term, id]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 
   public async deleteAttraction(id: number | string): Promise<{ success: boolean; changes: number }> {
-    const result = await db.run('DELETE FROM attractions WHERE id = $1', [id]);
+    const result = await db.run('UPDATE attractions SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL', [id]);
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 }

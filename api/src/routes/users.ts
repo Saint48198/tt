@@ -7,7 +7,7 @@ const router = Router();
 
 // GET /api/users - List all users with pagination and sorting
 router.get('/api/users', async (req: Request, res: Response) => {
-  const { page, limit, all, sortBy, sortOrder } = req.query;
+  const { page, limit, all, sortBy, sortOrder, includeDisabled } = req.query;
 
   const pageNum =
     page !== undefined
@@ -32,6 +32,7 @@ router.get('/api/users', async (req: Request, res: Response) => {
       all: all === 'true',
       sortBy: sortByStr,
       sortOrder: sortOrderStr,
+      includeDisabled: includeDisabled === 'true',
     });
 
     return res.status(200).json(result);

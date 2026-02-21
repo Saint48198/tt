@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CountriesService } from '../../services/countries.service';
 import { Country } from '../../interfaces';
 
@@ -28,6 +29,7 @@ import { Country } from '../../interfaces';
     MatSnackBarModule,
     MatDialogModule,
     MatTooltipModule,
+    MatSlideToggleModule,
   ],
   templateUrl: './countries-list.component.html',
   styleUrl: './countries-list.component.scss',
@@ -41,6 +43,7 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
 
   total = signal(0);
   loading = signal(false);
+  includeDisabled = signal(false);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -62,6 +65,7 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
         limit,
         sortBy: sortBy as any,
         sortOrder,
+        includeDisabled: this.includeDisabled(),
       })
       .subscribe({
         next: (response) => {
@@ -100,6 +104,14 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
       event.active,
       (event.direction || 'asc') as 'asc' | 'desc'
     );
+  }
+
+  onToggleDisabled(checked: boolean): void {
+    this.includeDisabled.set(checked);
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadCountries();
   }
 
   deleteCountry(country: Country): void {

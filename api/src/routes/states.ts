@@ -18,6 +18,7 @@ router.get('/api/states', async (req: Request, res: Response) => {
     all,
     sortBy = 'states.name',
     sortOrder = 'asc',
+    includeDisabled,
   } = req.query as Record<string, string | undefined>;
 
   const pageNum = Number(page);
@@ -30,6 +31,7 @@ router.get('/api/states', async (req: Request, res: Response) => {
       all: all === 'true',
       sortBy: sortBy || 'states.name',
       sortOrder: sortOrder || 'asc',
+      includeDisabled: includeDisabled === 'true',
     });
 
     return res.status(200).json(result);

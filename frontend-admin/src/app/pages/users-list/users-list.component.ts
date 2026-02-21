@@ -11,6 +11,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { UsersService } from '../../services/users.service';
 import { User } from '../../interfaces';
 
@@ -30,6 +31,7 @@ import { User } from '../../interfaces';
     MatDialogModule,
     MatTooltipModule,
     MatChipsModule,
+    MatSlideToggleModule,
   ],
   templateUrl: './users-list.component.html',
   styleUrl: './users-list.component.scss',
@@ -43,6 +45,7 @@ export class UsersListComponent implements OnInit, AfterViewInit {
 
   total = signal(0);
   loading = signal(false);
+  includeDisabled = signal(false);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -64,6 +67,7 @@ export class UsersListComponent implements OnInit, AfterViewInit {
         limit,
         sortBy,
         sortOrder,
+        includeDisabled: this.includeDisabled(),
       })
       .subscribe({
         next: (response) => {
@@ -102,6 +106,14 @@ export class UsersListComponent implements OnInit, AfterViewInit {
       event.active as 'username' | 'email' | 'id',
       (event.direction || 'asc') as 'asc' | 'desc'
     );
+  }
+
+  onToggleDisabled(checked: boolean): void {
+    this.includeDisabled.set(checked);
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadUsers();
   }
 
   deleteUser(user: User): void {

@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { AttractionsService } from '../../services/attractions.service';
 import { Attraction } from '../../interfaces';
 
@@ -34,6 +35,7 @@ import { Attraction } from '../../interfaces';
     MatChipsModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSlideToggleModule,
   ],
   templateUrl: './attractions-list.component.html',
   styleUrl: './attractions-list.component.scss',
@@ -49,6 +51,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
   total = signal(0);
   loading = signal(false);
   searchQuery = signal('');
+  includeDisabled = signal(false);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -71,6 +74,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
         sortBy: sortBy as 'name' | 'lat' | 'lng' | 'wiki_term' | 'country_name',
         sortOrder,
         search: this.searchQuery() || undefined,
+        includeDisabled: this.includeDisabled(),
       })
       .subscribe({
         next: (response) => {
@@ -130,6 +134,14 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
       event.active,
       (event.direction || 'asc') as 'asc' | 'desc'
     );
+  }
+
+  onToggleDisabled(checked: boolean): void {
+    this.includeDisabled.set(checked);
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadAttractions();
   }
 
   deleteAttraction(attraction: Attraction): void {

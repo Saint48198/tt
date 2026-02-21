@@ -37,6 +37,9 @@ export class CountriesService {
     if (params?.sortOrder) {
       httpParams = httpParams.set('sortOrder', params.sortOrder);
     }
+    if (params?.includeDisabled) {
+      httpParams = httpParams.set('includeDisabled', 'true');
+    }
 
     return this.http.get<CountryListResponse>(this.apiUrl, { params: httpParams });
   }

@@ -11,6 +11,9 @@ interface City {
   state_id?: number;
   state_name?: string;
   wiki_term?: string;
+  created_date?: string;
+  updated_date?: string;
+  disabled_date?: string;
 }
 
 interface ListCitiesOptions {
@@ -20,11 +23,12 @@ interface ListCitiesOptions {
   limit?: number;
   sortBy?: string;
   sort?: string;
+  includeDisabled?: boolean;
 }
 
 class CityService {
   private static instance: CityService;
-  private validColumns = ['cities.name', 'lat', 'lng', 'country_name', 'state_name', 'last_visited'];
+  private validColumns = ['cities.name', 'lat', 'lng', 'country_name', 'state_name', 'last_visited', 'created_date', 'updated_date', 'disabled_date'];
 
   private constructor() {}
 
@@ -41,7 +45,7 @@ class CityService {
     page: number;
     limit: number;
   }> {
-    const { country_id, search, page = 1, limit = 25, sortBy = 'cities.name', sort = 'asc' } = options;
+    const { country_id, search, page = 1, limit = 25, sortBy = 'cities.name', sort = 'asc', includeDisabled = false } = options;
     const offset = (page - 1) * limit;
 
     let sortByStr = sortBy.toString();
@@ -52,7 +56,7 @@ class CityService {
 
     const params: any[] = [];
     let paramIdx = 1;
-    const whereClauses: string[] = [];
+    const whereClauses: string[] = includeDisabled ? [] : ['cities.disabled_date IS NULL'];
 
     if (country_id !== undefined && !Number.isNaN(country_id)) {
       whereClauses.push(`cities.country_id = $${paramIdx++}`);
@@ -69,6 +73,7 @@ class CityService {
 
     const query = `
       SELECT cities.id, cities.name, cities.lat, cities.lng, cities.last_visited,
+             cities.created_date, cities.updated_date, cities.disabled_date,
              countries.name AS country_name, states.name AS state_name
       FROM cities
       JOIN countries ON cities.country_id = countries.id
@@ -82,7 +87,7 @@ class CityService {
 
     const countParams: any[] = [];
     let countParamIdx = 1;
-    const countWhereClauses: string[] = [];
+    const countWhereClauses: string[] = includeDisabled ? [] : ['cities.disabled_date IS NULL'];
 
     if (country_id !== undefined && !Number.isNaN(country_id)) {
       countWhereClauses.push(`cities.country_id = $${countParamIdx++}`);
@@ -108,12 +113,13 @@ class CityService {
   public async getCityById(id: number | string): Promise<City | undefined> {
     return db.get<City>(
       `SELECT cities.id, cities.name, cities.lat, cities.lng, cities.last_visited,
+              cities.created_date, cities.updated_date, cities.disabled_date,
               cities.country_id, countries.name AS country_name,
               cities.state_id, states.name AS state_name, cities.wiki_term
        FROM cities
        LEFT JOIN countries ON cities.country_id = countries.id
        LEFT JOIN states ON cities.state_id = states.id
-       WHERE cities.id = $1`,
+       WHERE cities.id = $1 AND cities.disabled_date IS NULL`,
       [id]
     );
   }
@@ -136,14 +142,14 @@ class CityService {
   }): Promise<{ success: boolean; changes: number }> {
     const { name, lat, lng, state_id, country_id, last_visited, wiki_term } = data;
     const result = await db.run(
-      'UPDATE cities SET name=$1, lat=$2, lng=$3, state_id=$4, country_id=$5, last_visited=$6, wiki_term=$7 WHERE id=$8',
+      'UPDATE cities SET name=$1, lat=$2, lng=$3, state_id=$4, country_id=$5, last_visited=$6, wiki_term=$7, updated_date=NOW() WHERE id=$8',
       [name, lat, lng, state_id || null, country_id, last_visited, wiki_term, id]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 
   public async deleteCity(id: number | string): Promise<{ success: boolean; changes: number }> {
-    const result = await db.run('DELETE FROM cities WHERE id = $1', [id]);
+    const result = await db.run('UPDATE cities SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL', [id]);
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 }

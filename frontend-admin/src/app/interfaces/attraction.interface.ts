@@ -9,6 +9,9 @@ export interface Attraction {
   is_unesco?: boolean;
   is_national_park?: boolean;
   last_visited?: string;
+  created_date?: string;
+  updated_date?: string;
+  disabled_date?: string;
 }
 
 export interface AttractionListResponse {
@@ -25,6 +28,7 @@ export interface AttractionListParams {
   limit?: number;
   sortBy?: 'name' | 'lat' | 'lng' | 'wiki_term' | 'country_name';
   sortOrder?: 'asc' | 'desc';
+  includeDisabled?: boolean;
 }
 
 export interface CreateAttractionRequest {

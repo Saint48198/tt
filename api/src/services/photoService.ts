@@ -209,7 +209,7 @@ class PhotoService {
     await this.ensureTable();
 
     const rows = await db.all<any>(
-      `SELECT id, url, user_id, ${column} AS entity_id, caption, created_at, photo_id FROM photos WHERE ${column} = $1`,
+      `SELECT id, url, user_id, ${column} AS entity_id, caption, created_at, photo_id, created_date, updated_date, disabled_date FROM photos WHERE ${column} = $1 AND disabled_date IS NULL`,
       [Number(entityId)]
     );
     const photos = [];
@@ -328,7 +328,7 @@ class PhotoService {
       return { success: true, deleted: true };
     }
 
-    const setClauses = ['caption = $1'];
+    const setClauses = ['caption = $1', 'updated_date = NOW()'];
     const params: any[] = [caption];
     let idx = 2;
 
@@ -355,10 +355,12 @@ class PhotoService {
   private async getAllDbPhotos(): Promise<Array<any>> {
     const rows = await db.all<any>(
       `SELECT p.id, p.url, p.user_id, p.city_id, p.attraction_id, p.caption, p.created_at, p.photo_id,
+              p.created_date, p.updated_date, p.disabled_date,
               c.name as city_name, a.name as attraction_name
        FROM photos p
        LEFT JOIN cities c ON p.city_id = c.id
        LEFT JOIN attractions a ON p.attraction_id = a.id
+       WHERE p.disabled_date IS NULL
        ORDER BY p.created_at DESC`
     );
     const result = [];
@@ -366,6 +368,7 @@ class PhotoService {
       result.push({
         id: row.id, url: row.url, user_id: row.user_id, caption: row.caption,
         created_at: row.created_at, photo_id: row.photo_id,
+        created_date: row.created_date, updated_date: row.updated_date, disabled_date: row.disabled_date,
         city_id: row.city_id || null, city_name: row.city_name || null,
         attraction_id: row.attraction_id || null, attraction_name: row.attraction_name || null,
         entity_type: row.city_id ? 'cities' : row.attraction_id ? 'attractions' : null,
@@ -462,7 +465,7 @@ class PhotoService {
     if (!['cities', 'attractions'].includes(entityType)) throw new Error('Invalid entityType. Must be "cities" or "attractions".');
     if (!entityId || !photoId) throw new Error('Missing required fields: entityId or photoId.');
     const column = entityType === 'cities' ? 'city_id' : 'attraction_id';
-    const result = await db.run(`DELETE FROM photos WHERE id = $1 AND ${column} = $2`, [photoId, Number(entityId)]);
+    const result = await db.run(`UPDATE photos SET disabled_date = NOW() WHERE id = $1 AND ${column} = $2 AND disabled_date IS NULL`, [photoId, Number(entityId)]);
     if (result.rowCount === 0) throw new Error('Photo not found or does not belong to this entity.');
     return { success: true };
   }

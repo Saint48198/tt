@@ -1,10 +1,18 @@
 <div class="states-list-page">
   <div class="page-header">
     <h1>States</h1>
-    <button mat-raised-button color="primary" routerLink="/states/new">
-      <mat-icon>add</mat-icon>
-      Add State
-    </button>
+    <div class="header-actions">
+      <mat-slide-toggle
+        [checked]="includeDisabled()"
+        (change)="onToggleDisabled($event.checked)"
+        color="primary">
+        Show Disabled
+      </mat-slide-toggle>
+      <button mat-raised-button color="primary" routerLink="/states/new">
+        <mat-icon>add</mat-icon>
+        Add State
+      </button>
+    </div>
   </div>
 
   <div class="table-container mat-elevation-z2">
@@ -53,7 +61,7 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.disabled-row]="row.disabled_date"></tr>
 
       <!-- No Data Row -->
       <tr class="mat-row" *matNoDataRow>
