@@ -12,9 +12,7 @@ interface Trip {
 
 interface CountryVisited {
   country: string;
-  startDate: string;
-  endDate: string;
-  destination: string;
+  lastVisited: string;
   lat: number;
   lng: number;
 }
@@ -104,26 +102,22 @@ class TripService {
   }
 
   /**
-   * Get countries visited in the last 5 years based on trip startDate
+   * Get countries visited in the last 5 years based on last_visited date
    */
   public async getCountriesVisitedLastFiveYears(): Promise<CountryVisited[]> {
     const fiveYearsAgo = new Date();
     fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-    const cutoff = fiveYearsAgo.toISOString().split('T')[0]; // YYYY-MM-DD
 
     return db.all<CountryVisited>(
       `SELECT
-         c.name   AS country,
-         t."startDate" AS "startDate",
-         t."endDate"   AS "endDate",
-         t.destination,
-         c.lat,
-         c.lng
-       FROM trips t
-       JOIN countries c ON t."countryId" = c.id
-       WHERE t."startDate" >= $1
-       ORDER BY t."startDate" DESC`,
-      [cutoff]
+         name        AS country,
+         last_visited AS "lastVisited",
+         lat,
+         lng
+       FROM countries
+       WHERE last_visited >= $1
+       ORDER BY last_visited DESC`,
+      [fiveYearsAgo]
     );
   }
 }

@@ -51,10 +51,12 @@
           <div class="loading-spinner"></div>
           <span class="loading-text">Loading dashboard...</span>
         </div>
-      } @else if (error()) {
+      } @else if (error().length) {
         <div class="error-state">
           <span class="error-icon">⚠️</span>
-          <p class="error-message">{{ error() }}</p>
+          @for (message of error(); track message) {
+            <p class="error-message">{{ message }}</p>
+          }
           <button class="retry-btn" (click)="ngOnInit()">Retry</button>
         </div>
       } @else {
@@ -135,9 +137,9 @@
           </div>
         </div>
 
-        <!-- Map Widget showing popular destinations -->
+        <!-- Map Widget showing countries visited in the last 5 years -->
         <div class="map-section">
-          <app-dashboard-map></app-dashboard-map>
+          <app-dashboard-map [countriesVisited]="countriesVisited()"></app-dashboard-map>
         </div>
       }
     </main>

@@ -1,15 +1,15 @@
 <div class="dashboard-map-widget">
   <div class="widget-header">
     <h3>{{ title }}</h3>
-    <span class="widget-badge">{{ markers.length }} locations</span>
+    <span class="widget-badge">{{ markers().length }} locations</span>
   </div>
 
   <lib-map
-    [markers]="markers"
+    [markers]="markers()"
     [center]="[20, 0]"
     [zoom]="2"
     [height]="mapHeight"
-    [fitBounds]="false"
+    [fitBounds]="markers().length > 0"
     [showAttribution]="true">
   </lib-map>
 
@@ -17,7 +17,7 @@
     <div class="map-legend">
       <div class="legend-item">
         <span class="marker">📍</span>
-        <span>Popular Destination</span>
+        <span>Visited Country</span>
       </div>
     </div>
   }

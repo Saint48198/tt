@@ -2,15 +2,20 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { forkJoin, catchError, of, Subscription, finalize } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '@shared/services';
 import { DashboardMapComponent } from '../../components/dashboard-map/dashboard-map.component';
 import { DashboardService, DashboardStats } from '../../services/dashboard.service';
+import { TripsService } from '../../services/trips.service';
+import { CountryVisited } from '../../interfaces';
 
 @Component({
   selector: 'app-dashboard',
@@ -20,14 +25,16 @@ import { DashboardService, DashboardStats } from '../../services/dashboard.servi
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly dashboardService = inject(DashboardService);
+  private readonly tripsService = inject(TripsService);
+  private dashboardSubscription?: Subscription;
 
   currentUser = toSignal(this.authService.currentUser$);
   loading = signal(true);
-  error = signal<string | null>(null);
+  error = signal<string[]>([]);
 
   stats = signal<DashboardStats>({
     totalUsers: 0,
@@ -38,26 +45,55 @@ export class DashboardComponent implements OnInit {
     totalPhotos: 0,
   });
 
+  countriesVisited = signal<CountryVisited[]>([]);
 
   ngOnInit(): void {
-    this.loadStats();
+    this.loadDashboard();
   }
 
-  private loadStats(): void {
+  private loadDashboard(): void {
     this.loading.set(true);
-    this.error.set(null);
+    this.error.set([]);
 
-    this.dashboardService.getStats().subscribe({
-      next: (data) => {
-        this.stats.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('Failed to load dashboard stats:', err);
-        this.error.set('Failed to load dashboard stats');
-        this.loading.set(false);
-      },
-    });
+    this.dashboardSubscription?.unsubscribe();
+
+    this.dashboardSubscription = forkJoin({
+      stats: this.dashboardService.getStats().pipe(
+        catchError((err) => {
+          console.error('Failed to load dashboard stats:', err);
+          this.error.update((errors) => [...errors, `Failed to load dashboard stats: ${this.extractErrorMessage(err)}`]);
+          return of(null);
+        })
+      ),
+      countriesVisited: this.tripsService.getCountriesVisited().pipe(
+        catchError((err) => {
+          console.error('Failed to load countries visited:', err);
+          this.error.update((errors) => [...errors, `Failed to load countries visited: ${this.extractErrorMessage(err)}`]);
+          return of(null);
+        })
+      ),
+    })
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: ({ stats, countriesVisited }) => {
+          if (stats) this.stats.set(stats);
+          if (countriesVisited) this.countriesVisited.set(countriesVisited);
+        },
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.dashboardSubscription?.unsubscribe();
+  }
+
+  private extractErrorMessage(err: unknown): string {
+    if (err instanceof HttpErrorResponse) {
+      return err.error?.error || err.error?.message || err.statusText || 'Unknown server error';
+    }
+    if (err instanceof Error) {
+      return err.message;
+    }
+    return 'An unexpected error occurred';
   }
 
   logout(): void {

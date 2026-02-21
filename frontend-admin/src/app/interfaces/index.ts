@@ -16,5 +16,8 @@ export * from './state.interface';
 // Photo interfaces
 export * from './photo.interface';
 
+// Trip interfaces
+export * from './trip.interface';
+
 // User interfaces
 export * from './user.interface';
