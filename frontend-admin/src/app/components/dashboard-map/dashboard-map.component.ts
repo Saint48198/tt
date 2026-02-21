@@ -27,8 +27,10 @@ export class DashboardMapComponent {
       lng: cv.lng,
       title: cv.country,
       popup: `
-        <strong>${cv.country}</strong><br/>
-        📅 Last visited: ${new Date(cv.lastVisited).toLocaleDateString()}
+        <div style="text-align: center; min-width: 120px;">
+          <strong style="font-size: 1.1em;">${cv.country}</strong><br/>
+          <span style="color: #666;">📅 Last visited: ${new Date(cv.lastVisited).toLocaleDateString()}</span>
+        </div>
       `,
     }))
   );
