@@ -10,6 +10,15 @@ interface Trip {
   country: string;
 }
 
+interface CountryVisited {
+  country: string;
+  startDate: string;
+  endDate: string;
+  destination: string;
+  lat: number;
+  lng: number;
+}
+
 interface CreateTripData {
   destination: string;
   startDate: string;
@@ -92,6 +101,30 @@ class TripService {
   public async deleteTrip(id: number | string): Promise<{ success: boolean; changes: number }> {
     const result = await db.run('DELETE FROM trips WHERE id = $1', [id]);
     return { success: result.rowCount > 0, changes: result.rowCount };
+  }
+
+  /**
+   * Get countries visited in the last 5 years based on trip startDate
+   */
+  public async getCountriesVisitedLastFiveYears(): Promise<CountryVisited[]> {
+    const fiveYearsAgo = new Date();
+    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+    const cutoff = fiveYearsAgo.toISOString().split('T')[0]; // YYYY-MM-DD
+
+    return db.all<CountryVisited>(
+      `SELECT
+         c.name   AS country,
+         t."startDate" AS "startDate",
+         t."endDate"   AS "endDate",
+         t.destination,
+         c.lat,
+         c.lng
+       FROM trips t
+       JOIN countries c ON t."countryId" = c.id
+       WHERE t."startDate" >= $1
+       ORDER BY t."startDate" DESC`,
+      [cutoff]
+    );
   }
 }
 

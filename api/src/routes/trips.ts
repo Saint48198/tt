@@ -44,6 +44,20 @@ router.all('/api/trips', (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/trips/countries-visited
+ * Returns countries visited in the last 5 years with name, dates, and lat/lng
+ */
+router.get('/api/trips/countries-visited', async (_req: Request, res: Response) => {
+  try {
+    const countries = await tripService.getCountriesVisitedLastFiveYears();
+    return res.status(200).json(countries);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to fetch countries visited' });
+  }
+});
+
+/**
  * GET /api/trips/:id
  */
 router.get('/api/trips/:id', async (req: Request, res: Response) => {
