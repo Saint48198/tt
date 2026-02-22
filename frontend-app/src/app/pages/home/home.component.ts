@@ -1,9 +1,10 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
 import { CountryService, Country } from '../../services/country.service';
-import * as GeoJSON from 'geojson';
+import { Subject, EMPTY } from 'rxjs';
+import { switchMap, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
@@ -12,9 +13,10 @@ import * as GeoJSON from 'geojson';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private countryService = inject(CountryService);
+  private destroy$ = new Subject<void>();
 
   username = signal<string | null>(null);
   countries = signal<Country[]>([]);
@@ -34,6 +36,11 @@ export class HomeComponent implements OnInit {
       this.username.set(name);
       this.loadCountries(name);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private buildMarkers(countries: Country[]): MapMarker[] {
@@ -79,53 +86,53 @@ export class HomeComponent implements OnInit {
   private loadCountries(username: string): void {
     this.loading.set(true);
 
-    this.countryService.getVisitedCountries(username).subscribe({
-      next: (countries) => {
+    this.countryService.getVisitedCountries(username).pipe(
+      takeUntil(this.destroy$),
+      switchMap((countries) => {
         this.countries.set(countries);
 
-        // Pre-fetch overlays BEFORE showing the map
         const countryNames = countries.map((c) => c.name);
-        if (countryNames.length > 0) {
-          this.countryService.getCountryOutlines(countryNames).subscribe({
-            next: (geoJson) => {
-              if (geoJson.features.length > 0) {
-                // Create a separate overlay per country with unique colors
-                this.mapOverlays = geoJson.features.map((feature, i) => {
-                  const palette = this.countryColors[i % this.countryColors.length];
-                  return {
-                    type: 'country' as const,
-                    geoJson: {
-                      type: 'FeatureCollection' as const,
-                      features: [feature],
-                    },
-                    style: {
-                      fillColor: palette.fill,
-                      weight: 2,
-                      opacity: 0.8,
-                      color: palette.border,
-                      fillOpacity: 0.35,
-                    },
-                    interactive: true,
-                  };
-                });
-                this.mapMarkers = [];
-              } else {
-                // Fallback to markers
-                this.mapMarkers = this.buildMarkers(countries);
-              }
-              this.loading.set(false);
-            },
-            error: () => {
-              // Fallback to markers
-              this.mapMarkers = this.buildMarkers(countries);
-              this.loading.set(false);
-            },
-          });
-        } else {
+        if (countryNames.length === 0) {
           this.loading.set(false);
+          return EMPTY;
         }
+
+        return this.countryService.getCountryOutlines(countryNames).pipe(
+          takeUntil(this.destroy$),
+        );
+      }),
+    ).subscribe({
+      next: (geoJson) => {
+        if (geoJson.features.length > 0) {
+          this.mapOverlays = geoJson.features.map((feature, i) => {
+            const palette = this.countryColors[i % this.countryColors.length];
+            return {
+              type: 'country' as const,
+              geoJson: {
+                type: 'FeatureCollection' as const,
+                features: [feature],
+              },
+              style: {
+                fillColor: palette.fill,
+                weight: 2,
+                opacity: 0.8,
+                color: palette.border,
+                fillOpacity: 0.35,
+              },
+              interactive: true,
+            };
+          });
+          this.mapMarkers = [];
+        } else {
+          this.mapMarkers = this.buildMarkers(this.countries());
+        }
+        this.loading.set(false);
       },
       error: () => {
+        const countries = this.countries();
+        if (countries.length > 0) {
+          this.mapMarkers = this.buildMarkers(countries);
+        }
         this.loading.set(false);
       },
     });
