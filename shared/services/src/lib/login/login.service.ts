@@ -25,6 +25,11 @@ export class AuthService {
 
   currentUser$ = this.currentUserSubject.asObservable();
 
+  /** Synchronous access to the current user value */
+  get currentUser(): UserPayload | null {
+    return this.currentUserSubject.value;
+  }
+
   constructor() {
     this.loadUserFromToken();
   }

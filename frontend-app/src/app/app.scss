@@ -1,5 +1,58 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 .app-main {
   flex: 1;
-  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
   background: #f9fafb;
+  overflow: hidden;
+}
+
+/* Ensure routed components fill available space */
+.app-main > *:not(router-outlet) {
+  flex: 1;
+  display: block;
+}
+
+/* Landing page: header & footer overlay the full-screen map */
+.app-shell.landing {
+  position: relative;
+
+  lib-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+
+  // Make header semi-transparent over the map
+  ::ng-deep .header {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .app-main {
+    background: transparent;
+  }
+
+  lib-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+
+  // Make footer semi-transparent over the map
+  ::ng-deep .footer {
+    background: rgba(31, 41, 55, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
 }

@@ -52,6 +52,8 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   private markerLayers: L.Marker[] = [];
   private overlayLayers: L.GeoJSON[] = [];
   private initialized = false;
+  private lastOverlaysRef: MapOverlay[] | null = null;
+  private lastMarkersRef: MapMarker[] | null = null;
 
   ngAfterViewInit(): void {
     this.initMap();
@@ -61,11 +63,13 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (!this.initialized) return;
 
-    if (changes['markers']) {
+    if (changes['markers'] && this.markers !== this.lastMarkersRef) {
+      this.lastMarkersRef = this.markers;
       this.updateMarkers();
     }
 
-    if (changes['overlays']) {
+    if (changes['overlays'] && this.overlays !== this.lastOverlaysRef) {
+      this.lastOverlaysRef = this.overlays;
       this.updateOverlays();
     }
 
@@ -104,6 +108,8 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     }).addTo(this.map);
 
     // Add markers and overlays
+    this.lastMarkersRef = this.markers;
+    this.lastOverlaysRef = this.overlays;
     this.updateMarkers();
     this.updateOverlays();
 
@@ -177,7 +183,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
 
       const style = overlayData.style || defaultStyle;
 
-      const geoJsonLayer = L.geoJSON(overlayData.geoJson, {
+      const geoJsonLayer = L.geoJSON(overlayData.geoJson as GeoJSON.GeoJsonObject, {
         style: () => style,
         interactive: overlayData.interactive !== undefined ? overlayData.interactive : true,
         onEachFeature: (feature, layer) => {

@@ -1,0 +1,31 @@
+<div class="profile-map">
+  @if (loading()) {
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <span>Loading profile...</span>
+    </div>
+  } @else if (error()) {
+    <div class="error-overlay">
+      <span class="error-icon">😕</span>
+      <h2>{{ error() }}</h2>
+      <p>The profile you're looking for doesn't exist or isn't available.</p>
+    </div>
+  } @else {
+    <div class="profile-banner">
+      <h2>🌍 {{ username() }}'s Travel Map</h2>
+      <span class="country-count">{{ markers().length }} countries visited</span>
+    </div>
+    <lib-map
+      [markers]="markers()"
+      [center]="mapCenter"
+      [zoom]="mapZoom"
+      height="100%"
+      width="100%"
+      [fitBounds]="hasMarkers()"
+      [enableZoom]="true"
+      [enableDrag]="true"
+      [showAttribution]="true">
+    </lib-map>
+  }
+</div>
+

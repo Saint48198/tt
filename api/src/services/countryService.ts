@@ -137,6 +137,33 @@ class CountryService {
     const result = await db.run('UPDATE countries SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL', [id]);
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
+
+  /**
+   * Get all visited countries for a specific user.
+   * Includes countries with a last_visited date AND countries linked via the user's photos.
+   */
+  public async getVisitedCountries(userId: number): Promise<Country[]> {
+    return db.all<Country>(
+      `SELECT * FROM countries
+       WHERE disabled_date IS NULL
+         AND id IN (
+           -- Countries with a last_visited date
+           SELECT id FROM countries WHERE last_visited IS NOT NULL
+           UNION
+           -- Countries linked through user's photos via cities
+           SELECT ci.country_id FROM photos p
+             JOIN cities ci ON p.city_id = ci.id
+             WHERE p.user_id = $1 AND ci.country_id IS NOT NULL
+           UNION
+           -- Countries linked through user's photos via attractions
+           SELECT a.country_id FROM photos p
+             JOIN attractions a ON p.attraction_id = a.id
+             WHERE p.user_id = $1 AND a.country_id IS NOT NULL
+         )
+       ORDER BY last_visited DESC`,
+      [userId]
+    );
+  }
 }
 
 export const countryService = CountryService.getInstance();

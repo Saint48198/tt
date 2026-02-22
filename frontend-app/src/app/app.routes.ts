@@ -7,6 +7,11 @@ export const appRoutes: Route[] = [
       import('./pages/home/home.component').then((m) => m.HomeComponent)
   },
   {
+    path: ':username',
+    loadComponent: () =>
+      import('./pages/home/home.component').then((m) => m.HomeComponent)
+  },
+  {
     path: '**',
     redirectTo: '',
   },

@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
+import { Component, inject, OnInit } from '@angular/core';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent, FooterComponent } from '@shared/components';
 import { AuthService } from '@shared/services';
+import { filter, map, startWith } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -11,16 +12,52 @@ import { AuthService } from '@shared/services';
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
+export class App implements OnInit {
   protected title = 'Trip Tracker';
   private authService = inject(AuthService);
   private router = inject(Router);
 
   currentUser$ = this.authService.currentUser$;
 
-  navLinks = [
-    { label: 'Home', path: '/' },
-    { label: 'Explore', path: '/explore' },
-    { label: 'My Trips', path: '/trips' },
-  ];
+  /** True when on a full-screen map page (home or user profile) */
+  isLandingPage$ = this.router.events.pipe(
+    filter((e) => e instanceof NavigationEnd),
+    map((e) => this.isMapRoute((e as NavigationEnd).urlAfterRedirects)),
+    startWith(this.isMapRoute(this.router.url))
+  );
+
+  /** Nav links are reactive — prefixed with /:username when signed in */
+  navLinks$ = this.currentUser$.pipe(
+    map((user) => {
+      const prefix = user ? `/${user.username}` : '';
+      return [
+        { label: 'Home', path: prefix || '/' },
+        { label: 'Explore', path: `${prefix}/explore` },
+        { label: 'My Trips', path: `${prefix}/trips` },
+      ];
+    })
+  );
+
+  ngOnInit(): void {
+    // Redirect / to /:username whenever a signed-in user lands on root
+    this.router.events
+      .pipe(filter((e) => e instanceof NavigationEnd))
+      .subscribe((e) => {
+        const user = this.authService.currentUser;
+        if (user && (e as NavigationEnd).urlAfterRedirects === '/') {
+          this.router.navigate([`/${user.username}`], { replaceUrl: true });
+        }
+      });
+
+    // Also redirect on initial load
+    const user = this.authService.currentUser;
+    if (user && this.router.url === '/') {
+      this.router.navigate([`/${user.username}`], { replaceUrl: true });
+    }
+  }
+
+  private isMapRoute(url: string): boolean {
+    // Root "/" or single-segment "/:username" paths use the full-screen map layout
+    return url === '/' || /^\/[^/]+$/.test(url);
+  }
 }

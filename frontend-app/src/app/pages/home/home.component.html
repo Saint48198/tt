@@ -1,38 +1,25 @@
-<div class="page-wrapper">
-  <lib-header></lib-header>
-
-  <main class="main-content">
-    <div class="welcome-section">
-      <h2>Welcome to Trip Tracker!</h2>
-      <p>Your personal travel companion</p>
+<div class="landing-map">
+  @if (loading()) {
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
     </div>
-
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">🌍</div>
-        <h3>Explore</h3>
-        <p>Discover new destinations and plan your next adventure.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">📍</div>
-        <h3>Track</h3>
-        <p>Keep track of all the places you've visited.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">📸</div>
-        <h3>Memories</h3>
-        <p>Save photos and memories from your trips.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">✅</div>
-        <h3>Check-ins</h3>
-        <p>Check in to locations and share your journey.</p>
-      </div>
+  }
+  @if (username() && hasData()) {
+    <div class="profile-banner">
+      <h2>🌍 {{ username() }}'s Travel Map</h2>
+      <span class="country-count">{{ countries().length }} countries visited</span>
     </div>
-  </main>
-
-  <lib-footer></lib-footer>
+  }
+  <lib-map
+    [markers]="mapMarkers"
+    [overlays]="mapOverlays"
+    [center]="mapCenter"
+    [zoom]="mapZoom"
+    height="100%"
+    width="100%"
+    [fitBounds]="false"
+    [enableZoom]="true"
+    [enableDrag]="true"
+    [showAttribution]="true">
+  </lib-map>
 </div>

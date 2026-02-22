@@ -1,50 +1,9 @@
 
 > nx run frontend-app:serve:development
 
-[33m❯[39m Building...
-[32m✔[39m Building...
-[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m         [2m | [22m [1mRaw size[22m[39m
-[37m[32mchunk-N75JI56X.js[39m[37m  [2m | [22m[2m-[22m             [2m | [22m [36m96.65 kB[39m[37m[2m | [22m[39m
-[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m          [2m | [22m  [36m4.63 kB[39m[37m[2m | [22m[39m
-[37m[32mstyles.css[39m[37m         [2m | [22m[2mstyles[22m        [2m | [22m[36m245 bytes[39m[37m[2m | [22m[39m
-[37m[39m
-[37m[1m [22m                  [2m | [22m[1mInitial total[22m [2m | [22m[1m101.53 kB[22m[39m
-[37m[39m
-[37m[1mLazy chunk files[22m   [2m | [22m[1mNames[22m         [2m | [22m [1mRaw size[22m[39m
-[37m[32mchunk-6AF455GJ.js[39m[37m  [2m | [22m[2mhome-component[22m[2m | [22m  [36m8.66 kB[39m[37m[2m | [22m[39m
-[37m[39m
-[37mApplication bundle generation complete. [0.854 seconds] - 2026-02-20T07:53:21.213Z[39m
-[37m[39m
-[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
-[1m[33m[39m[22m
-[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
-[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
-[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
-[1m[33m[39m[22m
-[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
-[1m[33m[39m[22m
-[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
-[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
-[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
-[1m[33m[39m[22m
-[1m[33m[39m[22m
-[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
-[1m[33m[39m[22m
-[1m[33m    shared/components/src/lib/header/header.component.html:33:50:[39m[22m
-[1m[33m[37m      33 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
-[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
-[1m[33m[39m[22m
-[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
-[1m[33m[39m[22m
-[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
-[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
-[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
-[1m[33m[39m[22m
-[1m[33m[39m[22m
-[37mWatch mode enabled. Watching for file changes...[39m
-[37mNOTE: Raw file sizes do not reflect development server per-request transformations.[39m
-  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4200[22m/[39m
-Task "frontend-app:serve:development" is continuous but exited with code 128
+[0m[7m[1m[31m NX [39m[22m[27m[0m  [31mPort 4200 is already in use. Use '--port' to specify a different port.[39m
+Pass --verbose to see the stacktrace.
+Task "frontend-app:serve:development" is continuous but exited with code 1
 
 
 

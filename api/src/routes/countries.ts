@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { countryService } from '../services/countryService';
+import { db } from '../db';
 
 const router = Router();
 
@@ -66,6 +67,28 @@ router.post('/api/countries', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Failed to create country:', error);
     return res.status(500).json({ error: 'Failed to create country.' });
+  }
+});
+
+// GET /api/countries/visited/:username - Get all visited countries for a user
+router.get('/api/countries/visited/:username', async (req: Request, res: Response) => {
+  const { username } = req.params;
+
+  try {
+    const user = await db.get<{ id: number }>(
+      'SELECT id FROM users WHERE LOWER(username) = LOWER($1) AND disabled_date IS NULL',
+      [username]
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const countries = await countryService.getVisitedCountries(user.id);
+    return res.status(200).json(countries);
+  } catch (error) {
+    console.error('Failed to fetch visited countries:', error);
+    return res.status(500).json({ error: 'Failed to fetch visited countries' });
   }
 });
 

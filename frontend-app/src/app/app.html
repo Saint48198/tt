@@ -1,5 +1,7 @@
-<lib-header [title]="title" [navLinks]="navLinks" [showNav]="(currentUser$ | async) ? true : false"></lib-header>
-<main class="app-main">
-  <router-outlet></router-outlet>
-</main>
-<lib-footer></lib-footer>
+<div class="app-shell" [class.landing]="(isLandingPage$ | async)">
+  <lib-header [title]="title" [navLinks]="(navLinks$ | async) ?? []" [showNav]="!!(currentUser$ | async)"></lib-header>
+  <main class="app-main">
+    <router-outlet></router-outlet>
+  </main>
+  <lib-footer></lib-footer>
+</div>

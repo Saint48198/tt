@@ -59,7 +59,8 @@
       },
       "defaultConfiguration": "development",
       "options": {
-        "port": 4200
+        "port": 4200,
+        "proxyConfig": "frontend-app/proxy.conf.json"
       }
     },
     "lint": {
