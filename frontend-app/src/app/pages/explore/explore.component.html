@@ -20,12 +20,29 @@
     }
     <h1>{{ currentTitle() }}</h1>
 
-    @if (selectedCountry() && level() !== 'attractions' && level() !== 'countries' && level() !== 'city') {
+    @if (selectedCountry() && level() !== 'attractions' && level() !== 'attraction' && level() !== 'countries' && level() !== 'city') {
       <button class="attractions-btn" (click)="onViewAttractions()">
         🏰 View Attractions
       </button>
     }
   </div>
+
+  <!-- Country Map (shown on states, cities, attractions levels, outside loading block) -->
+  @if (!loading() && selectedCountry() && (level() === 'states' || level() === 'cities' || level() === 'attractions')) {
+    <section class="country-map-section">
+      <lib-map
+        [markers]="countryMapMarkers()"
+        [overlays]="countryMapOverlays"
+        [center]="countryMapCenter()"
+        [zoom]="countryMapZoom()"
+        height="280px"
+        width="100%"
+        [enableZoom]="true"
+        [enableDrag]="true"
+        [fitBounds]="countryMapOverlays.length === 0 && countryMapMarkers().length > 1">
+      </lib-map>
+    </section>
+  }
 
   <!-- Loading -->
   @if (loading()) {
@@ -34,6 +51,7 @@
       <p>Loading...</p>
     </div>
   } @else {
+
     <!-- Countries List -->
     @if (level() === 'countries') {
       <div class="card-grid">
@@ -113,7 +131,7 @@
     @if (level() === 'attractions') {
       <div class="card-grid">
         @for (attraction of attractions(); track attraction.id) {
-          <div class="explore-card attraction-card">
+          <button class="explore-card" (click)="onAttractionClick(attraction)">
             <div class="card-icon">
               @if (attraction.is_unesco) {
                 🏛️
@@ -137,7 +155,8 @@
                 <p class="card-meta">📅 {{ formatDate(attraction.last_visited) }}</p>
               }
             </div>
-          </div>
+            <span class="card-arrow">›</span>
+          </button>
         } @empty {
           <div class="empty-state">
             <p>No attractions found for this country.</p>
@@ -222,6 +241,135 @@
                 <div class="detail-info">
                   <span class="detail-label">Wikipedia</span>
                   <a class="detail-link" [href]="'https://en.wikipedia.org/wiki/' + c.wiki_term" target="_blank" rel="noopener">
+                    View on Wikipedia ↗
+                  </a>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Wikipedia Content -->
+        <section class="wiki-section">
+          @if (wikiLoading()) {
+            <div class="wiki-loading">
+              <div class="loading-spinner"></div>
+              <p>Loading Wikipedia content...</p>
+            </div>
+          } @else if (wikiContent(); as wiki) {
+            <div class="wiki-card">
+              <div class="wiki-header">
+                <span class="wiki-icon">📖</span>
+                <h3>{{ wiki.title }}</h3>
+                <a class="wiki-link" [href]="wiki.url" target="_blank" rel="noopener">
+                  Read more ↗
+                </a>
+              </div>
+              @if (wiki.thumbnail) {
+                <div class="wiki-image">
+                  <img [src]="wiki.thumbnail" [alt]="wiki.title" />
+                </div>
+              }
+              <p class="wiki-extract">{{ wiki.extract }}</p>
+            </div>
+          }
+        </section>
+      </div>
+    }
+
+    <!-- Attraction Detail -->
+    @if (level() === 'attraction' && selectedAttraction(); as a) {
+      <div class="city-detail">
+        <!-- Sticky Attraction Header -->
+        <header class="city-header">
+          <div class="city-header-info">
+            <h2>{{ a.name }}</h2>
+            <p class="city-location">
+              @if (a.country_name) {
+                {{ a.country_name }}
+              }
+            </p>
+            <div class="card-tags" style="margin-top: 0.35rem;">
+              @if (a.is_unesco) {
+                <span class="tag tag-unesco">UNESCO</span>
+              }
+              @if (a.is_national_park) {
+                <span class="tag tag-park">National Park</span>
+              }
+            </div>
+          </div>
+        </header>
+
+        <!-- Map -->
+        <section class="city-map-section">
+          <lib-map
+            [markers]="attractionMapMarkers()"
+            [center]="attractionMapCenter()"
+            [zoom]="12"
+            height="300px"
+            width="100%"
+            [enableZoom]="true"
+            [enableDrag]="true">
+          </lib-map>
+        </section>
+
+        <!-- Details -->
+        <section class="city-details">
+          <div class="detail-grid">
+            <div class="detail-card">
+              <span class="detail-icon">📍</span>
+              <div class="detail-info">
+                <span class="detail-label">Coordinates</span>
+                <span class="detail-value">{{ a.lat.toFixed(4) }}, {{ a.lng.toFixed(4) }}</span>
+              </div>
+            </div>
+
+            @if (a.last_visited) {
+              <div class="detail-card">
+                <span class="detail-icon">📅</span>
+                <div class="detail-info">
+                  <span class="detail-label">Last Visited</span>
+                  <span class="detail-value">{{ formatDate(a.last_visited) }}</span>
+                </div>
+              </div>
+            }
+
+            @if (a.country_name) {
+              <div class="detail-card">
+                <span class="detail-icon">🌍</span>
+                <div class="detail-info">
+                  <span class="detail-label">Country</span>
+                  <span class="detail-value">{{ a.country_name }}</span>
+                </div>
+              </div>
+            }
+
+            @if (a.is_unesco) {
+              <div class="detail-card">
+                <span class="detail-icon">🏛️</span>
+                <div class="detail-info">
+                  <span class="detail-label">UNESCO Site</span>
+                  <span class="detail-value">World Heritage Site</span>
+                </div>
+              </div>
+            }
+
+            @if (a.is_national_park) {
+              <div class="detail-card">
+                <span class="detail-icon">🌲</span>
+                <div class="detail-info">
+                  <span class="detail-label">National Park</span>
+                  <span class="detail-value">Protected Area</span>
+                </div>
+              </div>
+            }
+
+            @if (a.wiki_term) {
+              <div class="detail-card">
+                <span class="detail-icon">📖</span>
+                <div class="detail-info">
+                  <span class="detail-label">Wikipedia</span>
+                  <a class="detail-link" [href]="'https://en.wikipedia.org/wiki/' + a.wiki_term" target="_blank" rel="noopener">
                     View on Wikipedia ↗
                   </a>
                 </div>

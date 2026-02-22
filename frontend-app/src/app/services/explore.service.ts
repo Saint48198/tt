@@ -2,8 +2,17 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+import * as GeoJSON from 'geojson';
 
 // ...existing code...
+
+/** Maps country abbreviation to the GeoJSON file path for its states/provinces */
+const STATE_GEOJSON_FILES: Record<string, string> = {
+  US: '/data/us-states.geojson',
+  USA: '/data/us-states.geojson',
+  CA: '/data/canada-provinces.geojson',
+  CAN: '/data/canada-provinces.geojson',
+};
 
 export interface WikipediaContent {
   title: string;
@@ -54,9 +63,12 @@ export interface ExploreAttraction {
   lng: number;
   is_unesco?: boolean;
   is_national_park?: boolean;
+  country_id?: number;
   country_name?: string;
   last_visited?: string;
   wiki_term?: string;
+  created_date?: string;
+  updated_date?: string;
 }
 
 @Injectable({
@@ -64,6 +76,45 @@ export interface ExploreAttraction {
 })
 export class ExploreService {
   private readonly http = inject(HttpClient);
+  private stateGeoJsonCache = new Map<string, GeoJSON.FeatureCollection>();
+
+  // ...existing code...
+
+  /**
+   * Load state/province GeoJSON outlines for US or Canada,
+   * filtered to only the given state names.
+   */
+  getStateOutlines(
+    countryAbbr: string,
+    stateNames: string[]
+  ): Observable<GeoJSON.FeatureCollection> {
+    const file = STATE_GEOJSON_FILES[countryAbbr];
+    if (!file || stateNames.length === 0) {
+      return of({ type: 'FeatureCollection', features: [] } as GeoJSON.FeatureCollection);
+    }
+
+    const source$ = this.stateGeoJsonCache.has(countryAbbr)
+      ? of(this.stateGeoJsonCache.get(countryAbbr)!)
+      : this.http.get<GeoJSON.FeatureCollection>(file).pipe(
+          map((data) => {
+            this.stateGeoJsonCache.set(countryAbbr, data);
+            return data;
+          })
+        );
+
+    const nameSet = new Set(stateNames.map((n) => n.toLowerCase()));
+
+    return source$.pipe(
+      map((data) => ({
+        type: 'FeatureCollection' as const,
+        features: data.features.filter(
+          (f) =>
+            f.properties?.['name'] &&
+            nameSet.has((f.properties['name'] as string).toLowerCase())
+        ),
+      }))
+    );
+  }
 
   getVisitedCountries(username: string): Observable<ExploreCountry[]> {
     return this.http.get<ExploreCountry[]>(
@@ -107,6 +158,10 @@ export class ExploreService {
 
   getCityById(cityId: number): Observable<ExploreCity> {
     return this.http.get<ExploreCity>(`/api/cities/${cityId}`);
+  }
+
+  getAttractionById(attractionId: number): Observable<ExploreAttraction> {
+    return this.http.get<ExploreAttraction>(`/api/attractions/${attractionId}`);
   }
 
   getWikipediaContent(wikiTerm: string): Observable<WikipediaContent | null> {

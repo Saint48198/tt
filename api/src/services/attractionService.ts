@@ -136,7 +136,7 @@ class AttractionService {
       `SELECT attractions.id, attractions.name, attractions.is_unesco, attractions.is_national_park,
               attractions.lat, attractions.lng, attractions.last_visited, attractions.wiki_term,
               attractions.created_date, attractions.updated_date, attractions.disabled_date,
-              countries.id as country_id
+              countries.id as country_id, countries.name as country_name
        FROM attractions
        JOIN countries ON attractions.country_id = countries.id
        WHERE attractions.id = $1 AND attractions.disabled_date IS NULL`,

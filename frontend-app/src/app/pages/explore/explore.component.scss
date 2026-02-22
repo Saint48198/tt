@@ -131,16 +131,6 @@
 }
 
 
-.attraction-card {
-  cursor: default;
-
-  &:hover {
-    transform: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border-color: #e2e8f0;
-  }
-}
-
 .card-icon {
   font-size: 1.75rem;
   flex-shrink: 0;
@@ -267,6 +257,14 @@
   padding: 3rem 0;
   color: #94a3b8;
   font-size: 1rem;
+}
+
+// Country Map
+.country-map-section {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
 }
 
 // City Detail

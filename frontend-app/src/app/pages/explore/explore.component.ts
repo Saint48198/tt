@@ -1,9 +1,9 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { MapComponent, MapMarker } from '@shared/components';
+import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
 import {
   ExploreService,
   ExploreCountry,
@@ -13,7 +13,7 @@ import {
   WikipediaContent,
 } from '../../services/explore.service';
 
-type ExploreLevel = 'countries' | 'states' | 'cities' | 'city' | 'attractions';
+type ExploreLevel = 'countries' | 'states' | 'cities' | 'city' | 'attractions' | 'attraction';
 
 interface BreadcrumbItem {
   label: string;
@@ -32,6 +32,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private location = inject(Location);
   private exploreService = inject(ExploreService);
+  private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
 
   username = signal<string>('');
@@ -41,6 +42,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
   selectedCountry = signal<ExploreCountry | null>(null);
   selectedState = signal<ExploreState | null>(null);
   selectedCity = signal<ExploreCity | null>(null);
+  selectedAttraction = signal<ExploreAttraction | null>(null);
   wikiContent = signal<WikipediaContent | null>(null);
   wikiLoading = signal(false);
 
@@ -49,7 +51,77 @@ export class ExploreComponent implements OnInit, OnDestroy {
   cities = signal<ExploreCity[]>([]);
   attractions = signal<ExploreAttraction[]>([]);
 
+  // Plain array (not signal) to avoid repeated ngOnChanges on the map component
+  countryMapOverlays: MapOverlay[] = [];
+
+  private readonly stateColors = [
+    { fill: '#1a365d', border: '#0d1b2a' },
+    { fill: '#2a4a7f', border: '#1a365d' },
+    { fill: '#2b6cb0', border: '#2a4a7f' },
+    { fill: '#3182ce', border: '#2b6cb0' },
+    { fill: '#4299e1', border: '#3182ce' },
+    { fill: '#63b3ed', border: '#4299e1' },
+    { fill: '#90cdf4', border: '#63b3ed' },
+    { fill: '#2c5282', border: '#1a365d' },
+    { fill: '#2563eb', border: '#1e40af' },
+    { fill: '#3b82f6', border: '#2563eb' },
+    { fill: '#60a5fa', border: '#3b82f6' },
+    { fill: '#93c5fd', border: '#60a5fa' },
+    { fill: '#1e40af', border: '#1e3a8a' },
+    { fill: '#1d4ed8', border: '#1e40af' },
+    { fill: '#0e7490', border: '#155e75' },
+    { fill: '#0891b2', border: '#0e7490' },
+    { fill: '#06b6d4', border: '#0891b2' },
+    { fill: '#22d3ee', border: '#06b6d4' },
+    { fill: '#0284c7', border: '#0369a1' },
+    { fill: '#0ea5e9', border: '#0284c7' },
+  ];
+
   private baseUrl = computed(() => `/${this.username()}/explore`);
+
+  /** Map markers for the country page — show cities as pins when on states or cities level */
+  countryMapMarkers = computed<MapMarker[]>(() => {
+    const lvl = this.level();
+    if (lvl === 'cities') {
+      return this.cities()
+        .filter((c) => c.lat && c.lng)
+        .map((c) => ({
+          lat: c.lat,
+          lng: c.lng,
+          title: c.name,
+          popup: `<strong>${c.name}</strong>`,
+        }));
+    }
+    return [];
+  });
+
+  /** Map center for the country page — use hardcoded values for US/CA, otherwise country coords */
+  countryMapCenter = computed<[number, number]>(() => {
+    const country = this.selectedCountry();
+    const abbr = (country?.abbreviation || '').toUpperCase();
+    const name = (country?.name || '').toLowerCase();
+    // Continental US center
+    if (abbr === 'US' || abbr === 'USA' || name.includes('united states')) {
+      return [39.8, -98.6];
+    }
+    // Canada center
+    if (abbr === 'CA' || abbr === 'CAN' || name.includes('canada')) {
+      return [56.1, -106.3];
+    }
+    if (country?.lat && country?.lng) {
+      return [country.lat, country.lng];
+    }
+    return [20, 0];
+  });
+
+  countryMapZoom = computed<number>(() => {
+    const country = this.selectedCountry();
+    const abbr = (country?.abbreviation || '').toUpperCase();
+    const name = (country?.name || '').toLowerCase();
+    if (abbr === 'US' || abbr === 'USA' || name.includes('united states')) return 3;
+    if (abbr === 'CA' || abbr === 'CAN' || name.includes('canada')) return 3;
+    return 5;
+  });
 
   cityMapMarkers = computed<MapMarker[]>(() => {
     const c = this.selectedCity();
@@ -60,6 +132,17 @@ export class ExploreComponent implements OnInit, OnDestroy {
   cityMapCenter = computed<[number, number]>(() => {
     const c = this.selectedCity();
     return c ? [c.lat, c.lng] : [0, 0];
+  });
+
+  attractionMapMarkers = computed<MapMarker[]>(() => {
+    const a = this.selectedAttraction();
+    if (!a) return [];
+    return [{ lat: a.lat, lng: a.lng, title: a.name, popup: `<strong>${a.name}</strong>` }];
+  });
+
+  attractionMapCenter = computed<[number, number]>(() => {
+    const a = this.selectedAttraction();
+    return a ? [a.lat, a.lng] : [0, 0];
   });
 
   breadcrumbs = computed<BreadcrumbItem[]>(() => {
@@ -83,7 +166,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
         url: `${this.baseUrl()}/${countryAbbr}/${stateAbbr}`,
       });
     }
-    if (lvl === 'attractions' && country) {
+    if ((lvl === 'attractions' || lvl === 'attraction') && country) {
       const countryAbbr = country.abbreviation || country.name;
       crumbs.push({
         label: 'Attractions',
@@ -96,10 +179,18 @@ export class ExploreComponent implements OnInit, OnDestroy {
       const stateAbbr = state ? (state.abbr || state.name) : null;
       const segments = [this.baseUrl(), countryAbbr];
       if (stateAbbr) segments.push(stateAbbr);
-      segments.push(encodeURIComponent(city.name));
+      segments.push(this.toSlug(city.name));
       crumbs.push({
         label: city.name,
         url: segments.join('/'),
+      });
+    }
+    const attraction = this.selectedAttraction();
+    if (lvl === 'attraction' && attraction && country) {
+      const countryAbbr = country.abbreviation || country.name;
+      crumbs.push({
+        label: attraction.name,
+        url: `${this.baseUrl()}/${countryAbbr}/attractions/${this.toSlug(attraction.name)}`,
       });
     }
     return crumbs;
@@ -123,6 +214,8 @@ export class ExploreComponent implements OnInit, OnDestroy {
         return `${country?.name ?? ''} — Attractions`;
       case 'city':
         return this.selectedCity()?.name ?? 'City';
+      case 'attraction':
+        return this.selectedAttraction()?.name ?? 'Attraction';
       default:
         return 'Explore';
     }
@@ -189,7 +282,11 @@ export class ExploreComponent implements OnInit, OnDestroy {
           this.selectedCountry.set(country);
 
           if (segments.length >= 2 && segments[1].toLowerCase() === 'attractions') {
-            this.loadAttractionsForUrl(country);
+            if (segments.length >= 3) {
+              this.loadAttractionsForUrl(country, segments[2]);
+            } else {
+              this.loadAttractionsForUrl(country);
+            }
           } else if (segments.length >= 3) {
             // country/state/city or country/state/city (3 segments)
             this.loadStatesForUrl(country, segments[1], segments[2]);
@@ -204,6 +301,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
   }
 
   private loadCountryDrillDown(country: ExploreCountry): void {
+    this.countryMapOverlays = [];
     this.exploreService
       .getStates(country.id)
       .pipe(takeUntil(this.destroy$))
@@ -213,6 +311,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
             this.states.set(states);
             this.level.set('states');
             this.loading.set(false);
+            this.loadStateOverlays(country, states);
           } else {
             this.loadCitiesForCountry(country.id);
           }
@@ -221,13 +320,65 @@ export class ExploreComponent implements OnInit, OnDestroy {
       });
   }
 
+  /** Load GeoJSON overlays for visited states (US and Canada only) */
+  private loadStateOverlays(country: ExploreCountry, states: ExploreState[]): void {
+    const abbr = (country.abbreviation || '').toUpperCase();
+    const name = country.name.toLowerCase();
+
+    // Determine which GeoJSON key to use
+    let geoKey: string | null = null;
+    if (abbr === 'US' || abbr === 'USA' || name.includes('united states')) {
+      geoKey = 'US';
+    } else if (abbr === 'CA' || abbr === 'CAN' || name.includes('canada')) {
+      geoKey = 'CA';
+    }
+    if (!geoKey) return;
+
+    const stateNames = states.map((s) => s.name);
+    if (stateNames.length === 0) return;
+
+    this.exploreService
+      .getStateOutlines(geoKey, stateNames)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (geoJson) => {
+          if (geoJson.features.length > 0) {
+            this.countryMapOverlays = geoJson.features.map((feature, i) => {
+              const palette = this.stateColors[i % this.stateColors.length];
+              return {
+                type: 'state' as const,
+                geoJson: {
+                  type: 'FeatureCollection' as const,
+                  features: [feature],
+                },
+                style: {
+                  fillColor: palette.fill,
+                  weight: 2,
+                  opacity: 0.8,
+                  color: palette.border,
+                  fillOpacity: 0.35,
+                },
+                interactive: true,
+              };
+            });
+            this.cdr.detectChanges();
+          }
+        },
+        error: () => {
+          // Silently fail — map will show without overlays
+        },
+      });
+  }
+
   private loadStatesForUrl(country: ExploreCountry, stateAbbr: string, cityName?: string): void {
+    this.countryMapOverlays = [];
     this.exploreService
       .getStates(country.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (states) => {
           this.states.set(states);
+          this.loadStateOverlays(country, states);
           const state = states.find(
             (s) => (s.abbr || s.name).toLowerCase() === stateAbbr.toLowerCase()
           );
@@ -240,9 +391,8 @@ export class ExploreComponent implements OnInit, OnDestroy {
                 next: (cities) => {
                   this.cities.set(cities);
                   if (cityName) {
-                    const decodedName = decodeURIComponent(cityName);
                     const city = cities.find(
-                      (c) => c.name.toLowerCase() === decodedName.toLowerCase()
+                      (c) => this.matchesSlug(c.name, cityName)
                     );
                     if (city) {
                       this.loadCityDetail(city);
@@ -275,9 +425,8 @@ export class ExploreComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (cities) => {
           this.cities.set(cities);
-          const decodedName = decodeURIComponent(cityName);
           const city = cities.find(
-            (c) => c.name.toLowerCase() === decodedName.toLowerCase()
+            (c) => this.matchesSlug(c.name, cityName)
           );
           if (city) {
             this.loadCityDetail(city);
@@ -325,13 +474,22 @@ export class ExploreComponent implements OnInit, OnDestroy {
       });
   }
 
-  private loadAttractionsForUrl(country: ExploreCountry): void {
+  private loadAttractionsForUrl(country: ExploreCountry, attractionName?: string): void {
     this.exploreService
       .getAttractions(country.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (attractions) => {
           this.attractions.set(attractions);
+          if (attractionName) {
+            const attraction = attractions.find(
+              (a) => this.matchesSlug(a.name, attractionName)
+            );
+            if (attraction) {
+              this.loadAttractionDetail(attraction);
+              return;
+            }
+          }
           this.level.set('attractions');
           this.loading.set(false);
         },
@@ -339,10 +497,48 @@ export class ExploreComponent implements OnInit, OnDestroy {
       });
   }
 
+  private loadAttractionDetail(attraction: ExploreAttraction): void {
+    this.wikiContent.set(null);
+    this.exploreService
+      .getAttractionById(attraction.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (full) => {
+          this.selectedAttraction.set(full);
+          this.level.set('attraction');
+          this.loading.set(false);
+          if (full.wiki_term) {
+            this.loadWikiContent(full.wiki_term);
+          }
+        },
+        error: () => {
+          this.selectedAttraction.set(attraction);
+          this.level.set('attraction');
+          this.loading.set(false);
+          if (attraction.wiki_term) {
+            this.loadWikiContent(attraction.wiki_term);
+          }
+        },
+      });
+  }
+
   // --- Navigation (updates URL without re-routing) ---
 
   private updateUrl(path: string): void {
     this.location.replaceState(path);
+  }
+
+  /** Convert a name to a URL-safe slug: "New York" → "new-york" */
+  private toSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\-]/g, '');
+  }
+
+  /** Match a slug against a name: "new-york" matches "New York" */
+  private matchesSlug(name: string, slug: string): boolean {
+    return this.toSlug(name) === slug.toLowerCase();
   }
 
   onCountryClick(country: ExploreCountry): void {
@@ -404,7 +600,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
     const countryAbbr = country.abbreviation || country.name;
     const state = this.selectedState();
     const stateAbbr = state ? (state.abbr || state.name) : null;
-    const citySlug = encodeURIComponent(city.name);
+    const citySlug = this.toSlug(city.name);
 
     const segments = [this.baseUrl(), countryAbbr];
     if (stateAbbr) segments.push(stateAbbr);
@@ -434,6 +630,38 @@ export class ExploreComponent implements OnInit, OnDestroy {
       });
   }
 
+  onAttractionClick(attraction: ExploreAttraction): void {
+    const country = this.selectedCountry();
+    if (!country) return;
+    const countryAbbr = country.abbreviation || country.name;
+    const attractionSlug = this.toSlug(attraction.name);
+    this.updateUrl(`${this.baseUrl()}/${countryAbbr}/attractions/${attractionSlug}`);
+
+    this.loading.set(true);
+    this.wikiContent.set(null);
+    this.exploreService
+      .getAttractionById(attraction.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (full) => {
+          this.selectedAttraction.set(full);
+          this.level.set('attraction');
+          this.loading.set(false);
+          if (full.wiki_term) {
+            this.loadWikiContent(full.wiki_term);
+          }
+        },
+        error: () => {
+          this.selectedAttraction.set(attraction);
+          this.level.set('attraction');
+          this.loading.set(false);
+          if (attraction.wiki_term) {
+            this.loadWikiContent(attraction.wiki_term);
+          }
+        },
+      });
+  }
+
   onBreadcrumbClick(crumb: BreadcrumbItem): void {
     this.updateUrl(crumb.url);
 
@@ -445,19 +673,27 @@ export class ExploreComponent implements OnInit, OnDestroy {
       this.selectedCountry.set(null);
       this.selectedState.set(null);
       this.selectedCity.set(null);
+      this.selectedAttraction.set(null);
+      this.countryMapOverlays = [];
       this.level.set('countries');
     } else if (segments.length === 1) {
       // Back to country level (states or cities)
       this.selectedState.set(null);
       this.selectedCity.set(null);
+      this.selectedAttraction.set(null);
       if (this.states().length > 0) {
         this.level.set('states');
       } else {
         this.level.set('cities');
       }
+    } else if (segments.length === 2 && segments[1].toLowerCase() === 'attractions') {
+      // Back to attractions list
+      this.selectedAttraction.set(null);
+      this.level.set('attractions');
     } else if (segments.length === 2) {
       // Back to state's cities list
       this.selectedCity.set(null);
+      this.selectedAttraction.set(null);
       this.level.set('cities');
     }
   }
@@ -467,7 +703,12 @@ export class ExploreComponent implements OnInit, OnDestroy {
     const country = this.selectedCountry();
     const countryAbbr = country ? (country.abbreviation || country.name) : '';
 
-    if (lvl === 'city') {
+    if (lvl === 'attraction') {
+      this.selectedAttraction.set(null);
+      this.wikiContent.set(null);
+      this.updateUrl(`${this.baseUrl()}/${countryAbbr}/attractions`);
+      this.level.set('attractions');
+    } else if (lvl === 'city') {
       this.selectedCity.set(null);
       const state = this.selectedState();
       if (state) {
@@ -492,12 +733,14 @@ export class ExploreComponent implements OnInit, OnDestroy {
       } else {
         this.updateUrl(this.baseUrl());
         this.selectedCountry.set(null);
+        this.countryMapOverlays = [];
         this.level.set('countries');
       }
     } else if (lvl === 'states') {
       this.updateUrl(this.baseUrl());
       this.selectedCountry.set(null);
       this.selectedState.set(null);
+      this.countryMapOverlays = [];
       this.level.set('countries');
     }
   }
