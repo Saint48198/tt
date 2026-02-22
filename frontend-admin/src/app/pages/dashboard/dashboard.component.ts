@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   inject,
   OnDestroy,
   OnInit,
@@ -8,7 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { forkJoin, catchError, of, Subscription, finalize } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '@shared/services';
@@ -25,12 +26,12 @@ import { CountryVisited } from '../../interfaces';
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly dashboardService = inject(DashboardService);
   private readonly tripsService = inject(TripsService);
-  private dashboardSubscription?: Subscription;
+  private destroyRef = inject(DestroyRef);
 
   currentUser = toSignal(this.authService.currentUser$);
   loading = signal(true);
@@ -55,25 +56,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set([]);
 
-    this.dashboardSubscription?.unsubscribe();
-
-    this.dashboardSubscription = forkJoin({
+    forkJoin({
       stats: this.dashboardService.getStats().pipe(
         catchError((err) => {
           console.error('Failed to load dashboard stats:', err);
-          this.error.update((errors) => [...errors, `Failed to load dashboard stats: ${this.extractErrorMessage(err)}`]);
+          this.error.update((errors) => [
+            ...errors,
+            `Failed to load dashboard stats: ${this.extractErrorMessage(err)}`,
+          ]);
           return of(null);
-        })
+        }),
       ),
       countriesVisited: this.tripsService.getCountriesVisited().pipe(
         catchError((err) => {
           console.error('Failed to load countries visited:', err);
-          this.error.update((errors) => [...errors, `Failed to load countries visited: ${this.extractErrorMessage(err)}`]);
+          this.error.update((errors) => [
+            ...errors,
+            `Failed to load countries visited: ${this.extractErrorMessage(err)}`,
+          ]);
           return of(null);
-        })
+        }),
       ),
     })
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.loading.set(false)),
+      )
       .subscribe({
         next: ({ stats, countriesVisited }) => {
           if (stats) this.stats.set(stats);
@@ -82,13 +90,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
       });
   }
 
-  ngOnDestroy(): void {
-    this.dashboardSubscription?.unsubscribe();
-  }
-
   private extractErrorMessage(err: unknown): string {
     if (err instanceof HttpErrorResponse) {
-      return err.error?.error || err.error?.message || err.statusText || 'Unknown server error';
+      return (
+        err.error?.error ||
+        err.error?.message ||
+        err.statusText ||
+        'Unknown server error'
+      );
     }
     if (err instanceof Error) {
       return err.message;

@@ -11,7 +11,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CitiesService } from '../../services/cities.service';
 import { City } from '../../interfaces';
@@ -32,7 +31,6 @@ import { City } from '../../interfaces';
     MatSnackBarModule,
     MatTooltipModule,
     MatFormFieldModule,
-    MatInputModule,
     MatSlideToggleModule,
   ],
   templateUrl: './cities-list.component.html',

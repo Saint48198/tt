@@ -2,12 +2,24 @@
   <div class="page-header">
     <div class="page-header-left">
       <h1>Photos</h1>
-      <span class="photo-count" *ngIf="!loading()">{{ total() }} photos</span>
+      @if (!loading()) {
+        <span class="photo-count">{{ total() }} photos</span>
+      }
     </div>
-    <button mat-flat-button color="primary" (click)="openUploadDialog()">
-      <mat-icon>cloud_upload</mat-icon>
-      Upload Photos
-    </button>
+    <div class="page-header-right">
+      <mat-button-toggle-group [value]="viewMode()" (change)="viewMode.set($event.value)" aria-label="View mode" hideSingleSelectionIndicator>
+        <mat-button-toggle value="masonry" matTooltip="Masonry view">
+          <mat-icon>dashboard</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="list" matTooltip="List view">
+          <mat-icon>view_list</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+      <button mat-flat-button color="primary" (click)="openUploadDialog()">
+        <mat-icon>cloud_upload</mat-icon>
+        Upload Photos
+      </button>
+    </div>
   </div>
 
   <div class="filters-bar">
@@ -50,7 +62,7 @@
       </div>
     }
 
-    <div class="masonry-grid">
+    <div class="masonry-grid" [class.hidden]="viewMode() !== 'masonry'">
       @for (photo of photos(); track photo.url) {
         <div class="photo-card mat-elevation-z2">
           <div class="photo-image-wrapper" (click)="openEditDialog(photo)">
@@ -123,6 +135,73 @@
         </div>
       }
     </div>
+
+    <!-- List view -->
+    @if (viewMode() === 'list') {
+      <div class="list-view">
+        @for (photo of photos(); track photo.url) {
+          <div class="list-item mat-elevation-z1" (click)="openEditDialog(photo)" (keydown.enter)="openEditDialog(photo)" tabindex="0" role="button">
+            <div class="list-item-thumb">
+              <img [src]="photo.url" [alt]="photo.caption || 'Photo'" loading="lazy">
+            </div>
+            <div class="list-item-details">
+              <div class="list-item-header">
+                <span class="list-item-caption">{{ photo.caption || 'Untitled' }}</span>
+                <div class="list-item-badges">
+                  @if (photo.in_database) {
+                    <span class="badge db-badge">DB</span>
+                  }
+                  @if (photo.in_cloudinary) {
+                    <span class="badge cloud-badge">Cloud</span>
+                  }
+                </div>
+              </div>
+              <div class="list-item-meta">
+                @if (photo.city_name) {
+                  <div class="photo-entity">
+                    <mat-icon class="entity-icon">location_city</mat-icon>
+                    <span class="entity-name">{{ photo.city_name }}</span>
+                    <mat-chip class="entity-type-chip city-chip">City</mat-chip>
+                  </div>
+                }
+                @if (photo.attraction_name) {
+                  <div class="photo-entity">
+                    <mat-icon class="entity-icon">attractions</mat-icon>
+                    <span class="entity-name">{{ photo.attraction_name }}</span>
+                    <mat-chip class="entity-type-chip attraction-chip">Attraction</mat-chip>
+                  </div>
+                }
+                @if (photo.tags && photo.tags.length > 0) {
+                  <div class="photo-tags">
+                    @for (tag of photo.tags; track tag) {
+                      <mat-chip class="tag-chip">{{ tag }}</mat-chip>
+                    }
+                  </div>
+                }
+              </div>
+              <span class="photo-date">{{ photo.created_at | date:'mediumDate' }}</span>
+            </div>
+            <div class="list-item-actions" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="-1">
+              <button mat-icon-button [matMenuTriggerFor]="listPhotoMenu" matTooltip="Actions">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #listPhotoMenu="matMenu">
+                <button mat-menu-item (click)="openEditDialog(photo)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Edit</span>
+                </button>
+                <button mat-menu-item
+                        (click)="deletePhoto(photo)"
+                        [disabled]="!photo.in_database || (!photo.city_id && !photo.attraction_id)">
+                  <mat-icon color="warn">delete</mat-icon>
+                  <span>Delete</span>
+                </button>
+              </mat-menu>
+            </div>
+          </div>
+        }
+      </div>
+    }
   </div>
 
   <mat-paginator

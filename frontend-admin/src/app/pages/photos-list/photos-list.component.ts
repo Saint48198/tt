@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { PhotosService } from '../../services/photos.service';
 import { AdminPhoto } from '../../interfaces';
 import {
@@ -42,6 +43,7 @@ import {
     MatSelectModule,
     MatMenuModule,
     MatDialogModule,
+    MatButtonToggleModule,
   ],
   templateUrl: './photos-list.component.html',
   styleUrl: './photos-list.component.scss',
@@ -54,6 +56,7 @@ export class PhotosListComponent implements OnInit {
   photos = signal<AdminPhoto[]>([]);
   total = signal(0);
   loading = signal(false);
+  viewMode = signal<'masonry' | 'list'>('masonry');
 
   searchQuery = '';
   sourceFilter = '';
