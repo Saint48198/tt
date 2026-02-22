@@ -20,7 +20,7 @@
     }
     <h1>{{ currentTitle() }}</h1>
 
-    @if (selectedCountry() && level() !== 'attractions' && level() !== 'countries') {
+    @if (selectedCountry() && level() !== 'attractions' && level() !== 'countries' && level() !== 'city') {
       <button class="attractions-btn" (click)="onViewAttractions()">
         🏰 View Attractions
       </button>
@@ -88,7 +88,7 @@
     @if (level() === 'cities') {
       <div class="card-grid">
         @for (city of cities(); track city.id) {
-          <div class="explore-card city-card">
+          <button class="explore-card" (click)="onCityClick(city)">
             <div class="card-icon">🏙️</div>
             <div class="card-content">
               <h3>{{ city.name }}</h3>
@@ -99,7 +99,8 @@
                 <p class="card-meta">📅 {{ formatDate(city.last_visited) }}</p>
               }
             </div>
-          </div>
+            <span class="card-arrow">›</span>
+          </button>
         } @empty {
           <div class="empty-state">
             <p>No cities found.</p>
@@ -142,6 +143,118 @@
             <p>No attractions found for this country.</p>
           </div>
         }
+      </div>
+    }
+
+    <!-- City Detail -->
+    @if (level() === 'city' && selectedCity(); as c) {
+      <div class="city-detail">
+        <!-- Sticky City Header -->
+        <header class="city-header">
+          <div class="city-header-info">
+            <h2>{{ c.name }}</h2>
+            <p class="city-location">
+              @if (c.state_name) {
+                {{ c.state_name }},
+              }
+              {{ c.country_name }}
+            </p>
+          </div>
+        </header>
+
+        <!-- Map -->
+        <section class="city-map-section">
+          <lib-map
+            [markers]="cityMapMarkers()"
+            [center]="cityMapCenter()"
+            [zoom]="12"
+            height="300px"
+            width="100%"
+            [enableZoom]="true"
+            [enableDrag]="true">
+          </lib-map>
+        </section>
+
+        <!-- Details -->
+        <section class="city-details">
+          <div class="detail-grid">
+            <div class="detail-card">
+              <span class="detail-icon">📍</span>
+              <div class="detail-info">
+                <span class="detail-label">Coordinates</span>
+                <span class="detail-value">{{ c.lat.toFixed(4) }}, {{ c.lng.toFixed(4) }}</span>
+              </div>
+            </div>
+
+            @if (c.last_visited) {
+              <div class="detail-card">
+                <span class="detail-icon">📅</span>
+                <div class="detail-info">
+                  <span class="detail-label">Last Visited</span>
+                  <span class="detail-value">{{ formatDate(c.last_visited) }}</span>
+                </div>
+              </div>
+            }
+
+            @if (c.country_name) {
+              <div class="detail-card">
+                <span class="detail-icon">🌍</span>
+                <div class="detail-info">
+                  <span class="detail-label">Country</span>
+                  <span class="detail-value">{{ c.country_name }}</span>
+                </div>
+              </div>
+            }
+
+            @if (c.state_name) {
+              <div class="detail-card">
+                <span class="detail-icon">🏛️</span>
+                <div class="detail-info">
+                  <span class="detail-label">State / Province</span>
+                  <span class="detail-value">{{ c.state_name }}</span>
+                </div>
+              </div>
+            }
+
+            @if (c.wiki_term) {
+              <div class="detail-card">
+                <span class="detail-icon">📖</span>
+                <div class="detail-info">
+                  <span class="detail-label">Wikipedia</span>
+                  <a class="detail-link" [href]="'https://en.wikipedia.org/wiki/' + c.wiki_term" target="_blank" rel="noopener">
+                    View on Wikipedia ↗
+                  </a>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- Wikipedia Content -->
+        <section class="wiki-section">
+          @if (wikiLoading()) {
+            <div class="wiki-loading">
+              <div class="loading-spinner"></div>
+              <p>Loading Wikipedia content...</p>
+            </div>
+          } @else if (wikiContent(); as wiki) {
+            <div class="wiki-card">
+              <div class="wiki-header">
+                <span class="wiki-icon">📖</span>
+                <h3>{{ wiki.title }}</h3>
+                <a class="wiki-link" [href]="wiki.url" target="_blank" rel="noopener">
+                  Read more ↗
+                </a>
+              </div>
+              @if (wiki.thumbnail) {
+                <div class="wiki-image">
+                  <img [src]="wiki.thumbnail" [alt]="wiki.title" />
+                </div>
+              }
+              <p class="wiki-extract">{{ wiki.extract }}</p>
+            </div>
+          }
+        </section>
       </div>
     }
   }

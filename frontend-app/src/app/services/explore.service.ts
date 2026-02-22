@@ -1,7 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+
+// ...existing code...
+
+export interface WikipediaContent {
+  title: string;
+  extract: string;
+  thumbnail?: string;
+  url: string;
+}
 
 export interface ExploreCountry {
   id: number;
@@ -28,9 +37,14 @@ export interface ExploreCity {
   name: string;
   lat: number;
   lng: number;
+  country_id?: number;
   country_name?: string;
+  state_id?: number;
   state_name?: string;
   last_visited?: string;
+  wiki_term?: string;
+  created_date?: string;
+  updated_date?: string;
 }
 
 export interface ExploreAttraction {
@@ -89,6 +103,23 @@ export class ExploreService {
     return this.http
       .get<{ attractions: ExploreAttraction[] }>('/api/attractions', { params })
       .pipe(map((res) => res.attractions));
+  }
+
+  getCityById(cityId: number): Observable<ExploreCity> {
+    return this.http.get<ExploreCity>(`/api/cities/${cityId}`);
+  }
+
+  getWikipediaContent(wikiTerm: string): Observable<WikipediaContent | null> {
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiTerm)}`;
+    return this.http.get<any>(url).pipe(
+      map((res) => ({
+        title: res.title || wikiTerm,
+        extract: res.extract || '',
+        thumbnail: res.thumbnail?.source || res.originalimage?.source,
+        url: res.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${wikiTerm}`,
+      })),
+      catchError(() => of(null))
+    );
   }
 }
 

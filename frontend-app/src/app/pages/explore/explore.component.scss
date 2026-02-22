@@ -130,15 +130,6 @@
   }
 }
 
-.city-card {
-  cursor: default;
-
-  &:hover {
-    transform: none;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border-color: #e2e8f0;
-  }
-}
 
 .attraction-card {
   cursor: default;
@@ -278,6 +269,206 @@
   font-size: 1rem;
 }
 
+// City Detail
+.city-detail {
+  margin-top: 0.5rem;
+}
+
+.city-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.city-header-info {
+  flex: 1;
+
+  h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+}
+
+.city-location {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.city-map-section {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1.5rem;
+}
+
+.city-details {
+  margin-bottom: 2rem;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-auto-rows: auto;
+  align-items: start;
+  gap: 1rem;
+}
+
+.detail-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-sizing: border-box;
+}
+
+.detail-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.detail-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.2rem;
+}
+
+.detail-value {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.detail-link {
+  font-size: 0.9rem;
+  color: #3b82f6;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    color: #1d4ed8;
+  }
+}
+
+// Wikipedia Section
+.wiki-section {
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.wiki-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  justify-content: center;
+  color: #64748b;
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+.wiki-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.wiki-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1e293b;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.wiki-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.wiki-link {
+  font-size: 0.85rem;
+  color: #3b82f6;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    text-decoration: underline;
+    color: #1d4ed8;
+  }
+}
+
+.wiki-image {
+  float: right;
+  margin: 0 0 1rem 1.5rem;
+  max-width: 220px;
+
+  img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+}
+
+.wiki-extract {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #334155;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 // Responsive
 @media (max-width: 640px) {
   .explore-page {
@@ -290,6 +481,20 @@
 
   .card-grid {
     grid-template-columns: 1fr;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .city-header-info h2 {
+    font-size: 1.2rem;
+  }
+
+  .wiki-image {
+    float: none;
+    margin: 0 0 1rem 0;
+    max-width: 100%;
   }
 }
 
