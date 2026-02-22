@@ -1,0 +1,151 @@
+<div class="explore-page">
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumbs" aria-label="Explore navigation">
+    @for (crumb of breadcrumbs(); track crumb.url; let last = $last) {
+      @if (!last) {
+        <button class="breadcrumb-link" (click)="onBreadcrumbClick(crumb)">
+          {{ crumb.label }}
+        </button>
+        <span class="breadcrumb-sep">›</span>
+      } @else {
+        <span class="breadcrumb-current">{{ crumb.label }}</span>
+      }
+    }
+  </nav>
+
+  <!-- Title -->
+  <div class="explore-header">
+    @if (level() !== 'countries') {
+      <button class="back-btn" (click)="goBack()">← Back</button>
+    }
+    <h1>{{ currentTitle() }}</h1>
+
+    @if (selectedCountry() && level() !== 'attractions' && level() !== 'countries') {
+      <button class="attractions-btn" (click)="onViewAttractions()">
+        🏰 View Attractions
+      </button>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading...</p>
+    </div>
+  } @else {
+    <!-- Countries List -->
+    @if (level() === 'countries') {
+      <div class="card-grid">
+        @for (country of countries(); track country.id) {
+          <button class="explore-card" (click)="onCountryClick(country)">
+            <div class="card-icon">🌍</div>
+            <div class="card-content">
+              <h3>{{ country.name }}</h3>
+              @if (country.abbreviation) {
+                <span class="card-badge">{{ country.abbreviation }}</span>
+              }
+              @if (country.last_visited) {
+                <p class="card-meta">📅 {{ formatDate(country.last_visited) }}</p>
+              }
+            </div>
+            <span class="card-arrow">›</span>
+          </button>
+        } @empty {
+          <div class="empty-state">
+            <p>No visited countries found.</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- States List -->
+    @if (level() === 'states') {
+      <div class="card-grid">
+        @for (state of states(); track state.id) {
+          <button class="explore-card" (click)="onStateClick(state)">
+            <div class="card-icon">🏛️</div>
+            <div class="card-content">
+              <h3>{{ state.name }}</h3>
+              @if (state.abbr) {
+                <span class="card-badge">{{ state.abbr }}</span>
+              }
+              @if (state.last_visited) {
+                <p class="card-meta">📅 {{ formatDate(state.last_visited) }}</p>
+              }
+            </div>
+            <span class="card-arrow">›</span>
+          </button>
+        } @empty {
+          <div class="empty-state">
+            <p>No states found for this country.</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Cities List -->
+    @if (level() === 'cities') {
+      <div class="card-grid">
+        @for (city of cities(); track city.id) {
+          <div class="explore-card city-card">
+            <div class="card-icon">🏙️</div>
+            <div class="card-content">
+              <h3>{{ city.name }}</h3>
+              @if (city.state_name) {
+                <p class="card-sub">{{ city.state_name }}</p>
+              }
+              @if (city.last_visited) {
+                <p class="card-meta">📅 {{ formatDate(city.last_visited) }}</p>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <p>No cities found.</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Attractions List -->
+    @if (level() === 'attractions') {
+      <div class="card-grid">
+        @for (attraction of attractions(); track attraction.id) {
+          <div class="explore-card attraction-card">
+            <div class="card-icon">
+              @if (attraction.is_unesco) {
+                🏛️
+              } @else if (attraction.is_national_park) {
+                🌲
+              } @else {
+                🏰
+              }
+            </div>
+            <div class="card-content">
+              <h3>{{ attraction.name }}</h3>
+              <div class="card-tags">
+                @if (attraction.is_unesco) {
+                  <span class="tag tag-unesco">UNESCO</span>
+                }
+                @if (attraction.is_national_park) {
+                  <span class="tag tag-park">National Park</span>
+                }
+              </div>
+              @if (attraction.last_visited) {
+                <p class="card-meta">📅 {{ formatDate(attraction.last_visited) }}</p>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <p>No attractions found for this country.</p>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+
+

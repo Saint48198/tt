@@ -1,12 +1,226 @@
 
 > nx run frontend-app:serve:development
 
-[0m[7m[1m[31m NX [39m[22m[27m[0m  [31mPort 4200 is already in use. Use '--port' to specify a different port.[39m
-Pass --verbose to see the stacktrace.
-Task "frontend-app:serve:development" is continuous but exited with code 1
-
-
-
- NX   Successfully ran target serve for project frontend-app
-
-
+[33m❯[39m Building...
+[32m✔[39m Building...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m[39m
+[37m[32mchunk-44I2QBB5.js[39m[37m  [2m | [22m[2m-[22m                [2m | [22m[36m67.61 kB[39m[37m[2m | [22m[39m
+[37m[32mstyles.css[39m[37m         [2m | [22m[2mstyles[22m           [2m | [22m[36m13.29 kB[39m[37m[2m | [22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m             [2m | [22m [36m8.33 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37m[1m [22m                  [2m | [22m[1mInitial total[22m    [2m | [22m[1m89.24 kB[22m[39m
+[37m[39m
+[37m[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m[39m
+[37m[32mchunk-IWBCO5NF.js[39m[37m  [2m | [22m[2mexplore-component[22m[2m | [22m[36m44.40 kB[39m[37m[2m | [22m[39m
+[37m[32mchunk-ZU6IFI7D.js[39m[37m  [2m | [22m[2mhome-component[22m   [2m | [22m[36m14.64 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.942 seconds] - 2026-02-22T20:47:39.434Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:34:52:[39m[22m
+[1m[33m[37m      34 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mWatch mode enabled. Watching for file changes...[39m
+[37mNOTE: Raw file sizes do not reflect development server per-request transformations.[39m
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4200[22m/[39m
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m             [2m | [22m [36m8.52 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37m[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m[39m
+[37m[32mchunk-EP2PY73I.js[39m[37m  [2m | [22m[2mexplore-component[22m[2m | [22m[36m48.31 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.225 seconds] - 2026-02-22T20:54:49.493Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:34:52:[39m[22m
+[1m[33m[37m      34 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mPage reload sent to client(s).[39m
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m             [2m | [22m [36m8.57 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37m[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m[39m
+[37m[32mchunk-ANCPBNOA.js[39m[37m  [2m | [22m[2mexplore-component[22m[2m | [22m[36m48.35 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.109 seconds] - 2026-02-22T20:57:56.891Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:34:52:[39m[22m
+[1m[33m[37m      34 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mPage reload sent to client(s).[39m
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m [2m | [22m [36m8.59 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.049 seconds] - 2026-02-22T20:59:56.202Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:34:52:[39m[22m
+[1m[33m[37m      34 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mPage reload sent to client(s).[39m
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m[2m | [22m[1mRaw size[22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m [2m | [22m [36m8.64 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.097 seconds] - 2026-02-22T21:01:53.370Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:34:52:[39m[22m
+[1m[33m[37m      34 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mPage reload sent to client(s).[39m
+[33m❯[39m Changes detected. Rebuilding...
+[32m✔[39m Changes detected. Rebuilding...
+[37m[1mInitial chunk files[22m[2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m[39m
+[37m[32mmain.js[39m[37m            [2m | [22m[2mmain[22m             [2m | [22m [36m8.64 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37m[1mLazy chunk files[22m   [2m | [22m[1mNames[22m            [2m | [22m[1mRaw size[22m[39m
+[37m[32mchunk-FBN6W2HM.js[39m[37m  [2m | [22m[2mexplore-component[22m[2m | [22m[36m48.45 kB[39m[37m[2m | [22m[39m
+[37m[39m
+[37mApplication bundle generation complete. [0.137 seconds] - 2026-02-22T21:05:34.587Z[39m
+[37m[39m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:25:41:[39m[22m
+[1m[33m[37m      25 │ ...class="user-avatar">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be safely removed.[0m [1m[35m[plugin angular-compiler][0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.html:34:52:[39m[22m
+[1m[33m[37m      34 │ ..."user-avatar-large">{{ [32muser.username?.[0][37m?.toUpperCase() || 'U'...[39m[22m
+[1m[33m         ╵                           [32m~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  Warning occurs in the template of component HeaderComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m    shared/components/src/lib/header/header.component.ts:10:15:[39m[22m
+[1m[33m[37m      10 │   templateUrl: [32m'./header.component.html'[37m,[39m[22m
+[1m[33m         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37mComponent update sent to client(s).[39m

@@ -18,6 +18,7 @@ interface City {
 
 interface ListCitiesOptions {
   country_id?: number;
+  state_id?: number;
   search?: string;
   page?: number;
   limit?: number;
@@ -45,7 +46,7 @@ class CityService {
     page: number;
     limit: number;
   }> {
-    const { country_id, search, page = 1, limit = 25, sortBy = 'cities.name', sort = 'asc', includeDisabled = false } = options;
+    const { country_id, state_id, search, page = 1, limit = 25, sortBy = 'cities.name', sort = 'asc', includeDisabled = false } = options;
     const offset = (page - 1) * limit;
 
     let sortByStr = sortBy.toString();
@@ -61,6 +62,11 @@ class CityService {
     if (country_id !== undefined && !Number.isNaN(country_id)) {
       whereClauses.push(`cities.country_id = $${paramIdx++}`);
       params.push(country_id);
+    }
+
+    if (state_id !== undefined && !Number.isNaN(state_id)) {
+      whereClauses.push(`cities.state_id = $${paramIdx++}`);
+      params.push(state_id);
     }
 
     if (search && search.trim()) {
@@ -92,6 +98,10 @@ class CityService {
     if (country_id !== undefined && !Number.isNaN(country_id)) {
       countWhereClauses.push(`cities.country_id = $${countParamIdx++}`);
       countParams.push(country_id);
+    }
+    if (state_id !== undefined && !Number.isNaN(state_id)) {
+      countWhereClauses.push(`cities.state_id = $${countParamIdx++}`);
+      countParams.push(state_id);
     }
     if (search && search.trim()) {
       countWhereClauses.push(`(cities.name ILIKE $${countParamIdx} OR countries.name ILIKE $${countParamIdx} OR states.name ILIKE $${countParamIdx})`);

@@ -19,13 +19,16 @@ router.get('/api/states', async (req: Request, res: Response) => {
     sortBy = 'states.name',
     sortOrder = 'asc',
     includeDisabled,
+    country_id,
   } = req.query as Record<string, string | undefined>;
 
   const pageNum = Number(page);
   const limitNum = Number(limit);
+  const countryIdNum = country_id !== undefined ? Number(country_id) : undefined;
 
   try {
     const result = await stateService.getStates({
+      country_id: countryIdNum,
       page: pageNum,
       limit: limitNum,
       all: all === 'true',

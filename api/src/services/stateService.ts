@@ -14,6 +14,7 @@ interface State {
 }
 
 interface ListStatesOptions {
+  country_id?: number;
   page?: number;
   limit?: number;
   all?: boolean;
@@ -43,32 +44,44 @@ class StateService {
   public async getStates(options: ListStatesOptions): Promise<{
     states: State[]; total: number; page?: number; limit?: number;
   }> {
-    const { page = 1, limit = 10, all = false, sortBy = 'states.name', sortOrder = 'asc', includeDisabled = false } = options;
+    const { country_id, page = 1, limit = 10, all = false, sortBy = 'states.name', sortOrder = 'asc', includeDisabled = false } = options;
     let sortByStr = sortBy.toString();
     const sortOrderStr = sortOrder.toString().toLowerCase();
     if (sortByStr === 'name') sortByStr = 'states.name';
     if (!this.isValidColumn(sortByStr)) throw new Error('Invalid sort column.');
     if (!['asc', 'desc'].includes(sortOrderStr)) throw new Error('Invalid sort order.');
 
-    const disabledFilter = includeDisabled ? '' : 'WHERE states.disabled_date IS NULL';
+    const whereClauses: string[] = [];
+    const params: any[] = [];
+    let paramIdx = 1;
+
+    if (!includeDisabled) {
+      whereClauses.push('states.disabled_date IS NULL');
+    }
+    if (country_id !== undefined && !Number.isNaN(country_id)) {
+      whereClauses.push(`states.country_id = $${paramIdx++}`);
+      params.push(country_id);
+    }
+
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     const baseSelect = `SELECT states.id, states.name, states.abbr, states.country_id, states.last_visited,
                                 states.created_date, states.updated_date, states.disabled_date,
                                 countries.name as country_name
                          FROM states JOIN countries ON states.country_id = countries.id
-                         ${disabledFilter}`;
+                         ${whereClause}`;
 
     if (all) {
-      const states = await db.all<State>(`${baseSelect} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`);
+      const states = await db.all<State>(`${baseSelect} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`, params);
       return { total: states.length, states };
     }
 
     const offset = (page - 1) * limit;
-    const countFilter = includeDisabled ? '' : 'WHERE disabled_date IS NULL';
-    const totalRow = await db.get<{ count: string }>(`SELECT COUNT(*) AS count FROM states ${countFilter}`);
+    const countQuery = `SELECT COUNT(*) AS count FROM states JOIN countries ON states.country_id = countries.id ${whereClause}`;
+    const totalRow = await db.get<{ count: string }>(countQuery, params);
     const states = await db.all<State>(
-      `${baseSelect} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT $1 OFFSET $2`,
-      [limit, offset]
+      `${baseSelect} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT $${paramIdx++} OFFSET $${paramIdx++}`,
+      [...params, limit, offset]
     );
     return { total: Number(totalRow?.count ?? 0), states, page, limit };
   }

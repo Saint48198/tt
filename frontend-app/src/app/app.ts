@@ -49,15 +49,17 @@ export class App implements OnInit {
         }
       });
 
-    // Also redirect on initial load
+    // Also redirect on initial load — only if the browser URL is truly "/"
     const user = this.authService.currentUser;
-    if (user && this.router.url === '/') {
+    const browserPath = window.location.pathname;
+    if (user && browserPath === '/') {
       this.router.navigate([`/${user.username}`], { replaceUrl: true });
     }
   }
 
   private isMapRoute(url: string): boolean {
     // Root "/" or single-segment "/:username" paths use the full-screen map layout
+    // Multi-segment paths like "/:username/explore" use the standard layout
     return url === '/' || /^\/[^/]+$/.test(url);
   }
 }
