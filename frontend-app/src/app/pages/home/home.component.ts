@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
@@ -16,6 +16,7 @@ import { switchMap, takeUntil } from 'rxjs/operators';
 export class HomeComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private countryService = inject(CountryService);
+  private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
 
   username = signal<string | null>(null);
@@ -127,6 +128,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.mapMarkers = this.buildMarkers(this.countries());
         }
         this.loading.set(false);
+        this.cdr.detectChanges();
       },
       error: () => {
         const countries = this.countries();
@@ -134,6 +136,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.mapMarkers = this.buildMarkers(countries);
         }
         this.loading.set(false);
+        this.cdr.detectChanges();
       },
     });
   }

@@ -71,6 +71,10 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     if (changes['overlays'] && this.overlays !== this.lastOverlaysRef) {
       this.lastOverlaysRef = this.overlays;
       this.updateOverlays();
+      // Recalculate map size in case container changed
+      setTimeout(() => {
+        if (this.map) this.map.invalidateSize();
+      }, 50);
     }
 
     if (changes['center'] || changes['zoom']) {
@@ -117,6 +121,17 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     if (this.fitBounds) {
       this.fitMapBounds();
     }
+
+    // Invalidate size after short delays to handle container sizing
+    // when navigating back to a page with the map or during layout transitions
+    const recalc = () => {
+      if (this.map) {
+        this.map.invalidateSize();
+      }
+    };
+    setTimeout(recalc, 0);
+    setTimeout(recalc, 100);
+    setTimeout(recalc, 300);
   }
 
   private updateMarkers(): void {
