@@ -26,6 +26,7 @@ export interface CityListParams {
   search?: string;
   page?: number;
   limit?: number;
+  all?: boolean;
   sortBy?: 'name' | 'lat' | 'lng' | 'country_name' | 'state_name';
   sort?: 'asc' | 'desc';
   includeDisabled?: boolean;

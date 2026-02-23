@@ -1,0 +1,323 @@
+.trip-edit-page {
+  padding: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1f2937;
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+// ── Trip details card ──
+
+.trip-details {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.form-row {
+  margin-bottom: 0.5rem;
+
+  &.two-col {
+    display: flex;
+    gap: 1rem;
+
+    .form-field {
+      flex: 1;
+    }
+  }
+}
+
+.form-field {
+  &.full-width {
+    width: 100%;
+  }
+}
+
+.derived-info {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.derived-field {
+  margin-bottom: 0.75rem;
+
+  .derived-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+    margin-bottom: 0.35rem;
+  }
+
+  .derived-value {
+    font-size: 0.9375rem;
+    color: #1f2937;
+  }
+}
+
+.derived-dates {
+  display: flex;
+  gap: 2rem;
+}
+
+.placeholder-text {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+// ── Plan section ──
+
+.plan-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 1.125rem;
+    color: #1f2937;
+
+    mat-icon {
+      color: #6b7280;
+    }
+  }
+}
+
+// ── Plan item form ──
+
+.plan-item-form-card {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.plan-item-form-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  mat-icon {
+    color: #4b5563;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #1f2937;
+  }
+}
+
+.plan-item-form {
+  .form-row {
+    margin-bottom: 0.25rem;
+  }
+}
+
+.plan-item-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+// ── Plan items list ──
+
+.plan-items-list {
+  margin-top: 1rem;
+}
+
+.plan-item-card {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+
+  & + .plan-item-card {
+    margin-top: 0.75rem;
+  }
+}
+
+.plan-item-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.plan-item-icon-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e5e7eb;
+
+  mat-icon {
+    color: #374151;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.plan-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  .plan-item-type {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b7280;
+  }
+
+  .plan-item-summary {
+    font-size: 0.9375rem;
+    color: #1f2937;
+    font-weight: 500;
+  }
+
+  .plan-item-dates {
+    font-size: 0.8125rem;
+    color: #9ca3af;
+  }
+}
+
+.plan-item-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+// ── Empty plan ──
+
+.empty-plan {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 1rem;
+  color: #9ca3af;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9375rem;
+  }
+}
+
+// ── Footer actions ──
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.button-spinner {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+// ── Add new inline ──
+
+.add-new-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  color: #3b82f6;
+  padding: 0 0.5rem;
+  margin-top: -0.75rem;
+  margin-bottom: 0.25rem;
+  min-height: 28px;
+  line-height: 28px;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.inline-add-card {
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+}
+
+.inline-add-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #3b82f6;
+  margin-bottom: 0.5rem;
+}
+
+.inline-add-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+
+  .inline-add-field {
+    flex: 1;
+  }
+
+  button {
+    margin-top: 0.15rem;
+    height: 40px;
+  }
+}
+
+.option-hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-left: 0.25rem;
+}
+

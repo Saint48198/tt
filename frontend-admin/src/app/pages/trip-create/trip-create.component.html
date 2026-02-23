@@ -1,0 +1,47 @@
+<div class="trip-create-page">
+  <div class="page-header">
+    <button mat-icon-button routerLink="/trips" aria-label="Back to Trips">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Create Trip</h1>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="trip-form mat-elevation-z2">
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field full-width">
+        <mat-label>Trip Name</mat-label>
+        <input matInput formControlName="name" placeholder="e.g. Summer Europe 2026" />
+        @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+          <mat-error>Name is required</mat-error>
+        }
+        @if (form.get('name')?.hasError('maxlength')) {
+          <mat-error>Name must be 255 characters or less</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="form-field full-width">
+        <mat-label>Notes</mat-label>
+        <textarea matInput formControlName="notes" placeholder="Trip notes (optional)" rows="4"></textarea>
+      </mat-form-field>
+    </div>
+  </form>
+
+  <div class="form-actions">
+    <button mat-stroked-button type="button" routerLink="/trips">Cancel</button>
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      (click)="onSubmit()"
+      [disabled]="saving()"
+    >
+      @if (saving()) {
+        <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+      }
+      Create Trip
+    </button>
+  </div>
+</div>
+

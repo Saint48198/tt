@@ -34,6 +34,9 @@ export class CitiesService {
     if (params?.limit) {
       httpParams = httpParams.set('limit', params.limit.toString());
     }
+    if (params?.all) {
+      httpParams = httpParams.set('all', 'true');
+    }
     if (params?.sortBy) {
       httpParams = httpParams.set('sortBy', params.sortBy);
     }
@@ -45,6 +48,13 @@ export class CitiesService {
     }
 
     return this.http.get<CityListResponse>(this.apiUrl, { params: httpParams });
+  }
+
+  /**
+   * Get all cities without pagination
+   */
+  getAllCities(sortBy: CityListParams['sortBy'] = 'name'): Observable<CityListResponse> {
+    return this.getCities({ all: true, sortBy });
   }
 
   /**

@@ -29,12 +29,11 @@ async function init() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS trips (
         id SERIAL PRIMARY KEY,
-        destination TEXT NOT NULL,
-        "startDate" TEXT NOT NULL,
-        "endDate" TEXT NOT NULL,
+        name TEXT NOT NULL,
         notes TEXT,
-        "countryId" INTEGER NOT NULL,
-        FOREIGN KEY ("countryId") REFERENCES countries (id) ON DELETE CASCADE
+        plan JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_date TIMESTAMP DEFAULT NOW(),
+        updated_date TIMESTAMP DEFAULT NOW()
       );
     `);
 

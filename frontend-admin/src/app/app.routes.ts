@@ -98,6 +98,24 @@ export const appRoutes: Route[] = [
     canActivate: [adminGuard],
   },
   {
+    path: 'trips',
+    loadComponent: () =>
+      import('./pages/trips-list/trips-list.component').then((m) => m.TripsListComponent),
+    canActivate: [adminGuard],
+  },
+  {
+    path: 'trips/new',
+    loadComponent: () =>
+      import('./pages/trip-create/trip-create.component').then((m) => m.TripCreateComponent),
+    canActivate: [adminGuard],
+  },
+  {
+    path: 'trips/:id',
+    loadComponent: () =>
+      import('./pages/trip-edit/trip-edit.component').then((m) => m.TripEditComponent),
+    canActivate: [adminGuard],
+  },
+  {
     path: '**',
     redirectTo: '',
   },

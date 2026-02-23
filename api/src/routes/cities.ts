@@ -4,9 +4,10 @@ import { cityService } from '../services/cityService';
 const router = Router();
 
 router.get('/api/cities', async (req: Request, res: Response) => {
-  const { country_id, state_id, search, page, limit, sortBy, sort, includeDisabled } = req.query;
+  const { country_id, state_id, search, page, limit, all, sortBy, sort, includeDisabled } = req.query;
   const pageNum = page !== undefined ? Number(Array.isArray(page) ? page[0] : page) : 1;
   const limitNum = limit !== undefined ? Number(Array.isArray(limit) ? limit[0] : limit) : 25;
+  const allFlag = all === 'true';
   const rawSortBy = Array.isArray(sortBy) ? sortBy?.[0] : sortBy;
   const sortByStr = (rawSortBy ?? 'cities.name').toString();
   const rawSort = Array.isArray(sort) ? sort?.[0] : sort;
@@ -19,7 +20,7 @@ router.get('/api/cities', async (req: Request, res: Response) => {
   const searchStr = rawSearch ? rawSearch.toString() : undefined;
 
   try {
-    const result = await cityService.getCities({ country_id: countryIdNum, state_id: stateIdNum, search: searchStr, page: pageNum, limit: limitNum, sortBy: sortByStr, sort: sortOrderStr, includeDisabled: includeDisabled === 'true' });
+    const result = await cityService.getCities({ country_id: countryIdNum, state_id: stateIdNum, search: searchStr, page: pageNum, limit: limitNum, all: allFlag, sortBy: sortByStr, sort: sortOrderStr, includeDisabled: includeDisabled === 'true' });
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch cities:', error);

@@ -1,13 +1,20 @@
 import { db } from '../db';
 
-interface Trip {
+interface PlanItem {
   id: number;
-  destination: string;
+  type: string;
   startDate: string;
   endDate: string;
+  [key: string]: unknown;
+}
+
+interface Trip {
+  id: number;
+  name: string;
   notes?: string;
-  countryId: number;
-  country: string;
+  plan: PlanItem[];
+  created_date?: string;
+  updated_date?: string;
 }
 
 interface CountryVisited {
@@ -18,19 +25,15 @@ interface CountryVisited {
 }
 
 interface CreateTripData {
-  destination: string;
-  startDate: string;
-  endDate: string;
+  name: string;
   notes?: string;
-  countryId: number;
+  plan?: PlanItem[];
 }
 
 interface UpdateTripData {
-  destination?: string;
-  startDate?: string;
-  endDate?: string;
+  name?: string;
   notes?: string;
-  countryId?: number;
+  plan?: PlanItem[];
 }
 
 class TripService {
@@ -48,32 +51,27 @@ class TripService {
   }
 
   /**
-   * Get all trips with country information
+   * Get all trips
    */
   public async getTrips(): Promise<Trip[]> {
-    return db.all<Trip>(
-      'SELECT trips.*, countries.name as country FROM trips JOIN countries ON trips."countryId" = countries.id'
-    );
+    return db.all<Trip>('SELECT * FROM trips ORDER BY created_date DESC');
   }
 
   /**
-   * Get a trip by ID with country information
+   * Get a trip by ID
    */
   public async getTripById(id: number | string): Promise<Trip | undefined> {
-    return db.get<Trip>(
-      'SELECT trips.*, countries.name as country FROM trips JOIN countries ON trips."countryId" = countries.id WHERE trips.id = $1',
-      [id]
-    );
+    return db.get<Trip>('SELECT * FROM trips WHERE id = $1', [id]);
   }
 
   /**
    * Create a new trip
    */
   public async createTrip(data: CreateTripData): Promise<{ id: number }> {
-    const { destination, startDate, endDate, notes, countryId } = data;
+    const { name, notes, plan } = data;
     const result = await db.run(
-      'INSERT INTO trips (destination, "startDate", "endDate", notes, "countryId") VALUES ($1,$2,$3,$4,$5) RETURNING id',
-      [destination, startDate, endDate, notes, countryId]
+      'INSERT INTO trips (name, notes, plan) VALUES ($1, $2, $3) RETURNING id',
+      [name, notes || null, JSON.stringify(plan || [])]
     );
     return { id: result.rows[0].id };
   }
@@ -85,10 +83,10 @@ class TripService {
     id: number | string,
     data: UpdateTripData
   ): Promise<{ success: boolean; changes: number }> {
-    const { destination, startDate, endDate, notes, countryId } = data;
+    const { name, notes, plan } = data;
     const result = await db.run(
-      'UPDATE trips SET destination=$1, "startDate"=$2, "endDate"=$3, notes=$4, "countryId"=$5 WHERE id=$6',
-      [destination, startDate, endDate, notes, countryId, id]
+      'UPDATE trips SET name = $1, notes = $2, plan = $3, updated_date = NOW() WHERE id = $4',
+      [name, notes || null, JSON.stringify(plan || []), id]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
@@ -123,4 +121,3 @@ class TripService {
 }
 
 export const tripService = TripService.getInstance();
-

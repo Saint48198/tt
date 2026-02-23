@@ -1,0 +1,670 @@
+<div class="trip-edit-page">
+  <div class="page-header">
+    <button mat-icon-button routerLink="/trips" aria-label="Back to Trips">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Edit Trip</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <!-- Trip Details -->
+    <div class="trip-details mat-elevation-z2">
+      <form [formGroup]="form">
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Trip Name</mat-label>
+            <input matInput formControlName="name" placeholder="e.g. Summer Europe 2026" />
+            @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+              <mat-error>Name is required</mat-error>
+            }
+            @if (form.get('name')?.hasError('maxlength')) {
+              <mat-error>Name must be 255 characters or less</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Notes</mat-label>
+            <textarea matInput formControlName="notes" placeholder="Trip notes..." rows="3"></textarea>
+          </mat-form-field>
+        </div>
+      </form>
+
+      <!-- Derived info -->
+      <div class="derived-info">
+        <div class="derived-field">
+          <span class="derived-label">Countries</span>
+          <span class="derived-value">
+            @if (derivedCountries().length) {
+              <mat-chip-set>
+                @for (country of derivedCountries(); track country) {
+                  <mat-chip>{{ country }}</mat-chip>
+                }
+              </mat-chip-set>
+            } @else {
+              <span class="placeholder-text">Added from plan items</span>
+            }
+          </span>
+        </div>
+
+        <div class="derived-dates">
+          <div class="derived-field">
+            <span class="derived-label">Start Date</span>
+            <span class="derived-value">
+              @if (derivedStartDate()) {
+                {{ derivedStartDate() | date:'mediumDate' }}
+              } @else {
+                <span class="placeholder-text">—</span>
+              }
+            </span>
+          </div>
+          <div class="derived-field">
+            <span class="derived-label">End Date</span>
+            <span class="derived-value">
+              @if (derivedEndDate()) {
+                {{ derivedEndDate() | date:'mediumDate' }}
+              } @else {
+                <span class="placeholder-text">—</span>
+              }
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan Section -->
+    <div class="plan-section mat-elevation-z2">
+      <div class="plan-header">
+        <h2>
+          <mat-icon>list_alt</mat-icon>
+          Plan
+        </h2>
+        <button mat-raised-button color="primary" [matMenuTriggerFor]="addPlanMenu">
+          <mat-icon>add</mat-icon>
+          Add to Plan
+        </button>
+        <mat-menu #addPlanMenu="matMenu">
+          @for (menuItem of planMenuItems; track menuItem.type) {
+            <button mat-menu-item (click)="startAddPlanItem(menuItem.type)">
+              <mat-icon>{{ menuItem.icon }}</mat-icon>
+              <span>{{ menuItem.label }}</span>
+            </button>
+          }
+        </mat-menu>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- Add new plan item form -->
+      @if (addingItemType()) {
+        <div class="plan-item-form-card">
+          <div class="plan-item-form-header">
+            <mat-icon>{{ getPlanItemIcon(addingItemType()!) }}</mat-icon>
+            <h3>Add {{ getPlanItemLabel(addingItemType()!) }}</h3>
+          </div>
+          <ng-container *ngTemplateOutlet="planItemFormTpl; context: { $implicit: addingItemType()!, form: planItemForm }"></ng-container>
+          <div class="plan-item-form-actions">
+            <button mat-stroked-button (click)="cancelAddPlanItem()">Cancel</button>
+            <button mat-raised-button color="primary" (click)="confirmAddPlanItem()">Add</button>
+          </div>
+        </div>
+      }
+
+      <!-- Existing plan items list -->
+      @if (planItems().length) {
+        <div class="plan-items-list">
+          @for (item of planItems(); track item.id) {
+            <div class="plan-item-card">
+              @if (editingItemId() === item.id) {
+                <!-- Edit mode -->
+                <div class="plan-item-form-header">
+                  <mat-icon>{{ getPlanItemIcon(item.type) }}</mat-icon>
+                  <h3>Edit {{ getPlanItemLabel(item.type) }}</h3>
+                </div>
+                <ng-container *ngTemplateOutlet="planItemFormTpl; context: { $implicit: item.type, form: planItemForm }"></ng-container>
+                <div class="plan-item-form-actions">
+                  <button mat-stroked-button (click)="cancelEditPlanItem()">Cancel</button>
+                  <button mat-raised-button color="primary" (click)="confirmEditPlanItem(item.id)">Save</button>
+                </div>
+              } @else {
+                <!-- Display mode -->
+                <div class="plan-item-display">
+                  <div class="plan-item-icon-col">
+                    <mat-icon>{{ getPlanItemIcon(item.type) }}</mat-icon>
+                  </div>
+                  <div class="plan-item-info">
+                    <span class="plan-item-type">{{ getPlanItemLabel(item.type) }}</span>
+                    <span class="plan-item-summary">{{ getPlanItemSummary(item) }}</span>
+                    <span class="plan-item-dates">{{ formatDisplayDate(item.startDate, 'MMM d') }} – {{ formatDisplayDate(item.endDate, 'MMM d, y') }}</span>
+                  </div>
+                  <div class="plan-item-actions">
+                    <button mat-icon-button matTooltip="Edit" (click)="startEditPlanItem(item)">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" matTooltip="Remove" (click)="removePlanItem(item.id)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else if (!addingItemType()) {
+        <div class="empty-plan">
+          <mat-icon>flight_takeoff</mat-icon>
+          <p>No items in the plan yet. Click "Add to Plan" to get started.</p>
+        </div>
+      }
+    </div>
+
+    <!-- Save / Cancel -->
+    <div class="form-actions">
+      <button mat-stroked-button type="button" routerLink="/trips">Cancel</button>
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="saving()"
+      >
+        @if (saving()) {
+          <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+        }
+        Update Trip
+      </button>
+    </div>
+  }
+</div>
+
+<!-- ── Shared plan item form template ── -->
+<ng-template #planItemFormTpl let-type let-form="form">
+  <div class="plan-item-form" [formGroup]="form">
+    <!-- Dates (common to all types) -->
+    <div class="form-row two-col">
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>Start Date</mat-label>
+        <input matInput [matDatepicker]="piStart" formControlName="startDate" />
+        <mat-datepicker-toggle matIconSuffix [for]="piStart"></mat-datepicker-toggle>
+        <mat-datepicker #piStart></mat-datepicker>
+        @if (form.get('startDate')?.hasError('required') && form.get('startDate')?.touched) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="form-field">
+        <mat-label>End Date</mat-label>
+        <input matInput [matDatepicker]="piEnd" formControlName="endDate" />
+        <mat-datepicker-toggle matIconSuffix [for]="piEnd"></mat-datepicker-toggle>
+        <mat-datepicker #piEnd></mat-datepicker>
+        @if (form.get('endDate')?.hasError('required') && form.get('endDate')?.touched) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <!-- Flight fields -->
+    @if (type === 'flight') {
+      <div class="form-row two-col">
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>From</mat-label>
+            <input matInput formControlName="from" placeholder="Departure city/airport" [matAutocomplete]="fromCityAc" />
+            <mat-autocomplete #fromCityAc="matAutocomplete" (optionSelected)="onCitySelected($event.option.value, 'fromCountryId')">
+              @for (city of filterCities(form.get('from')?.value); track city.id) {
+                <mat-option [value]="city.name">{{ city.name }} <span class="option-hint">{{ city.country_name }}</span></mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCityFor() !== 'from') {
+            <button mat-button class="add-new-link" (click)="startAddCity('from')"><mat-icon>add</mat-icon> Add new city</button>
+          }
+        </div>
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>From Country</mat-label>
+            <input matInput
+                   [value]="displayCountryFn(form.get('fromCountryId')?.value)"
+                   (input)="onCountryInput($any($event.target).value, 'fromCountryId')"
+                   [matAutocomplete]="fromCountryAc"
+                   placeholder="Type to search countries...">
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #fromCountryAc="matAutocomplete"
+                              (optionSelected)="onCountrySelected($event.option.value, 'fromCountryId')">
+              @for (country of filterCountries(countryInputValues()['fromCountryId'] ?? ''); track country.id) {
+                <mat-option [value]="country.id">{{ country.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCountryFor() !== 'fromCountryId') {
+            <button mat-button class="add-new-link" (click)="startAddCountry('fromCountryId')"><mat-icon>add</mat-icon> Add new country</button>
+          }
+        </div>
+      </div>
+
+      <!-- Inline add new city for "from" -->
+      @if (addingNewCityFor() === 'from') {
+        <ng-container *ngTemplateOutlet="addCityTpl; context: { $implicit: 'from' }"></ng-container>
+      }
+      <!-- Inline add new country for "fromCountryId" -->
+      @if (addingNewCountryFor() === 'fromCountryId') {
+        <ng-container *ngTemplateOutlet="addCountryTpl; context: { $implicit: 'fromCountryId' }"></ng-container>
+      }
+
+      <div class="form-row two-col">
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>To</mat-label>
+            <input matInput formControlName="to" placeholder="Arrival city/airport" [matAutocomplete]="toCityAc" />
+            <mat-autocomplete #toCityAc="matAutocomplete" (optionSelected)="onCitySelected($event.option.value, 'toCountryId')">
+              @for (city of filterCities(form.get('to')?.value); track city.id) {
+                <mat-option [value]="city.name">{{ city.name }} <span class="option-hint">{{ city.country_name }}</span></mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCityFor() !== 'to') {
+            <button mat-button class="add-new-link" (click)="startAddCity('to')"><mat-icon>add</mat-icon> Add new city</button>
+          }
+        </div>
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>To Country</mat-label>
+            <input matInput
+                   [value]="displayCountryFn(form.get('toCountryId')?.value)"
+                   (input)="onCountryInput($any($event.target).value, 'toCountryId')"
+                   [matAutocomplete]="toCountryAc"
+                   placeholder="Type to search countries...">
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #toCountryAc="matAutocomplete"
+                              (optionSelected)="onCountrySelected($event.option.value, 'toCountryId')">
+              @for (country of filterCountries(countryInputValues()['toCountryId'] ?? ''); track country.id) {
+                <mat-option [value]="country.id">{{ country.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCountryFor() !== 'toCountryId') {
+            <button mat-button class="add-new-link" (click)="startAddCountry('toCountryId')"><mat-icon>add</mat-icon> Add new country</button>
+          }
+        </div>
+      </div>
+
+      @if (addingNewCityFor() === 'to') {
+        <ng-container *ngTemplateOutlet="addCityTpl; context: { $implicit: 'to' }"></ng-container>
+      }
+      @if (addingNewCountryFor() === 'toCountryId') {
+        <ng-container *ngTemplateOutlet="addCountryTpl; context: { $implicit: 'toCountryId' }"></ng-container>
+      }
+    }
+
+    <!-- Attraction fields -->
+    @if (type === 'attraction') {
+      <div class="form-row two-col">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Attraction Name</mat-label>
+          <input matInput formControlName="attractionName" placeholder="Name of attraction" />
+        </mat-form-field>
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Country</mat-label>
+            <input matInput
+                   [value]="displayCountryFn(form.get('countryId')?.value)"
+                   (input)="onCountryInput($any($event.target).value, 'countryId')"
+                   [matAutocomplete]="attrCountryAc"
+                   placeholder="Type to search countries...">
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #attrCountryAc="matAutocomplete"
+                              (optionSelected)="onCountrySelected($event.option.value, 'countryId')">
+              @for (country of filterCountries(countryInputValues()['countryId'] ?? ''); track country.id) {
+                <mat-option [value]="country.id">{{ country.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCountryFor() !== 'countryId') {
+            <button mat-button class="add-new-link" (click)="startAddCountry('countryId')"><mat-icon>add</mat-icon> Add new country</button>
+          }
+        </div>
+      </div>
+      @if (addingNewCountryFor() === 'countryId') {
+        <ng-container *ngTemplateOutlet="addCountryTpl; context: { $implicit: 'countryId' }"></ng-container>
+      }
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Type</mat-label>
+          <mat-select formControlName="typeOfAttraction">
+            <mat-option value="UNESCO">UNESCO</mat-option>
+            <mat-option value="National Park">National Park</mat-option>
+            <mat-option value="Other">Other</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    }
+
+    <!-- Accommodation fields -->
+    @if (type === 'accommodation') {
+      <div class="form-row two-col">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Hotel / Accommodation Name</mat-label>
+          <input matInput formControlName="name" placeholder="Name" />
+        </mat-form-field>
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city" placeholder="City" [matAutocomplete]="accomCityAc" />
+            <mat-autocomplete #accomCityAc="matAutocomplete" (optionSelected)="onCitySelected($event.option.value, 'countryId')">
+              @for (city of filterCities(form.get('city')?.value); track city.id) {
+                <mat-option [value]="city.name">{{ city.name }} <span class="option-hint">{{ city.country_name }}</span></mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCityFor() !== 'city') {
+            <button mat-button class="add-new-link" (click)="startAddCity('city')"><mat-icon>add</mat-icon> Add new city</button>
+          }
+        </div>
+      </div>
+      @if (addingNewCityFor() === 'city') {
+        <ng-container *ngTemplateOutlet="addCityTpl; context: { $implicit: 'city' }"></ng-container>
+      }
+      <div class="form-row">
+        <div class="form-field full-width">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Country</mat-label>
+            <input matInput
+                   [value]="displayCountryFn(form.get('countryId')?.value)"
+                   (input)="onCountryInput($any($event.target).value, 'countryId')"
+                   [matAutocomplete]="accomCountryAc"
+                   placeholder="Type to search countries...">
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #accomCountryAc="matAutocomplete"
+                              (optionSelected)="onCountrySelected($event.option.value, 'countryId')">
+              @for (country of filterCountries(countryInputValues()['countryId'] ?? ''); track country.id) {
+                <mat-option [value]="country.id">{{ country.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCountryFor() !== 'countryId') {
+            <button mat-button class="add-new-link" (click)="startAddCountry('countryId')"><mat-icon>add</mat-icon> Add new country</button>
+          }
+        </div>
+      </div>
+      @if (addingNewCountryFor() === 'countryId') {
+        <ng-container *ngTemplateOutlet="addCountryTpl; context: { $implicit: 'countryId' }"></ng-container>
+      }
+    }
+
+    <!-- Car Rental fields -->
+    @if (type === 'car_rental') {
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Rental Company</mat-label>
+          <input matInput formControlName="company" placeholder="Company name" />
+        </mat-form-field>
+      </div>
+      <div class="form-row two-col">
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Pickup Location</mat-label>
+            <input matInput formControlName="pickupLocation" placeholder="Pickup" [matAutocomplete]="pickupAc" />
+            <mat-autocomplete #pickupAc="matAutocomplete">
+              @for (city of filterCities(form.get('pickupLocation')?.value); track city.id) {
+                <mat-option [value]="city.name">{{ city.name }} <span class="option-hint">{{ city.country_name }}</span></mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCityFor() !== 'pickupLocation') {
+            <button mat-button class="add-new-link" (click)="startAddCity('pickupLocation')"><mat-icon>add</mat-icon> Add new city</button>
+          }
+        </div>
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Dropoff Location</mat-label>
+            <input matInput formControlName="dropoffLocation" placeholder="Dropoff" [matAutocomplete]="dropoffAc" />
+            <mat-autocomplete #dropoffAc="matAutocomplete">
+              @for (city of filterCities(form.get('dropoffLocation')?.value); track city.id) {
+                <mat-option [value]="city.name">{{ city.name }} <span class="option-hint">{{ city.country_name }}</span></mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCityFor() !== 'dropoffLocation') {
+            <button mat-button class="add-new-link" (click)="startAddCity('dropoffLocation')"><mat-icon>add</mat-icon> Add new city</button>
+          }
+        </div>
+      </div>
+      @if (addingNewCityFor() === 'pickupLocation') {
+        <ng-container *ngTemplateOutlet="addCityTpl; context: { $implicit: 'pickupLocation' }"></ng-container>
+      }
+      @if (addingNewCityFor() === 'dropoffLocation') {
+        <ng-container *ngTemplateOutlet="addCityTpl; context: { $implicit: 'dropoffLocation' }"></ng-container>
+      }
+    }
+
+    <!-- Ferry fields -->
+    @if (type === 'ferry') {
+      <div class="form-row two-col">
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>From</mat-label>
+            <input matInput formControlName="from" placeholder="Departure port" [matAutocomplete]="ferryFromAc" />
+            <mat-autocomplete #ferryFromAc="matAutocomplete" (optionSelected)="onCitySelected($event.option.value, 'countryIdFrom')">
+              @for (city of filterCities(form.get('from')?.value); track city.id) {
+                <mat-option [value]="city.name">{{ city.name }} <span class="option-hint">{{ city.country_name }}</span></mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCityFor() !== 'from') {
+            <button mat-button class="add-new-link" (click)="startAddCity('from')"><mat-icon>add</mat-icon> Add new city</button>
+          }
+        </div>
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>From Country</mat-label>
+            <input matInput
+                   [value]="displayCountryFn(form.get('countryIdFrom')?.value)"
+                   (input)="onCountryInput($any($event.target).value, 'countryIdFrom')"
+                   [matAutocomplete]="ferryFromCountryAc"
+                   placeholder="Type to search countries...">
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #ferryFromCountryAc="matAutocomplete"
+                              (optionSelected)="onCountrySelected($event.option.value, 'countryIdFrom')">
+              @for (country of filterCountries(countryInputValues()['countryIdFrom'] ?? ''); track country.id) {
+                <mat-option [value]="country.id">{{ country.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCountryFor() !== 'countryIdFrom') {
+            <button mat-button class="add-new-link" (click)="startAddCountry('countryIdFrom')"><mat-icon>add</mat-icon> Add new country</button>
+          }
+        </div>
+      </div>
+      @if (addingNewCityFor() === 'from') {
+        <ng-container *ngTemplateOutlet="addCityTpl; context: { $implicit: 'from' }"></ng-container>
+      }
+      @if (addingNewCountryFor() === 'countryIdFrom') {
+        <ng-container *ngTemplateOutlet="addCountryTpl; context: { $implicit: 'countryIdFrom' }"></ng-container>
+      }
+
+      <div class="form-row two-col">
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>To</mat-label>
+            <input matInput formControlName="to" placeholder="Arrival port" [matAutocomplete]="ferryToAc" />
+            <mat-autocomplete #ferryToAc="matAutocomplete" (optionSelected)="onCitySelected($event.option.value, 'countryIdTo')">
+              @for (city of filterCities(form.get('to')?.value); track city.id) {
+                <mat-option [value]="city.name">{{ city.name }} <span class="option-hint">{{ city.country_name }}</span></mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCityFor() !== 'to') {
+            <button mat-button class="add-new-link" (click)="startAddCity('to')"><mat-icon>add</mat-icon> Add new city</button>
+          }
+        </div>
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>To Country</mat-label>
+            <input matInput
+                   [value]="displayCountryFn(form.get('countryIdTo')?.value)"
+                   (input)="onCountryInput($any($event.target).value, 'countryIdTo')"
+                   [matAutocomplete]="ferryToCountryAc"
+                   placeholder="Type to search countries...">
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #ferryToCountryAc="matAutocomplete"
+                              (optionSelected)="onCountrySelected($event.option.value, 'countryIdTo')">
+              @for (country of filterCountries(countryInputValues()['countryIdTo'] ?? ''); track country.id) {
+                <mat-option [value]="country.id">{{ country.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCountryFor() !== 'countryIdTo') {
+            <button mat-button class="add-new-link" (click)="startAddCountry('countryIdTo')"><mat-icon>add</mat-icon> Add new country</button>
+          }
+        </div>
+      </div>
+      @if (addingNewCityFor() === 'to') {
+        <ng-container *ngTemplateOutlet="addCityTpl; context: { $implicit: 'to' }"></ng-container>
+      }
+      @if (addingNewCountryFor() === 'countryIdTo') {
+        <ng-container *ngTemplateOutlet="addCountryTpl; context: { $implicit: 'countryIdTo' }"></ng-container>
+      }
+    }
+
+    <!-- Train fields -->
+    @if (type === 'train') {
+      <div class="form-row two-col">
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>From</mat-label>
+            <input matInput formControlName="from" placeholder="Departure station" [matAutocomplete]="trainFromAc" />
+            <mat-autocomplete #trainFromAc="matAutocomplete" (optionSelected)="onCitySelected($event.option.value, 'countryIdFrom')">
+              @for (city of filterCities(form.get('from')?.value); track city.id) {
+                <mat-option [value]="city.name">{{ city.name }} <span class="option-hint">{{ city.country_name }}</span></mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCityFor() !== 'from') {
+            <button mat-button class="add-new-link" (click)="startAddCity('from')"><mat-icon>add</mat-icon> Add new city</button>
+          }
+        </div>
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>From Country</mat-label>
+            <input matInput
+                   [value]="displayCountryFn(form.get('countryIdFrom')?.value)"
+                   (input)="onCountryInput($any($event.target).value, 'countryIdFrom')"
+                   [matAutocomplete]="trainFromCountryAc"
+                   placeholder="Type to search countries...">
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #trainFromCountryAc="matAutocomplete"
+                              (optionSelected)="onCountrySelected($event.option.value, 'countryIdFrom')">
+              @for (country of filterCountries(countryInputValues()['countryIdFrom'] ?? ''); track country.id) {
+                <mat-option [value]="country.id">{{ country.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCountryFor() !== 'countryIdFrom') {
+            <button mat-button class="add-new-link" (click)="startAddCountry('countryIdFrom')"><mat-icon>add</mat-icon> Add new country</button>
+          }
+        </div>
+      </div>
+      @if (addingNewCityFor() === 'from') {
+        <ng-container *ngTemplateOutlet="addCityTpl; context: { $implicit: 'from' }"></ng-container>
+      }
+      @if (addingNewCountryFor() === 'countryIdFrom') {
+        <ng-container *ngTemplateOutlet="addCountryTpl; context: { $implicit: 'countryIdFrom' }"></ng-container>
+      }
+
+      <div class="form-row two-col">
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>To</mat-label>
+            <input matInput formControlName="to" placeholder="Arrival station" [matAutocomplete]="trainToAc" />
+            <mat-autocomplete #trainToAc="matAutocomplete" (optionSelected)="onCitySelected($event.option.value, 'countryIdTo')">
+              @for (city of filterCities(form.get('to')?.value); track city.id) {
+                <mat-option [value]="city.name">{{ city.name }} <span class="option-hint">{{ city.country_name }}</span></mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCityFor() !== 'to') {
+            <button mat-button class="add-new-link" (click)="startAddCity('to')"><mat-icon>add</mat-icon> Add new city</button>
+          }
+        </div>
+        <div class="form-field">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>To Country</mat-label>
+            <input matInput
+                   [value]="displayCountryFn(form.get('countryIdTo')?.value)"
+                   (input)="onCountryInput($any($event.target).value, 'countryIdTo')"
+                   [matAutocomplete]="trainToCountryAc"
+                   placeholder="Type to search countries...">
+            <mat-icon matSuffix>arrow_drop_down</mat-icon>
+            <mat-autocomplete #trainToCountryAc="matAutocomplete"
+                              (optionSelected)="onCountrySelected($event.option.value, 'countryIdTo')">
+              @for (country of filterCountries(countryInputValues()['countryIdTo'] ?? ''); track country.id) {
+                <mat-option [value]="country.id">{{ country.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          @if (addingNewCountryFor() !== 'countryIdTo') {
+            <button mat-button class="add-new-link" (click)="startAddCountry('countryIdTo')"><mat-icon>add</mat-icon> Add new country</button>
+          }
+        </div>
+      </div>
+      @if (addingNewCityFor() === 'to') {
+        <ng-container *ngTemplateOutlet="addCityTpl; context: { $implicit: 'to' }"></ng-container>
+      }
+      @if (addingNewCountryFor() === 'countryIdTo') {
+        <ng-container *ngTemplateOutlet="addCountryTpl; context: { $implicit: 'countryIdTo' }"></ng-container>
+      }
+    }
+  </div>
+</ng-template>
+
+<!-- ── Inline add new country template ── -->
+<ng-template #addCountryTpl let-fieldKey>
+  <div class="inline-add-card">
+    <span class="inline-add-label">Add new country</span>
+    <div class="inline-add-row">
+      <mat-form-field appearance="outline" class="inline-add-field">
+        <mat-label>Country name</mat-label>
+        <input matInput [value]="newCountryName()" (input)="newCountryName.set($any($event.target).value)" placeholder="e.g. Iceland" />
+      </mat-form-field>
+      <button mat-stroked-button (click)="cancelAddCountry()" [disabled]="savingCountry()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="confirmAddCountry(fieldKey)" [disabled]="savingCountry() || !newCountryName().trim()">
+        @if (savingCountry()) {
+          <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+        }
+        Add
+      </button>
+    </div>
+  </div>
+</ng-template>
+
+<!-- ── Inline add new city template ── -->
+<ng-template #addCityTpl let-fieldKey>
+  <div class="inline-add-card">
+    <span class="inline-add-label">Add new city</span>
+    <div class="inline-add-row">
+      <mat-form-field appearance="outline" class="inline-add-field">
+        <mat-label>City name</mat-label>
+        <input matInput [value]="newCityName()" (input)="newCityName.set($any($event.target).value)" placeholder="e.g. Reykjavik" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="inline-add-field">
+        <mat-label>Country</mat-label>
+        <mat-select [value]="newCityCountryId()" (selectionChange)="newCityCountryId.set($event.value)">
+          @for (country of countries(); track country.id) {
+            <mat-option [value]="country.id">{{ country.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <button mat-stroked-button (click)="cancelAddCity()" [disabled]="savingCity()">Cancel</button>
+      <button mat-raised-button color="primary" (click)="confirmAddCity(fieldKey)" [disabled]="savingCity() || !newCityName().trim() || !newCityCountryId()">
+        @if (savingCity()) {
+          <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+        }
+        Add
+      </button>
+    </div>
+  </div>
+</ng-template>

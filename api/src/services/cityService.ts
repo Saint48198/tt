@@ -22,6 +22,7 @@ interface ListCitiesOptions {
   search?: string;
   page?: number;
   limit?: number;
+  all?: boolean;
   sortBy?: string;
   sort?: string;
   includeDisabled?: boolean;
@@ -46,7 +47,7 @@ class CityService {
     page: number;
     limit: number;
   }> {
-    const { country_id, state_id, search, page = 1, limit = 25, sortBy = 'cities.name', sort = 'asc', includeDisabled = false } = options;
+    const { country_id, state_id, search, page = 1, limit = 25, all = false, sortBy = 'cities.name', sort = 'asc', includeDisabled = false } = options;
     const offset = (page - 1) * limit;
 
     let sortByStr = sortBy.toString();
@@ -77,17 +78,20 @@ class CityService {
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
-    const query = `
+    let query = `
       SELECT cities.id, cities.name, cities.lat, cities.lng, cities.last_visited,
              cities.created_date, cities.updated_date, cities.disabled_date,
-             countries.name AS country_name, states.name AS state_name
+             cities.country_id, countries.name AS country_name, cities.state_id, states.name AS state_name
       FROM cities
       JOIN countries ON cities.country_id = countries.id
       LEFT JOIN states ON cities.state_id = states.id
       ${whereClause}
-      ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
-      LIMIT $${paramIdx++} OFFSET $${paramIdx++}`;
-    params.push(limit, offset);
+      ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`;
+
+    if (!all) {
+      query += ` LIMIT $${paramIdx++} OFFSET $${paramIdx++}`;
+      params.push(limit, offset);
+    }
 
     const cities = await db.all<City>(query, params);
 

@@ -24,6 +24,7 @@ export class App {
     { label: 'States', path: '/states' },
     { label: 'Cities', path: '/cities' },
     { label: 'Attractions', path: '/attractions' },
+    { label: 'Trips', path: '/trips' },
     { label: 'Photos', path: '/photos' },
   ];
 }

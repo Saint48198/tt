@@ -21,15 +21,13 @@ router.get('/api/trips', async (_req: Request, res: Response) => {
  */
 router.post('/api/trips', async (req: Request, res: Response) => {
   try {
-    const { destination, startDate, endDate, notes, countryId } = req.body ?? {};
+    const { name, notes, plan } = req.body ?? {};
 
-    const result = await tripService.createTrip({
-      destination,
-      startDate,
-      endDate,
-      notes,
-      countryId,
-    });
+    if (!name) {
+      return res.status(400).json({ error: 'Trip name is required' });
+    }
+
+    const result = await tripService.createTrip({ name, notes, plan });
 
     return res.status(201).json({ id: result.id });
   } catch (error) {
@@ -67,7 +65,7 @@ router.get('/api/trips/:id', async (req: Request, res: Response) => {
     const trip = await tripService.getTripById(id);
 
     if (!trip) {
-      return res.status(404).json({ message: 'Trip not found' });
+      return res.status(404).json({ error: 'Trip not found' });
     }
 
     return res.status(200).json(trip);
@@ -84,15 +82,9 @@ router.put('/api/trips/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   try {
-    const { destination, startDate, endDate, notes, countryId } = req.body ?? {};
+    const { name, notes, plan } = req.body ?? {};
 
-    const result = await tripService.updateTrip(id, {
-      destination,
-      startDate,
-      endDate,
-      notes,
-      countryId,
-    });
+    const result = await tripService.updateTrip(id, { name, notes, plan });
 
     return res.status(200).json({ changes: result.changes });
   } catch (error) {
