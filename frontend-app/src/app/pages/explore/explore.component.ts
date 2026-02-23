@@ -3,7 +3,7 @@ import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
+import { MapComponent, MapMarker, MapOverlay, OverlayClickEvent } from '@shared/components';
 import {
   ExploreService,
   ExploreCountry,
@@ -343,8 +343,14 @@ export class ExploreComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (geoJson) => {
           if (geoJson.features.length > 0) {
+            const countryAbbr = country.abbreviation || country.name;
             this.countryMapOverlays = geoJson.features.map((feature, i) => {
               const palette = this.stateColors[i % this.stateColors.length];
+              const featureName = feature.properties?.['name'] || '';
+              const state = states.find(
+                (s) => s.name.toLowerCase() === featureName.toLowerCase()
+              );
+              const stateAbbr = state ? (state.abbr || state.name) : featureName;
               return {
                 type: 'state' as const,
                 geoJson: {
@@ -359,6 +365,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
                   fillOpacity: 0.35,
                 },
                 interactive: true,
+                link: `${this.baseUrl()}/${countryAbbr}/${stateAbbr}`,
               };
             });
             this.cdr.detectChanges();
@@ -549,6 +556,21 @@ export class ExploreComponent implements OnInit, OnDestroy {
     this.selectedState.set(null);
     this.loading.set(true);
     this.loadCountryDrillDown(country);
+  }
+
+  onOverlayClick(event: OverlayClickEvent): void {
+    // Find the matching state by name and navigate to it
+    if (event.name) {
+      const state = this.states().find(
+        (s) => s.name.toLowerCase() === event.name!.toLowerCase()
+      );
+      if (state) {
+        this.onStateClick(state);
+        return;
+      }
+    }
+    // Fallback: navigate by URL
+    this.router.navigateByUrl(event.link);
   }
 
   onStateClick(state: ExploreState): void {

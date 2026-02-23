@@ -1,10 +1,17 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
-import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MapComponent, MapMarker, MapOverlay, OverlayClickEvent } from '@shared/components';
 import { CountryService, Country } from '../../services/country.service';
 import { Subject, EMPTY } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
+
+/**
+ * Maps GeoJSON feature names back to DB country names where they differ.
+ */
+const GEOJSON_TO_DB_NAME: Record<string, string> = {
+  'United States of America': 'United States',
+};
 
 @Component({
   selector: 'app-home',
@@ -15,6 +22,7 @@ import { switchMap, takeUntil } from 'rxjs/operators';
 })
 export class HomeComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private countryService = inject(CountryService);
   private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
@@ -42,6 +50,19 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  onOverlayClick(event: OverlayClickEvent): void {
+    this.router.navigateByUrl(event.link);
+  }
+
+  /** Find the country abbreviation for a GeoJSON feature name */
+  private getCountryAbbr(featureName: string): string {
+    const dbName = GEOJSON_TO_DB_NAME[featureName] || featureName;
+    const country = this.countries().find(
+      (c) => c.name.toLowerCase() === dbName.toLowerCase()
+    );
+    return country?.abbreviation || country?.name || featureName;
   }
 
   private buildMarkers(countries: Country[]): MapMarker[] {
@@ -105,8 +126,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (geoJson) => {
         if (geoJson.features.length > 0) {
+          const username = this.username();
           this.mapOverlays = geoJson.features.map((feature, i) => {
             const palette = this.countryColors[i % this.countryColors.length];
+            const featureName = feature.properties?.['name'] || '';
+            const abbr = this.getCountryAbbr(featureName);
             return {
               type: 'country' as const,
               geoJson: {
@@ -121,6 +145,7 @@ export class HomeComponent implements OnInit, OnDestroy {
                 fillOpacity: 0.35,
               },
               interactive: true,
+              link: `/${username}/explore/${abbr}`,
             };
           });
           this.mapMarkers = [];

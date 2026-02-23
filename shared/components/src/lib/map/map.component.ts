@@ -1,6 +1,8 @@
 import {
   Component,
   Input,
+  Output,
+  EventEmitter,
   AfterViewInit,
   OnDestroy,
   ElementRef,
@@ -22,9 +24,17 @@ export interface MapMarker {
 
 export interface MapOverlay {
   type: 'country' | 'state' | 'custom';
-  geoJson: GeoJSON.Feature | GeoJSON.FeatureCollection | GeoJSON.GeoJsonObject; // GeoJSON data
+  geoJson: GeoJSON.Feature | GeoJSON.FeatureCollection | GeoJSON.GeoJsonObject;
   style?: L.PathOptions;
   interactive?: boolean;
+  /** Optional route to navigate to when the overlay is clicked */
+  link?: string;
+}
+
+export interface OverlayClickEvent {
+  link: string;
+  name?: string;
+  overlay: MapOverlay;
 }
 
 @Component({
@@ -47,6 +57,8 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() enableDrag = true;
   @Input() fitBounds = false; // Auto-fit to markers/overlays
   @Input() showAttribution = true;
+
+  @Output() overlayClick = new EventEmitter<OverlayClickEvent>();
 
   private map!: L.Map;
   private markerLayers: L.Marker[] = [];
@@ -197,6 +209,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       };
 
       const style = overlayData.style || defaultStyle;
+      const hasLink = !!overlayData.link;
 
       const geoJsonLayer = L.geoJSON(overlayData.geoJson as GeoJSON.GeoJsonObject, {
         style: () => style,
@@ -204,6 +217,26 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
         onEachFeature: (feature, layer) => {
           if (feature.properties && feature.properties.name) {
             layer.bindTooltip(feature.properties.name);
+          }
+
+          if (hasLink) {
+            // Pointer cursor on hover
+            layer.on('mouseover', () => {
+              const el = (layer as any)._path || (layer as any).getElement?.();
+              if (el) el.style.cursor = 'pointer';
+            });
+            layer.on('mouseout', () => {
+              const el = (layer as any)._path || (layer as any).getElement?.();
+              if (el) el.style.cursor = '';
+            });
+            // Emit click event
+            layer.on('click', () => {
+              this.overlayClick.emit({
+                link: overlayData.link!,
+                name: feature.properties?.name,
+                overlay: overlayData,
+              });
+            });
           }
         },
       });

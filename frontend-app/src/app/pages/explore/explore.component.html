@@ -39,7 +39,8 @@
         width="100%"
         [enableZoom]="true"
         [enableDrag]="true"
-        [fitBounds]="countryMapOverlays.length === 0 && countryMapMarkers().length > 1">
+        [fitBounds]="countryMapOverlays.length === 0 && countryMapMarkers().length > 1"
+        (overlayClick)="onOverlayClick($event)">
       </lib-map>
     </section>
   }
