@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MapComponent, MapMarker } from '@shared/components';
+import { HasUnsavedChanges } from '@shared/services';
 import { PhotoGalleryComponent } from '../../components/photo-gallery/photo-gallery.component';
 import { CitiesService } from '../../services/cities.service';
 import { CountriesService } from '../../services/countries.service';
@@ -53,7 +54,7 @@ const MONTH_YEAR_FORMATS = {
   styleUrl: './city-edit.component.scss',
   providers: [{ provide: MAT_DATE_FORMATS, useValue: MONTH_YEAR_FORMATS }],
 })
-export class CityEditComponent implements OnInit {
+export class CityEditComponent implements OnInit, HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -77,6 +78,19 @@ export class CityEditComponent implements OnInit {
   mapMarkers = signal<MapMarker[]>([]);
   mapCenter = signal<[number, number]>([39.8283, -98.5795]);
   hasCoordinates = signal(false);
+  private saved = false;
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+    }
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (this.saved) return false;
+    return this.form?.dirty ?? false;
+  }
 
   ngOnInit(): void {
     this.initForm();
@@ -309,6 +323,7 @@ export class CityEditComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
+        this.saved = true;
         this.snackBar.open(
           `City ${this.isEditMode() ? 'updated' : 'created'} successfully`,
           'Close',

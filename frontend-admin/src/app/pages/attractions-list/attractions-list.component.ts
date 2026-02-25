@@ -14,8 +14,10 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AttractionsService } from '../../services/attractions.service';
 import { Attraction } from '../../interfaces';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-attractions-list',
@@ -36,6 +38,7 @@ import { Attraction } from '../../interfaces';
     MatFormFieldModule,
     MatInputModule,
     MatSlideToggleModule,
+    MatDialogModule,
   ],
   templateUrl: './attractions-list.component.html',
   styleUrl: './attractions-list.component.scss',
@@ -43,6 +46,7 @@ import { Attraction } from '../../interfaces';
 export class AttractionsListComponent implements OnInit, AfterViewInit {
   private readonly attractionsService = inject(AttractionsService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   displayedColumns: string[] = ['name', 'country_name', 'tags', 'lat', 'lng', 'last_visited', 'actions'];
@@ -145,7 +149,20 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
   }
 
   deleteAttraction(attraction: Attraction): void {
-    if (confirm(`Are you sure you want to delete "${attraction.name}"?`)) {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Attraction',
+        message: `Are you sure you want to delete "${attraction.name}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        icon: 'delete',
+        color: 'warn',
+      },
+      width: '420px',
+      autoFocus: false,
+      panelClass: 'confirm-dialog-panel',
+    }).afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
       this.attractionsService.deleteAttraction(attraction.id).subscribe({
         next: () => {
           this.snackBar.open('Attraction deleted successfully', 'Close', {
@@ -161,7 +178,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
           );
         },
       });
-    }
+    });
   }
 }
 

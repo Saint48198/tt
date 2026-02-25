@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -12,6 +12,7 @@ import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker
 import { MatNativeDateModule, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MapComponent, MapMarker } from '@shared/components';
+import { HasUnsavedChanges } from '@shared/services';
 import { CountriesService } from '../../services/countries.service';
 import { GeocodeService } from '../../services/geocode.service';
 import { Country } from '../../interfaces';
@@ -48,7 +49,7 @@ const MONTH_YEAR_FORMATS = {
   styleUrl: './country-edit.component.scss',
   providers: [{ provide: MAT_DATE_FORMATS, useValue: MONTH_YEAR_FORMATS }],
 })
-export class CountryEditComponent implements OnInit {
+export class CountryEditComponent implements OnInit, HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -65,6 +66,19 @@ export class CountryEditComponent implements OnInit {
   mapMarkers = signal<MapMarker[]>([]);
   mapCenter = signal<[number, number]>([39.8283, -98.5795]);
   hasCoordinates = signal(false);
+  private saved = false;
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+    }
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (this.saved) return false;
+    return this.form?.dirty ?? false;
+  }
 
   ngOnInit(): void {
     this.initForm();
@@ -187,6 +201,7 @@ export class CountryEditComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
+        this.saved = true;
         this.snackBar.open(
           `Country ${this.isEditMode() ? 'updated' : 'created'} successfully`,
           'Close',

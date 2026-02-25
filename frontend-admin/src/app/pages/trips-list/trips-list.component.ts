@@ -11,8 +11,10 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TripsService } from '../../services/trips.service';
 import { Trip } from '../../interfaces';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 interface TripRow extends Trip {
   derivedStartDate: string | null;
@@ -35,6 +37,7 @@ interface TripRow extends Trip {
     MatTooltipModule,
     MatFormFieldModule,
     MatInputModule,
+    MatDialogModule,
   ],
   templateUrl: './trips-list.component.html',
   styleUrl: './trips-list.component.scss',
@@ -42,6 +45,7 @@ interface TripRow extends Trip {
 export class TripsListComponent implements OnInit, AfterViewInit {
   private readonly tripsService = inject(TripsService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   displayedColumns: string[] = ['name', 'startDate', 'endDate', 'notes', 'actions'];
   dataSource = new MatTableDataSource<TripRow>([]);
@@ -94,16 +98,20 @@ export class TripsListComponent implements OnInit, AfterViewInit {
   }
 
   private getEarliestDate(trip: Trip): string | null {
-    if (trip.startDate) return trip.startDate;
     if (!trip.plan?.length) return null;
-    const dates = trip.plan.map((i) => i.startDate).filter(Boolean).sort();
+    const dates = trip.plan
+      .flatMap((i) => [i.startDate, i.endDate])
+      .filter(Boolean)
+      .sort();
     return dates[0] || null;
   }
 
   private getLatestDate(trip: Trip): string | null {
-    if (trip.endDate) return trip.endDate;
     if (!trip.plan?.length) return null;
-    const dates = trip.plan.map((i) => i.endDate).filter(Boolean).sort();
+    const dates = trip.plan
+      .flatMap((i) => [i.startDate, i.endDate])
+      .filter(Boolean)
+      .sort();
     return dates[dates.length - 1] || null;
   }
 
@@ -123,7 +131,20 @@ export class TripsListComponent implements OnInit, AfterViewInit {
   }
 
   deleteTrip(trip: TripRow): void {
-    if (confirm(`Are you sure you want to delete "${trip.name}"?`)) {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Trip',
+        message: `Are you sure you want to delete "${trip.name}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        icon: 'delete',
+        color: 'warn',
+      },
+      width: '420px',
+      autoFocus: false,
+      panelClass: 'confirm-dialog-panel',
+    }).afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
       this.tripsService.deleteTrip(trip.id).subscribe({
         next: () => {
           this.snackBar.open('Trip deleted successfully', 'Close', {
@@ -139,7 +160,7 @@ export class TripsListComponent implements OnInit, AfterViewInit {
           );
         },
       });
-    }
+    });
   }
 }
 

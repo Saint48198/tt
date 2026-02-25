@@ -10,8 +10,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { StatesService } from '../../services/states.service';
 import { State } from '../../interfaces';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-states-list',
@@ -28,6 +30,7 @@ import { State } from '../../interfaces';
     MatSnackBarModule,
     MatTooltipModule,
     MatSlideToggleModule,
+    MatDialogModule,
   ],
   templateUrl: './states-list.component.html',
   styleUrl: './states-list.component.scss',
@@ -35,6 +38,7 @@ import { State } from '../../interfaces';
 export class StatesListComponent implements OnInit, AfterViewInit {
   private readonly statesService = inject(StatesService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   displayedColumns: string[] = ['name', 'abbr', 'country_name', 'last_visited', 'actions'];
   dataSource = new MatTableDataSource<State>([]);
@@ -113,7 +117,20 @@ export class StatesListComponent implements OnInit, AfterViewInit {
   }
 
   deleteState(state: State): void {
-    if (confirm(`Are you sure you want to delete "${state.name}"?`)) {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete State',
+        message: `Are you sure you want to delete "${state.name}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        icon: 'delete',
+        color: 'warn',
+      },
+      width: '420px',
+      autoFocus: false,
+      panelClass: 'confirm-dialog-panel',
+    }).afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
       this.statesService.deleteState(state.id).subscribe({
         next: () => {
           this.snackBar.open('State deleted successfully', 'Close', {
@@ -129,7 +146,7 @@ export class StatesListComponent implements OnInit, AfterViewInit {
           );
         },
       });
-    }
+    });
   }
 }
 

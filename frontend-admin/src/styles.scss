@@ -32,3 +32,15 @@ app-root {
   min-height: 100vh;
 }
 
+/* Confirm dialog — no default padding / scroll */
+.confirm-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  overflow: hidden;
+  padding: 0;
+}
+
+.confirm-dialog-panel .mat-mdc-dialog-container .mdc-dialog__content {
+  overflow: hidden;
+  max-height: none;
+  padding: 0;
+}
+

@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { CountriesService } from '../../services/countries.service';
 import { Country } from '../../interfaces';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-countries-list',
@@ -37,6 +38,7 @@ import { Country } from '../../interfaces';
 export class CountriesListComponent implements OnInit, AfterViewInit {
   private readonly countriesService = inject(CountriesService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   displayedColumns: string[] = ['name', 'abbreviation', 'lat', 'lng', 'last_visited', 'actions'];
   dataSource = new MatTableDataSource<Country>([]);
@@ -115,7 +117,20 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
   }
 
   deleteCountry(country: Country): void {
-    if (confirm(`Are you sure you want to delete "${country.name}"?`)) {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Country',
+        message: `Are you sure you want to delete "${country.name}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        icon: 'delete',
+        color: 'warn',
+      },
+      width: '420px',
+      autoFocus: false,
+      panelClass: 'confirm-dialog-panel',
+    }).afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
       this.countriesService.deleteCountry(country.id).subscribe({
         next: () => {
           this.snackBar.open('Country deleted successfully', 'Close', {
@@ -131,7 +146,7 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
           );
         },
       });
-    }
+    });
   }
 }
 

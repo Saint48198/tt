@@ -24,6 +24,7 @@ import {
   PhotoUploadDialogComponent,
   PhotoUploadDialogResult,
 } from '../../components/photo-upload-dialog/photo-upload-dialog.component';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-photos-list',
@@ -137,8 +138,23 @@ export class PhotosListComponent implements OnInit {
       return;
     }
 
-    if (confirm('Are you sure you want to delete this photo?')) {
-      this.photosService.deletePhoto(entityType, entityId, photo.id).subscribe({
+    const photoId = photo.id!;
+
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete Photo',
+        message: 'Are you sure you want to delete this photo?',
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        icon: 'delete',
+        color: 'warn',
+      },
+      width: '420px',
+      autoFocus: false,
+      panelClass: 'confirm-dialog-panel',
+    }).afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
+      this.photosService.deletePhoto(entityType, entityId, photoId).subscribe({
         next: () => {
           this.snackBar.open('Photo deleted successfully', 'Close', {
             duration: 3000,
@@ -156,7 +172,7 @@ export class PhotosListComponent implements OnInit {
           );
         },
       });
-    }
+    });
   }
 
   getEntityTypeLabel(type: string | null): string {

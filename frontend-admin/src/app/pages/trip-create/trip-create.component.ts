@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { HasUnsavedChanges } from '@shared/services';
 import { TripsService } from '../../services/trips.service';
 
 @Component({
@@ -27,18 +28,31 @@ import { TripsService } from '../../services/trips.service';
   templateUrl: './trip-create.component.html',
   styleUrl: './trip-create.component.scss',
 })
-export class TripCreateComponent {
+export class TripCreateComponent implements HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly tripsService = inject(TripsService);
   private readonly snackBar = inject(MatSnackBar);
 
   saving = signal(false);
+  private saved = false;
 
   form: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(255)]],
     notes: [''],
   });
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+    }
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (this.saved) return false;
+    return this.form?.dirty ?? false;
+  }
 
   onSubmit(): void {
     if (this.form.invalid) {
@@ -51,6 +65,7 @@ export class TripCreateComponent {
 
     this.tripsService.createTrip({ name, notes: notes || undefined }).subscribe({
       next: (response) => {
+        this.saved = true;
         this.snackBar.open('Trip created successfully', 'Close', { duration: 3000 });
         // Navigate to the edit page so the user can build the plan
         this.router.navigate(['/trips', response.id]);

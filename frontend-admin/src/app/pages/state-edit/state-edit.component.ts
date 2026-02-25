@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_FORMATS } from '@angular/material/core';
+import { HasUnsavedChanges } from '@shared/services';
 import { StatesService } from '../../services/states.service';
 import { CountriesService } from '../../services/countries.service';
 import { State, Country } from '../../interfaces';
@@ -46,7 +47,7 @@ const MONTH_YEAR_FORMATS = {
   styleUrl: './state-edit.component.scss',
   providers: [{ provide: MAT_DATE_FORMATS, useValue: MONTH_YEAR_FORMATS }],
 })
-export class StateEditComponent implements OnInit {
+export class StateEditComponent implements OnInit, HasUnsavedChanges {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -60,6 +61,19 @@ export class StateEditComponent implements OnInit {
   saving = signal(false);
   stateId: number | null = null;
   countries = signal<Country[]>([]);
+  private saved = false;
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+    }
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (this.saved) return false;
+    return this.form?.dirty ?? false;
+  }
 
   ngOnInit(): void {
     this.initForm();
@@ -160,6 +174,7 @@ export class StateEditComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
+        this.saved = true;
         this.snackBar.open(
           `State ${this.isEditMode() ? 'updated' : 'created'} successfully`,
           'Close',

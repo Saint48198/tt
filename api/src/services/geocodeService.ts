@@ -25,11 +25,11 @@ interface ForwardGeocodeParams {
 
 class GeocodeService {
   private static instance: GeocodeService;
-  private apiKey: string;
+  private readonly nominatimUrl = 'https://nominatim.openstreetmap.org';
+  private readonly userAgent = 'TripTracker/1.0';
 
   private constructor() {
     // Private constructor prevents direct instantiation
-    this.apiKey = process.env.OPENCAGE_API_KEY || '';
   }
 
   public static getInstance(): GeocodeService {
@@ -46,24 +46,25 @@ class GeocodeService {
     const { latitude, longitude } = params;
 
     const response = await axios.get(
-      'https://api.opencagedata.com/geocode/v1/json',
+      `${this.nominatimUrl}/reverse`,
       {
         params: {
-          q: `${latitude},${longitude}`,
-          key: this.apiKey,
+          lat: latitude,
+          lon: longitude,
+          format: 'json',
+          addressdetails: 1,
         },
+        headers: { 'User-Agent': this.userAgent },
       }
     );
 
-    const { results } = response.data;
+    const address = response.data?.address;
 
-    if (results.length > 0) {
-      const location = results[0].components;
-
+    if (address) {
       const cityName =
-        location.city || location.town || location.village || 'Unknown City';
-      const stateName = location.state || 'Unknown State';
-      const countryName = location.country || 'Unknown Country';
+        address.city || address.town || address.village || address.municipality || 'Unknown City';
+      const stateName = address.state || 'Unknown State';
+      const countryName = address.country || 'Unknown Country';
 
       return {
         city: cityName,
@@ -81,34 +82,36 @@ class GeocodeService {
   public async forwardGeocode(params: ForwardGeocodeParams): Promise<GeocodeForwardResult> {
     const { city, country, place, state } = params;
 
-    // Validate input
-    if ((!city || !country) && !place) {
+    // Validate input — need at least one of city, country, or place
+    if (!city && !country && !place) {
       throw new Error(
         'At least one of city, country, or place is required.'
       );
     }
 
     const query =
-      place || `${city || ''}, ${state || ''}, ${country || ''}`.trim();
+      place || [city, state, country].filter(Boolean).join(', ');
 
     const response = await axios.get(
-      'https://api.opencagedata.com/geocode/v1/json',
+      `${this.nominatimUrl}/search`,
       {
         params: {
           q: query,
-          key: this.apiKey,
+          format: 'json',
+          limit: 1,
         },
+        headers: { 'User-Agent': this.userAgent },
       }
     );
 
-    const { results } = response.data;
+    const results = response.data;
 
-    if (results.length > 0) {
-      const { lat, lng } = results[0].geometry;
-      return { lat, lng };
+    if (results && results.length > 0) {
+      const { lat, lon } = results[0];
+      return { lat: parseFloat(lat), lng: parseFloat(lon) };
     }
 
-    throw new Error('No results found for the given city and country.');
+    throw new Error('No results found for the given query.');
   }
 }
 

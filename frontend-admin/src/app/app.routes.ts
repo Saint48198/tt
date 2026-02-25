@@ -1,5 +1,6 @@
 import { Route } from '@angular/router';
 import { adminGuard } from '@shared/services';
+import { unsavedChangesGuard } from './guards/unsaved-changes.guard';
 
 export const appRoutes: Route[] = [
   {
@@ -30,12 +31,14 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./pages/country-edit/country-edit.component').then((m) => m.CountryEditComponent),
     canActivate: [adminGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'countries/:id',
     loadComponent: () =>
       import('./pages/country-edit/country-edit.component').then((m) => m.CountryEditComponent),
     canActivate: [adminGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'states',
@@ -48,12 +51,14 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./pages/state-edit/state-edit.component').then((m) => m.StateEditComponent),
     canActivate: [adminGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'states/:id',
     loadComponent: () =>
       import('./pages/state-edit/state-edit.component').then((m) => m.StateEditComponent),
     canActivate: [adminGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'cities',
@@ -66,12 +71,14 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./pages/city-edit/city-edit.component').then((m) => m.CityEditComponent),
     canActivate: [adminGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'cities/:id',
     loadComponent: () =>
       import('./pages/city-edit/city-edit.component').then((m) => m.CityEditComponent),
     canActivate: [adminGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'attractions',
@@ -108,12 +115,14 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./pages/trip-create/trip-create.component').then((m) => m.TripCreateComponent),
     canActivate: [adminGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: 'trips/:id',
     loadComponent: () =>
       import('./pages/trip-edit/trip-edit.component').then((m) => m.TripEditComponent),
     canActivate: [adminGuard],
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: '**',

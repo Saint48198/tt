@@ -65,13 +65,25 @@ class TripService {
   }
 
   /**
+   * Sort plan items by startDate (earliest first)
+   */
+  private sortPlanItems(items: PlanItem[]): PlanItem[] {
+    return [...items].sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : Infinity;
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : Infinity;
+      return dateA - dateB;
+    });
+  }
+
+  /**
    * Create a new trip
    */
   public async createTrip(data: CreateTripData): Promise<{ id: number }> {
     const { name, notes, plan } = data;
+    const sortedPlan = this.sortPlanItems(plan || []);
     const result = await db.run(
       'INSERT INTO trips (name, notes, plan) VALUES ($1, $2, $3) RETURNING id',
-      [name, notes || null, JSON.stringify(plan || [])]
+      [name, notes || null, JSON.stringify(sortedPlan)]
     );
     return { id: result.rows[0].id };
   }
@@ -84,9 +96,10 @@ class TripService {
     data: UpdateTripData
   ): Promise<{ success: boolean; changes: number }> {
     const { name, notes, plan } = data;
+    const sortedPlan = this.sortPlanItems(plan || []);
     const result = await db.run(
       'UPDATE trips SET name = $1, notes = $2, plan = $3, updated_date = NOW() WHERE id = $4',
-      [name, notes || null, JSON.stringify(plan || []), id]
+      [name, notes || null, JSON.stringify(sortedPlan), id]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }

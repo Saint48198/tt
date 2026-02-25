@@ -630,6 +630,21 @@
         <mat-label>Country name</mat-label>
         <input matInput [value]="newCountryName()" (input)="newCountryName.set($any($event.target).value)" placeholder="e.g. Iceland" />
       </mat-form-field>
+      <mat-form-field appearance="outline" class="inline-add-coord">
+        <mat-label>Lat</mat-label>
+        <input matInput type="number" [value]="newCountryLat()" (input)="newCountryLat.set(+$any($event.target).value || null)" placeholder="0" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="inline-add-coord">
+        <mat-label>Lng</mat-label>
+        <input matInput type="number" [value]="newCountryLng()" (input)="newCountryLng.set(+$any($event.target).value || null)" placeholder="0" />
+      </mat-form-field>
+      <button mat-stroked-button class="lookup-btn" (click)="lookupCountryCoords()" [disabled]="geocodingCountry() || !newCountryName().trim()" matTooltip="Lookup coordinates">
+        @if (geocodingCountry()) {
+          <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+        } @else {
+          <mat-icon>my_location</mat-icon>
+        }
+      </button>
       <button mat-stroked-button (click)="cancelAddCountry()" [disabled]="savingCountry()">Cancel</button>
       <button mat-raised-button color="primary" (click)="confirmAddCountry(fieldKey)" [disabled]="savingCountry() || !newCountryName().trim()">
         @if (savingCountry()) {
@@ -658,6 +673,23 @@
           }
         </mat-select>
       </mat-form-field>
+    </div>
+    <div class="inline-add-row">
+      <mat-form-field appearance="outline" class="inline-add-coord">
+        <mat-label>Lat</mat-label>
+        <input matInput type="number" [value]="newCityLat()" (input)="newCityLat.set(+$any($event.target).value || null)" placeholder="0" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="inline-add-coord">
+        <mat-label>Lng</mat-label>
+        <input matInput type="number" [value]="newCityLng()" (input)="newCityLng.set(+$any($event.target).value || null)" placeholder="0" />
+      </mat-form-field>
+      <button mat-stroked-button class="lookup-btn" (click)="lookupCityCoords()" [disabled]="geocodingCity() || !newCityName().trim()" matTooltip="Lookup coordinates">
+        @if (geocodingCity()) {
+          <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+        } @else {
+          <mat-icon>my_location</mat-icon>
+        }
+      </button>
       <button mat-stroked-button (click)="cancelAddCity()" [disabled]="savingCity()">Cancel</button>
       <button mat-raised-button color="primary" (click)="confirmAddCity(fieldKey)" [disabled]="savingCity() || !newCityName().trim() || !newCityCountryId()">
         @if (savingCity()) {

@@ -8,12 +8,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { UsersService } from '../../services/users.service';
 import { User } from '../../interfaces';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-users-list',
@@ -39,6 +40,7 @@ import { User } from '../../interfaces';
 export class UsersListComponent implements OnInit, AfterViewInit {
   private readonly usersService = inject(UsersService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   displayedColumns: string[] = ['username', 'email', 'roles', 'actions'];
   dataSource = new MatTableDataSource<User>([]);
@@ -117,7 +119,20 @@ export class UsersListComponent implements OnInit, AfterViewInit {
   }
 
   deleteUser(user: User): void {
-    if (confirm(`Are you sure you want to delete "${user.username}"?`)) {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete User',
+        message: `Are you sure you want to delete "${user.username}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        icon: 'delete',
+        color: 'warn',
+      },
+      width: '420px',
+      autoFocus: false,
+      panelClass: 'confirm-dialog-panel',
+    }).afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
       this.usersService.deleteUser(user.id).subscribe({
         next: () => {
           this.snackBar.open('User deleted successfully', 'Close', {
@@ -133,7 +148,7 @@ export class UsersListComponent implements OnInit, AfterViewInit {
           );
         },
       });
-    }
+    });
   }
 
   getRolesArray(roles: string | string[] | undefined): string[] {

@@ -13,8 +13,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CitiesService } from '../../services/cities.service';
 import { City } from '../../interfaces';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-cities-list',
@@ -34,6 +36,7 @@ import { City } from '../../interfaces';
     MatFormFieldModule,
     MatInputModule,
     MatSlideToggleModule,
+    MatDialogModule,
   ],
   templateUrl: './cities-list.component.html',
   styleUrl: './cities-list.component.scss',
@@ -41,6 +44,7 @@ import { City } from '../../interfaces';
 export class CitiesListComponent implements OnInit, AfterViewInit {
   private readonly citiesService = inject(CitiesService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   displayedColumns: string[] = ['name', 'country_name', 'state_name', 'lat', 'lng', 'last_visited', 'actions'];
@@ -143,7 +147,20 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
   }
 
   deleteCity(city: City): void {
-    if (confirm(`Are you sure you want to delete "${city.name}"?`)) {
+    this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete City',
+        message: `Are you sure you want to delete "${city.name}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        icon: 'delete',
+        color: 'warn',
+      },
+      width: '420px',
+      autoFocus: false,
+      panelClass: 'confirm-dialog-panel',
+    }).afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
       this.citiesService.deleteCity(city.id).subscribe({
         next: () => {
           this.snackBar.open('City deleted successfully', 'Close', {
@@ -159,7 +176,7 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
           );
         },
       });
-    }
+    });
   }
 }
 
