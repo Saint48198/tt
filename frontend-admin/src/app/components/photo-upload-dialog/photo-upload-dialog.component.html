@@ -84,8 +84,10 @@
       <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
       Uploading...
     } @else {
-      <mat-icon>cloud_upload</mat-icon>
-      Upload {{ files().length > 1 ? files().length + ' Photos' : 'Photo' }}
+      <span class="btn-content">
+        <mat-icon>cloud_upload</mat-icon>
+        Upload {{ files().length > 1 ? files().length + ' Photos' : 'Photo' }}
+      </span>
     }
   </button>
 </mat-dialog-actions>

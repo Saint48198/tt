@@ -19,6 +19,11 @@ export class App implements OnInit {
 
   currentUser$ = this.authService.currentUser$;
 
+  footerLinks = [
+    { label: 'About', path: '/about' },
+    { label: 'Contact', path: '/contact' },
+  ];
+
   /** True when on a full-screen map page (home or user profile) */
   isLandingPage$ = this.router.events.pipe(
     filter((e) => e instanceof NavigationEnd),

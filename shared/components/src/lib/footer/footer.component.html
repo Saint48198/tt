@@ -1,11 +1,10 @@
 <footer class="footer">
   <div class="footer-content">
-    @if (showLinks) {
+    @if (showLinks && links.length > 0) {
       <div class="footer-links">
-        <a routerLink="/about">About</a>
-        <a routerLink="/privacy">Privacy</a>
-        <a routerLink="/terms">Terms</a>
-        <a routerLink="/contact">Contact</a>
+        @for (link of links; track link.path) {
+          <a [routerLink]="link.path">{{ link.label }}</a>
+        }
       </div>
     }
 

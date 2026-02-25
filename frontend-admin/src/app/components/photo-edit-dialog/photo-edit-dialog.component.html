@@ -246,8 +246,10 @@
       @if (saving()) {
         <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
       } @else {
-        <mat-icon>save</mat-icon>
-        Save Changes
+        <span class="btn-content">
+          <mat-icon>save</mat-icon>
+          Save Changes
+        </span>
       }
     </button>
   </mat-dialog-actions>

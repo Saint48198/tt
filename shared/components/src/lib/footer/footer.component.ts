@@ -11,6 +11,12 @@ import { RouterModule } from '@angular/router';
 })
 export class FooterComponent {
   @Input() showLinks = true;
+  @Input() links: { label: string; path: string }[] = [
+    { label: 'About', path: '/about' },
+    { label: 'Privacy', path: '/privacy' },
+    { label: 'Terms', path: '/terms' },
+    { label: 'Contact', path: '/contact' },
+  ];
 
   currentYear = new Date().getFullYear();
 }

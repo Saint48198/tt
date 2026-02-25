@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectorRef, HostListener, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -12,6 +12,7 @@ import {
   ExploreAttraction,
   WikipediaContent,
 } from '../../services/explore.service';
+import { PhotoService, EntityPhoto } from '../../services/photo.service';
 
 type ExploreLevel = 'countries' | 'states' | 'cities' | 'city' | 'attractions' | 'attraction';
 
@@ -27,13 +28,21 @@ interface BreadcrumbItem {
   templateUrl: './explore.component.html',
   styleUrl: './explore.component.scss',
 })
-export class ExploreComponent implements OnInit, OnDestroy {
+export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
+  @ViewChild('lightboxDialog') lightboxDialogRef?: ElementRef<HTMLElement>;
+
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
   private exploreService = inject(ExploreService);
+  private photoService = inject(PhotoService);
   private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
+
+  /** Element that triggered lightbox open — restored on close */
+  private lightboxTriggerEl: HTMLElement | null = null;
+  /** Whether the lightbox needs initial focus after rendering */
+  private lightboxNeedsFocus = false;
 
   username = signal<string>('');
   level = signal<ExploreLevel>('countries');
@@ -45,6 +54,12 @@ export class ExploreComponent implements OnInit, OnDestroy {
   selectedAttraction = signal<ExploreAttraction | null>(null);
   wikiContent = signal<WikipediaContent | null>(null);
   wikiLoading = signal(false);
+
+  // Photos
+  photos = signal<EntityPhoto[]>([]);
+  photosLoading = signal(false);
+  lightboxOpen = signal(false);
+  lightboxIndex = signal(0);
 
   countries = signal<ExploreCountry[]>([]);
   states = signal<ExploreState[]>([]);
@@ -448,6 +463,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
 
   private loadCityDetail(city: ExploreCity): void {
     this.wikiContent.set(null);
+    this.photos.set([]);
     this.exploreService
       .getCityById(city.id)
       .pipe(takeUntil(this.destroy$))
@@ -457,12 +473,14 @@ export class ExploreComponent implements OnInit, OnDestroy {
           this.level.set('city');
           this.loading.set(false);
           this.loadWikiContent(fullCity.wiki_term || fullCity.name);
+          this.loadPhotosForCity(fullCity.id);
         },
         error: () => {
           this.selectedCity.set(city);
           this.level.set('city');
           this.loading.set(false);
           this.loadWikiContent(city.wiki_term || city.name);
+          this.loadPhotosForCity(city.id);
         },
       });
   }
@@ -506,6 +524,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
 
   private loadAttractionDetail(attraction: ExploreAttraction): void {
     this.wikiContent.set(null);
+    this.photos.set([]);
     this.exploreService
       .getAttractionById(attraction.id)
       .pipe(takeUntil(this.destroy$))
@@ -517,6 +536,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
           if (full.wiki_term) {
             this.loadWikiContent(full.wiki_term);
           }
+          this.loadPhotosForAttraction(full.id);
         },
         error: () => {
           this.selectedAttraction.set(attraction);
@@ -525,6 +545,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
           if (attraction.wiki_term) {
             this.loadWikiContent(attraction.wiki_term);
           }
+          this.loadPhotosForAttraction(attraction.id);
         },
       });
   }
@@ -632,6 +653,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
     // Load full city details
     this.loading.set(true);
     this.wikiContent.set(null);
+    this.photos.set([]);
     this.exploreService
       .getCityById(city.id)
       .pipe(takeUntil(this.destroy$))
@@ -641,6 +663,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
           this.level.set('city');
           this.loading.set(false);
           this.loadWikiContent(fullCity.wiki_term || fullCity.name);
+          this.loadPhotosForCity(fullCity.id);
         },
         error: () => {
           // Fallback: use the city data we already have
@@ -648,6 +671,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
           this.level.set('city');
           this.loading.set(false);
           this.loadWikiContent(city.wiki_term || city.name);
+          this.loadPhotosForCity(city.id);
         },
       });
   }
@@ -661,6 +685,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
 
     this.loading.set(true);
     this.wikiContent.set(null);
+    this.photos.set([]);
     this.exploreService
       .getAttractionById(attraction.id)
       .pipe(takeUntil(this.destroy$))
@@ -672,6 +697,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
           if (full.wiki_term) {
             this.loadWikiContent(full.wiki_term);
           }
+          this.loadPhotosForAttraction(full.id);
         },
         error: () => {
           this.selectedAttraction.set(attraction);
@@ -680,6 +706,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
           if (attraction.wiki_term) {
             this.loadWikiContent(attraction.wiki_term);
           }
+          this.loadPhotosForAttraction(attraction.id);
         },
       });
   }
@@ -781,6 +808,136 @@ export class ExploreComponent implements OnInit, OnDestroy {
         },
         error: () => this.loading.set(false),
       });
+  }
+
+  // --- Photo Loading ---
+
+  private loadPhotosForCity(cityId: number): void {
+    this.photosLoading.set(true);
+    this.photoService
+      .getCityPhotos(cityId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (photos) => {
+          this.photos.set(photos);
+          this.photosLoading.set(false);
+        },
+        error: () => this.photosLoading.set(false),
+      });
+  }
+
+  private loadPhotosForAttraction(attractionId: number): void {
+    this.photosLoading.set(true);
+    this.photoService
+      .getAttractionPhotos(attractionId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (photos) => {
+          this.photos.set(photos);
+          this.photosLoading.set(false);
+        },
+        error: () => this.photosLoading.set(false),
+      });
+  }
+
+  // --- Lightbox ---
+
+  ngAfterViewChecked(): void {
+    // Auto-focus the lightbox dialog once it renders
+    if (this.lightboxNeedsFocus && this.lightboxDialogRef) {
+      this.lightboxDialogRef.nativeElement.focus();
+      this.lightboxNeedsFocus = false;
+    }
+  }
+
+  openLightbox(index: number): void {
+    this.lightboxTriggerEl = document.activeElement as HTMLElement | null;
+    this.lightboxIndex.set(index);
+    this.lightboxOpen.set(true);
+    this.lightboxNeedsFocus = true;
+  }
+
+  closeLightbox(): void {
+    this.lightboxOpen.set(false);
+    // Restore focus to the element that opened the lightbox
+    if (this.lightboxTriggerEl) {
+      setTimeout(() => this.lightboxTriggerEl?.focus());
+      this.lightboxTriggerEl = null;
+    }
+  }
+
+  lightboxPrev(): void {
+    const total = this.photos().length;
+    if (total === 0) return;
+    this.lightboxIndex.set((this.lightboxIndex() - 1 + total) % total);
+  }
+
+  lightboxNext(): void {
+    const total = this.photos().length;
+    if (total === 0) return;
+    this.lightboxIndex.set((this.lightboxIndex() + 1) % total);
+  }
+
+  onLightboxKeydown(event: KeyboardEvent): void {
+    switch (event.key) {
+      case 'Escape':
+        this.closeLightbox();
+        event.preventDefault();
+        break;
+      case 'ArrowLeft':
+        this.lightboxPrev();
+        event.preventDefault();
+        break;
+      case 'ArrowRight':
+        this.lightboxNext();
+        event.preventDefault();
+        break;
+      case 'Home':
+        this.lightboxIndex.set(0);
+        event.preventDefault();
+        break;
+      case 'End':
+        this.lightboxIndex.set(Math.max(0, this.photos().length - 1));
+        event.preventDefault();
+        break;
+      case 'Tab':
+        // Trap focus within the lightbox
+        this.trapFocus(event);
+        break;
+    }
+  }
+
+  /** Keep Tab / Shift+Tab cycling within the lightbox dialog */
+  private trapFocus(event: KeyboardEvent): void {
+    const dialog = this.lightboxDialogRef?.nativeElement;
+    if (!dialog) return;
+
+    const focusable = dialog.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey) {
+      if (document.activeElement === first || document.activeElement === dialog) {
+        last.focus();
+        event.preventDefault();
+      }
+    } else {
+      if (document.activeElement === last) {
+        first.focus();
+        event.preventDefault();
+      }
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent): void {
+    if (this.lightboxOpen()) {
+      this.onLightboxKeydown(event);
+    }
   }
 
   formatDate(dateStr?: string): string {

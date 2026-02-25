@@ -243,4 +243,10 @@ mat-dialog-actions {
     display: inline-flex;
     margin-right: 4px;
   }
+
+  .btn-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
 }
