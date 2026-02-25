@@ -68,7 +68,7 @@ export class App implements OnInit {
   }
 
   /** Routes that use standard (non-landing) layout even though they are single-segment */
-  private static readonly STATIC_ROUTES = new Set(['/about', '/contact']);
+  private static readonly STATIC_ROUTES = new Set(['/about', '/contact', '/login']);
 
   private isMapRoute(url: string): boolean {
     // Root "/" or single-segment "/:username" paths use the full-screen map layout
