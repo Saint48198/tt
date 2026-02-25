@@ -1,0 +1,71 @@
+<div class="trip-detail-page">
+  <!-- Back button -->
+  <button class="back-btn" (click)="goBack()">← Back to Trips</button>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading trip...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-state">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error() }}</p>
+      <button class="retry-btn" (click)="goBack()">Back to Trips</button>
+    </div>
+  }
+
+  <!-- Trip Content -->
+  @if (!loading() && !error() && trip()) {
+    <div class="trip-header">
+      <h1>{{ trip()!.name }}</h1>
+      @if (dateRange()) {
+        <p class="trip-date-range">📅 {{ dateRange() }}</p>
+      }
+    </div>
+
+    @if (trip()!.notes) {
+      <div class="trip-notes-card">
+        <h3>📝 Notes</h3>
+        <p>{{ trip()!.notes }}</p>
+      </div>
+    }
+
+    <!-- Itinerary -->
+    @if (sortedPlan().length > 0) {
+      <section class="itinerary-section">
+        <h2>🗓️ Itinerary</h2>
+
+        @for (group of groupedPlan(); track group.date) {
+          <div class="day-group">
+            <div class="day-label">{{ group.date }}</div>
+            <div class="day-items">
+              @for (item of group.items; track item.id) {
+                <div class="plan-item">
+                  <span class="plan-icon">{{ getIcon(item.type) }}</span>
+                  <div class="plan-content">
+                    <span class="plan-type">{{ getLabel(item.type) }}</span>
+                    <span class="plan-summary">{{ getItemSummary(item) }}</span>
+                    @if (getItemDateRange(item)) {
+                      <span class="plan-time">{{ getItemDateRange(item) }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </section>
+    } @else {
+      <div class="empty-itinerary">
+        <span class="empty-icon">📋</span>
+        <p>No itinerary items for this trip.</p>
+      </div>
+    }
+  }
+</div>
+

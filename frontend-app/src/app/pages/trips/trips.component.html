@@ -1,0 +1,67 @@
+<div class="trips-page">
+  <div class="page-header">
+    <h1>🧳 My Trips</h1>
+    @if (!loading() && tripCount() > 0) {
+      <span class="trip-count">{{ tripCount() }} {{ tripCount() === 1 ? 'trip' : 'trips' }}</span>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading trips...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-state">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error() }}</p>
+      <button class="retry-btn" (click)="loadTrips()">Try Again</button>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading() && !error() && tripCount() === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">🗺️</span>
+      <h2>No trips yet</h2>
+      <p>Your upcoming and past trips will appear here.</p>
+    </div>
+  }
+
+  <!-- Trip Cards -->
+  @if (!loading() && !error() && tripCount() > 0) {
+    <div class="trip-grid">
+      @for (trip of trips(); track trip.id) {
+        <button class="trip-card" (click)="onTripClick(trip)">
+          <div class="trip-card-header">
+            <h2 class="trip-name">{{ trip.name }}</h2>
+            <span class="trip-date-range">{{ getDateRange(trip) }}</span>
+          </div>
+
+          @if (trip.notes) {
+            <p class="trip-notes">{{ trip.notes.length > 120 ? (trip.notes | slice:0:120) + '...' : trip.notes }}</p>
+          }
+
+          <div class="trip-card-footer">
+            <div class="plan-badges">
+              @for (pt of getPlanTypes(trip); track pt.type) {
+                <span class="plan-badge" [title]="pt.type">
+                  {{ pt.icon }} {{ pt.count }}
+                </span>
+              }
+              @if (getPlanTypes(trip).length === 0) {
+                <span class="plan-badge empty">No itinerary</span>
+              }
+            </div>
+            <span class="view-link">View →</span>
+          </div>
+        </button>
+      }
+    </div>
+  }
+</div>
+

@@ -39,6 +39,17 @@ export const appRoutes: Route[] = [
     ],
   },
   {
+    path: ':username/trips',
+    pathMatch: 'full',
+    loadComponent: () =>
+      import('./pages/trips/trips.component').then((m) => m.TripsComponent)
+  },
+  {
+    path: ':username/trips/:id',
+    loadComponent: () =>
+      import('./pages/trip-detail/trip-detail.component').then((m) => m.TripDetailComponent)
+  },
+  {
     path: ':username',
     pathMatch: 'full',
     loadComponent: () =>
