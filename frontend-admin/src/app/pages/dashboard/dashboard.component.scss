@@ -20,7 +20,9 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
   .logo {
-    font-size: 1.5rem;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
   }
 
   .logo-text {
@@ -53,6 +55,9 @@
 
     .nav-icon {
       font-size: 1.125rem;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
     }
 
     &:hover {
@@ -210,6 +215,9 @@
 
   .stat-icon {
     font-size: 2.5rem;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
   }
 
   .stat-info {

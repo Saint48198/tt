@@ -1,7 +1,10 @@
 <div class="admin-layout">
   <aside class="sidebar">
     <div class="sidebar-header">
-      <span class="logo">🌍</span>
+      <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
+        <circle cx="16" cy="16" r="16" fill="#fff"/>
+        <path d="M16 7l7 4v6c0 4.42-2.98 8.55-7 9.6C11.98 25.55 9 21.42 9 17v-6l7-4zm0 3.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm-5 8.5c0 1.66 2.24 3 5 3s5-1.34 5-3c0-1.1-1.17-2.07-2.93-2.6a4.97 4.97 0 0 1-4.14 0C10.17 16.93 11 17.9 11 19z" fill="#1e3a5f"/>
+      </svg>
       <span class="logo-text">Trip Tracker</span>
       <span class="admin-badge">Admin</span>
     </div>
@@ -16,7 +19,10 @@
         <span>Countries</span>
       </a>
       <a routerLink="/states" routerLinkActive="active" class="nav-item">
-        <span class="nav-icon">🏛️</span>
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
+          <circle cx="16" cy="16" r="16" fill="#667eea"/>
+          <path d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z" fill="#fff"/>
+        </svg>
         <span>States</span>
       </a>
       <a routerLink="/cities" routerLinkActive="active" class="nav-item">
@@ -78,7 +84,10 @@
           </div>
 
           <div class="stat-card" routerLink="/states">
-            <div class="stat-icon">🏛️</div>
+            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="40" height="40">
+              <circle cx="16" cy="16" r="16" fill="#667eea"/>
+              <path d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z" fill="#fff"/>
+            </svg>
             <div class="stat-info">
               <span class="stat-value">{{ stats().totalStates }}</span>
               <span class="stat-label">States</span>

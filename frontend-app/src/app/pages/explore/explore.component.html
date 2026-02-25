@@ -65,7 +65,13 @@
                 <span class="card-badge">{{ country.abbreviation }}</span>
               }
               @if (country.last_visited) {
-                <p class="card-meta">📅 {{ formatDate(country.last_visited) }}</p>
+                <p class="card-meta">
+                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14" height="14">
+                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
+                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  </svg>
+                  {{ formatDate(country.last_visited) }}
+                </p>
               }
             </div>
             <span class="card-arrow">›</span>
@@ -83,14 +89,25 @@
       <div class="card-grid">
         @for (state of states(); track state.id) {
           <button class="explore-card" (click)="onStateClick(state)">
-            <div class="card-icon">🏛️</div>
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
+                <circle cx="16" cy="16" r="16" fill="#667eea"/>
+                <path d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z" fill="#fff"/>
+              </svg>
+            </div>
             <div class="card-content">
               <h3>{{ state.name }}</h3>
               @if (state.abbr) {
                 <span class="card-badge">{{ state.abbr }}</span>
               }
               @if (state.last_visited) {
-                <p class="card-meta">📅 {{ formatDate(state.last_visited) }}</p>
+                <p class="card-meta">
+                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14" height="14">
+                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
+                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  </svg>
+                  {{ formatDate(state.last_visited) }}
+                </p>
               }
             </div>
             <span class="card-arrow">›</span>
@@ -115,7 +132,13 @@
                 <p class="card-sub">{{ city.state_name }}</p>
               }
               @if (city.last_visited) {
-                <p class="card-meta">📅 {{ formatDate(city.last_visited) }}</p>
+                <p class="card-meta">
+                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14" height="14">
+                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
+                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  </svg>
+                  {{ formatDate(city.last_visited) }}
+                </p>
               }
             </div>
             <span class="card-arrow">›</span>
@@ -135,7 +158,10 @@
           <button class="explore-card" (click)="onAttractionClick(attraction)">
             <div class="card-icon">
               @if (attraction.is_unesco) {
-                🏛️
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
+                  <circle cx="16" cy="16" r="16" fill="#667eea"/>
+                  <path d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z" fill="#fff"/>
+                </svg>
               } @else if (attraction.is_national_park) {
                 🌲
               } @else {
@@ -153,7 +179,13 @@
                 }
               </div>
               @if (attraction.last_visited) {
-                <p class="card-meta">📅 {{ formatDate(attraction.last_visited) }}</p>
+                <p class="card-meta">
+                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14" height="14">
+                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
+                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  </svg>
+                  {{ formatDate(attraction.last_visited) }}
+                </p>
               }
             </div>
             <span class="card-arrow">›</span>
@@ -208,7 +240,12 @@
 
             @if (c.last_visited) {
               <div class="detail-card">
-                <span class="detail-icon">📅</span>
+                <span class="detail-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
+                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
+                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  </svg>
+                </span>
                 <div class="detail-info">
                   <span class="detail-label">Last Visited</span>
                   <span class="detail-value">{{ formatDate(c.last_visited) }}</span>
@@ -228,7 +265,12 @@
 
             @if (c.state_name) {
               <div class="detail-card">
-                <span class="detail-icon">🏛️</span>
+                <span class="detail-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
+                    <circle cx="16" cy="16" r="16" fill="#667eea"/>
+                    <path d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z" fill="#fff"/>
+                  </svg>
+                </span>
                 <div class="detail-info">
                   <span class="detail-label">State / Province</span>
                   <span class="detail-value">{{ c.state_name }}</span>
@@ -357,7 +399,12 @@
 
             @if (a.last_visited) {
               <div class="detail-card">
-                <span class="detail-icon">📅</span>
+                <span class="detail-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
+                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
+                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  </svg>
+                </span>
                 <div class="detail-info">
                   <span class="detail-label">Last Visited</span>
                   <span class="detail-value">{{ formatDate(a.last_visited) }}</span>
@@ -377,7 +424,12 @@
 
             @if (a.is_unesco) {
               <div class="detail-card">
-                <span class="detail-icon">🏛️</span>
+                <span class="detail-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
+                    <circle cx="16" cy="16" r="16" fill="#667eea"/>
+                    <path d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z" fill="#fff"/>
+                  </svg>
+                </span>
                 <div class="detail-info">
                   <span class="detail-label">UNESCO Site</span>
                   <span class="detail-value">World Heritage Site</span>
