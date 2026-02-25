@@ -62,9 +62,15 @@ export class App implements OnInit {
     }
   }
 
+  /** Routes that use standard (non-landing) layout even though they are single-segment */
+  private static readonly STATIC_ROUTES = new Set(['/about', '/contact']);
+
   private isMapRoute(url: string): boolean {
     // Root "/" or single-segment "/:username" paths use the full-screen map layout
     // Multi-segment paths like "/:username/explore" use the standard layout
+    // Known static routes (e.g. /about) are excluded so the header doesn't overlay content
+    const basePath = url.split('?')[0];
+    if (App.STATIC_ROUTES.has(basePath)) return false;
     return url === '/' || /^\/[^/]+$/.test(url);
   }
 }
