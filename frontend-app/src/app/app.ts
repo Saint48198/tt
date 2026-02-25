@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HeaderComponent, FooterComponent } from '@shared/components';
 import { AuthService } from '@shared/services';
 import { filter, map, startWith } from 'rxjs';
+import { PageViewService } from './services/page-view.service';
 
 @Component({
   standalone: true,
@@ -16,6 +17,7 @@ export class App implements OnInit {
   protected title = 'Trip Tracker';
   private authService = inject(AuthService);
   private router = inject(Router);
+  private pageViewService = inject(PageViewService);
 
   currentUser$ = this.authService.currentUser$;
 
@@ -44,6 +46,9 @@ export class App implements OnInit {
   );
 
   ngOnInit(): void {
+    // Start page-view usage tracking
+    this.pageViewService.init();
+
     // Redirect / to /:username whenever a signed-in user lands on root
     this.router.events
       .pipe(filter((e) => e instanceof NavigationEnd))

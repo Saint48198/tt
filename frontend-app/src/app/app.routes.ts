@@ -13,6 +13,11 @@ export const appRoutes: Route[] = [
       import('./pages/about/about.component').then((m) => m.AboutComponent)
   },
   {
+    path: 'contact',
+    loadComponent: () =>
+      import('./pages/contact/contact.component').then((m) => m.ContactComponent)
+  },
+  {
     path: ':username/explore',
     children: [
       {
