@@ -85,6 +85,8 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
       username: ['', [Validators.required, Validators.maxLength(255)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
       password: [''],
+      instagram: ['', [Validators.maxLength(255)]],
+      portfolio_url: ['', [Validators.maxLength(1000)]],
     });
 
     this.passwordForm = this.fb.group({
@@ -102,6 +104,8 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
         this.form.patchValue({
           username: user.username,
           email: user.email,
+          instagram: user.instagram || '',
+          portfolio_url: user.portfolio_url || '',
         });
         this.profileIconPreview.set(user.profile_icon || null);
         // Remove password validator in edit mode
@@ -131,8 +135,10 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     const formValue = this.form.value;
 
     if (this.isEditMode() && this.userId) {
-      const payload: { email?: string } = {};
+      const payload: { email?: string; instagram?: string | null; portfolio_url?: string | null } = {};
       if (formValue.email) payload.email = formValue.email;
+      payload.instagram = formValue.instagram?.trim() || null;
+      payload.portfolio_url = formValue.portfolio_url?.trim() || null;
 
       this.usersService.updateUser(this.userId, payload).subscribe({
         next: () => {

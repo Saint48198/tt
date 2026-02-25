@@ -5,6 +5,8 @@ interface User {
   id: number; username: string; email: string;
   google_access_token?: string; google_refresh_token?: string; google_token_expiry?: number;
   profile_icon?: string;
+  instagram?: string;
+  portfolio_url?: string;
   roles?: string;
 }
 
@@ -35,7 +37,7 @@ class UserService {
 
     const baseSelect = `
       SELECT u.id, u.username, u.email, u.google_access_token, u.google_refresh_token, u.google_token_expiry,
-             u.profile_icon, STRING_AGG(r.name, ',') as roles
+             u.profile_icon, u.instagram, u.portfolio_url, STRING_AGG(r.name, ',') as roles
       FROM users u
       LEFT JOIN user_roles ur ON u.id = ur.user_id
       LEFT JOIN roles r ON ur.role_id = r.id
@@ -63,7 +65,7 @@ class UserService {
   public async getUserById(id: number | string): Promise<User | undefined> {
     return db.get<User>(
       `SELECT u.id, u.username, u.email, u.google_access_token, u.google_refresh_token, u.google_token_expiry,
-              u.profile_icon, STRING_AGG(r.name, ',') as roles
+              u.profile_icon, u.instagram, u.portfolio_url, STRING_AGG(r.name, ',') as roles
        FROM users u
        LEFT JOIN user_roles ur ON u.id = ur.user_id
        LEFT JOIN roles r ON ur.role_id = r.id
@@ -76,13 +78,13 @@ class UserService {
   /**
    * Update a user
    */
-  public async updateUser(id: number | string, updates: { username?: string; email?: string; passwordHash?: string; profile_icon?: string | null }): Promise<{ success: boolean; changes: number }> {
+  public async updateUser(id: number | string, updates: { username?: string; email?: string; passwordHash?: string; profile_icon?: string | null; instagram?: string | null; portfolio_url?: string | null }): Promise<{ success: boolean; changes: number }> {
     const { username, email, passwordHash } = updates;
     const hasProfileIcon = 'profile_icon' in updates;
     const profileIconValue = hasProfileIcon ? (updates.profile_icon || null) : undefined;
     const result = await db.run(
-      `UPDATE users SET username = COALESCE($1, username), email = COALESCE($2, email), password_hash = COALESCE($3, password_hash), profile_icon = CASE WHEN $4::boolean THEN $5 ELSE profile_icon END WHERE id = $6`,
-      [username, email, passwordHash, hasProfileIcon, profileIconValue, id]
+      `UPDATE users SET username = COALESCE($1, username), email = COALESCE($2, email), password_hash = COALESCE($3, password_hash), profile_icon = CASE WHEN $4::boolean THEN $5 ELSE profile_icon END, instagram = COALESCE($6, instagram), portfolio_url = COALESCE($7, portfolio_url) WHERE id = $8`,
+      [username, email, passwordHash, hasProfileIcon, profileIconValue, updates.instagram, updates.portfolio_url, id]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }

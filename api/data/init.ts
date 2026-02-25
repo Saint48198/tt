@@ -102,6 +102,8 @@ async function init() {
         google_refresh_token TEXT,
         google_token_expiry TIMESTAMP,
         profile_icon TEXT,
+        instagram TEXT,
+        portfolio_url TEXT,
         created_date TIMESTAMP DEFAULT NOW(),
         updated_date TIMESTAMP DEFAULT NOW(),
         disabled_date TIMESTAMP

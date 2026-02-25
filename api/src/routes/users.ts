@@ -74,14 +74,14 @@ router.get('/api/users/:id', async (req: Request, res: Response) => {
 // PUT /api/users/:id
 router.put('/api/users/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { email, passwordHash, profile_icon } = req.body;
+  const { email, passwordHash, profile_icon, instagram, portfolio_url } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: 'User ID is required' });
   }
 
   try {
-    const result = await userService.updateUser(id, { email, passwordHash, profile_icon });
+    const result = await userService.updateUser(id, { email, passwordHash, profile_icon, instagram, portfolio_url });
 
     if (!result.success) {
       return res

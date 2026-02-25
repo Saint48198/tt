@@ -42,6 +42,28 @@
               }
             </mat-form-field>
           </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Instagram</mat-label>
+              <span matPrefix class="instagram-prefix">@&nbsp;</span>
+              <input matInput formControlName="instagram" placeholder="username" />
+              @if (form.get('instagram')?.hasError('maxlength')) {
+                <mat-error>Instagram handle must be 255 characters or less</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Portfolio URL</mat-label>
+              <mat-icon matPrefix class="field-prefix-icon">link</mat-icon>
+              <input matInput formControlName="portfolio_url" placeholder="https://yoursite.com" type="url" />
+              @if (form.get('portfolio_url')?.hasError('maxlength')) {
+                <mat-error>URL must be 1000 characters or less</mat-error>
+              }
+            </mat-form-field>
+          </div>
         </div>
 
         <div class="profile-icon-section">

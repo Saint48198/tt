@@ -6,6 +6,8 @@ export interface User {
   google_refresh_token?: string | null;
   google_token_expiry?: string | null;
   profile_icon?: string | null;
+  instagram?: string | null;
+  portfolio_url?: string | null;
   roles?: string | string[];
   created_date?: string;
   updated_date?: string;
@@ -39,6 +41,8 @@ export interface UpdateUserRequest {
   username?: string;
   email?: string;
   profile_icon?: string | null;
+  instagram?: string | null;
+  portfolio_url?: string | null;
 }
 
 export interface UserResponse {

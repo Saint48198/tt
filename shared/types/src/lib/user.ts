@@ -9,6 +9,8 @@ export interface User {
   google_refresh_token?: string | null;
   google_token_expiry?: string | null;
   profile_icon?: string | null;
+  instagram?: string | null;
+  portfolio_url?: string | null;
   roles?: JwtRole[] | undefined;
 }
 
