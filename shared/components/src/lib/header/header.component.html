@@ -48,10 +48,12 @@
                   <span class="item-icon">👤</span>
                   <span>Profile</span>
                 </a>
-                <a routerLink="/settings" class="menu-item">
-                  <span class="item-icon">⚙️</span>
-                  <span>Settings</span>
-                </a>
+                @if (adminUrl && user.roles.includes('admin')) {
+                  <a [href]="adminUrl" class="menu-item admin-link">
+                    <span class="item-icon">🛠️</span>
+                    <span>Admin Panel</span>
+                  </a>
+                }
               </div>
 
               <div class="menu-divider"></div>

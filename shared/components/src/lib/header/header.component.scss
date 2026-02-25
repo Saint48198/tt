@@ -143,6 +143,7 @@
   min-width: 220px;
   z-index: 1000;
   animation: slideDown 0.2s ease-out;
+  overflow: hidden;
 }
 
 @keyframes slideDown {
@@ -225,6 +226,15 @@
   &:hover {
     background: #f3f4f6;
     color: #667eea;
+  }
+
+  &.admin-link {
+    color: #7c3aed;
+
+    &:hover {
+      background: #f5f3ff;
+      color: #6d28d9;
+    }
   }
 
   .item-icon {

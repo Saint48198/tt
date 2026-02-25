@@ -5,6 +5,7 @@ import { HeaderComponent, FooterComponent } from '@shared/components';
 import { AuthService } from '@shared/services';
 import { filter, map, startWith } from 'rxjs';
 import { PageViewService } from './services/page-view.service';
+import { environment } from '../environments/environment';
 
 @Component({
   standalone: true,
@@ -15,6 +16,7 @@ import { PageViewService } from './services/page-view.service';
 })
 export class App implements OnInit {
   protected title = 'Trip Tracker';
+  protected adminUrl = environment.adminUrl;
   private authService = inject(AuthService);
   private router = inject(Router);
   private pageViewService = inject(PageViewService);

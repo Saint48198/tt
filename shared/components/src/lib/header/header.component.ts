@@ -18,6 +18,7 @@ export class HeaderComponent {
     { label: 'Explore', path: '/explore' },
     { label: 'My Trips', path: '/trips' },
   ];
+  @Input() adminUrl = '';
 
   private authService = inject(AuthService);
   private router = inject(Router);
