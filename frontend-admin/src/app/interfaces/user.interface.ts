@@ -5,6 +5,7 @@ export interface User {
   google_access_token?: string | null;
   google_refresh_token?: string | null;
   google_token_expiry?: string | null;
+  profile_icon?: string | null;
   roles?: string | string[];
   created_date?: string;
   updated_date?: string;
@@ -37,6 +38,7 @@ export interface UpdateUserRequest {
   id: number;
   username?: string;
   email?: string;
+  profile_icon?: string | null;
 }
 
 export interface UserResponse {

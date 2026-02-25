@@ -101,6 +101,7 @@ async function init() {
         google_access_token TEXT,
         google_refresh_token TEXT,
         google_token_expiry TIMESTAMP,
+        profile_icon TEXT,
         created_date TIMESTAMP DEFAULT NOW(),
         updated_date TIMESTAMP DEFAULT NOW(),
         disabled_date TIMESTAMP

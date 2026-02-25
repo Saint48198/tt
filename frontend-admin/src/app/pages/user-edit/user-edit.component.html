@@ -1,0 +1,231 @@
+<div class="user-edit-page">
+  <div class="page-header">
+    <button mat-icon-button routerLink="/users" aria-label="Back to Users">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>{{ isEditMode() ? 'Edit User' : 'Add User' }}</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="user-form mat-elevation-z2">
+      <div class="form-top-row">
+        <div class="form-fields">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width" [class.readonly-field]="isEditMode()">
+              <mat-label>Username</mat-label>
+              <input matInput formControlName="username" placeholder="Username" [readonly]="isEditMode()" />
+              @if (form.get('username')?.hasError('required') && form.get('username')?.touched) {
+                <mat-error>Username is required</mat-error>
+              }
+              @if (form.get('username')?.hasError('maxlength')) {
+                <mat-error>Username must be 255 characters or less</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Email</mat-label>
+              <input matInput formControlName="email" placeholder="Email address" type="email" />
+              @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+                <mat-error>Email is required</mat-error>
+              }
+              @if (form.get('email')?.hasError('email')) {
+                <mat-error>Please enter a valid email address</mat-error>
+              }
+              @if (form.get('email')?.hasError('maxlength')) {
+                <mat-error>Email must be 255 characters or less</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="profile-icon-section">
+          <span class="profile-icon-label">Profile Icon</span>
+          <button
+            type="button"
+            class="avatar-upload-btn"
+            (click)="triggerAvatarUpload()"
+            [disabled]="uploadingAvatar()"
+            matTooltip="Click to upload a profile image"
+          >
+            @if (uploadingAvatar()) {
+              <div class="avatar-loading-overlay">
+                <mat-spinner diameter="32"></mat-spinner>
+              </div>
+            }
+            @if (profileIconPreview()) {
+              <img
+                [src]="profileIconPreview()"
+                alt="Profile icon"
+                class="profile-icon-preview"
+              />
+            } @else {
+              <div class="profile-icon-placeholder">
+                <mat-icon>account_circle</mat-icon>
+              </div>
+            }
+            <div class="avatar-overlay">
+              <mat-icon>photo_camera</mat-icon>
+            </div>
+          </button>
+          <input
+            #avatarInput
+            type="file"
+            accept="image/*"
+            hidden
+            (change)="onAvatarSelected($event)"
+          />
+          @if (profileIconPreview()) {
+            <button
+              mat-icon-button
+              type="button"
+              class="remove-avatar-btn"
+              (click)="removeAvatar()"
+              [disabled]="uploadingAvatar()"
+              matTooltip="Remove profile icon"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+          <span class="profile-icon-hint">Max 5 MB · JPG, PNG, or WebP</span>
+        </div>
+      </div>
+
+      @if (!isEditMode()) {
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" placeholder="Password" type="password" />
+            @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+              <mat-error>Password is required</mat-error>
+            }
+            <mat-hint>At least 12 characters with a number, letter, and special character</mat-hint>
+          </mat-form-field>
+        </div>
+      }
+
+      @if (isEditMode() && user()) {
+        <div class="info-section">
+          <div class="info-row">
+            <span class="info-label">Roles</span>
+            <span class="info-value">
+              @if (getRolesArray().length > 0) {
+                <div class="roles-container">
+                  @for (role of getRolesArray(); track role) {
+                    <mat-chip>{{ role }}</mat-chip>
+                  }
+                </div>
+              } @else {
+                <span class="no-roles">No roles assigned</span>
+              }
+            </span>
+          </div>
+          @if (user()?.created_date) {
+            <div class="info-row">
+              <span class="info-label">Created</span>
+              <span class="info-value">{{ user()!.created_date | date: 'medium' }}</span>
+            </div>
+          }
+          @if (user()?.updated_date) {
+            <div class="info-row">
+              <span class="info-label">Last Updated</span>
+              <span class="info-value">{{ user()!.updated_date | date: 'medium' }}</span>
+            </div>
+          }
+          @if (user()?.disabled_date) {
+            <div class="info-row disabled-info">
+              <span class="info-label">Disabled</span>
+              <span class="info-value">{{ user()!.disabled_date | date: 'medium' }}</span>
+            </div>
+          }
+        </div>
+      }
+    </form>
+
+    @if (isEditMode()) {
+      <div class="password-section mat-elevation-z2">
+        <button type="button" class="password-header" (click)="togglePasswordSection()">
+          <div class="password-header-left">
+            <mat-icon>lock</mat-icon>
+            <h2>Change Password</h2>
+          </div>
+          <mat-icon>{{ showPasswordSection() ? 'expand_less' : 'expand_more' }}</mat-icon>
+        </button>
+
+        @if (showPasswordSection()) {
+          <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="password-form">
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="form-field full-width">
+                <mat-label>Current Password</mat-label>
+                <input matInput formControlName="currentPassword" type="password" />
+                @if (passwordForm.get('currentPassword')?.hasError('required') && passwordForm.get('currentPassword')?.touched) {
+                  <mat-error>Current password is required</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="form-row two-col">
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>New Password</mat-label>
+                <input matInput formControlName="newPassword" type="password" />
+                @if (passwordForm.get('newPassword')?.hasError('required') && passwordForm.get('newPassword')?.touched) {
+                  <mat-error>New password is required</mat-error>
+                }
+                @if (passwordForm.get('newPassword')?.hasError('minlength')) {
+                  <mat-error>Must be at least 12 characters</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Confirm New Password</mat-label>
+                <input matInput formControlName="confirmNewPassword" type="password" />
+                @if (passwordForm.get('confirmNewPassword')?.hasError('required') && passwordForm.get('confirmNewPassword')?.touched) {
+                  <mat-error>Please confirm the new password</mat-error>
+                }
+                @if (passwordForm.get('confirmNewPassword')?.hasError('mismatch')) {
+                  <mat-error>Passwords do not match</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="password-actions">
+              <button
+                mat-raised-button
+                color="primary"
+                type="submit"
+                [disabled]="savingPassword()"
+              >
+                @if (savingPassword()) {
+                  <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+                }
+                Change Password
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    }
+
+    <div class="form-actions">
+      <button mat-stroked-button type="button" routerLink="/users">Cancel</button>
+      <button
+        mat-raised-button
+        color="primary"
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="saving()"
+      >
+        @if (saving()) {
+          <mat-spinner diameter="20" class="button-spinner"></mat-spinner>
+        }
+        {{ isEditMode() ? 'Update User' : 'Create User' }}
+      </button>
+    </div>
+  }
+</div>
+

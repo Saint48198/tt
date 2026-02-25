@@ -1,0 +1,324 @@
+.user-edit-page {
+  padding: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1f2937;
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.user-form {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.readonly-field {
+  pointer-events: none;
+
+  // stylelint-disable-next-line selector-pseudo-element-no-unknown
+  ::ng-deep {
+    .mdc-text-field--outlined {
+      background: #f3f4f6 !important;
+    }
+
+    .mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__leading,
+    .mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__notch,
+    .mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__trailing {
+      border-color: #d1d5db !important;
+    }
+
+    .mat-mdc-input-element,
+    input.mat-mdc-input-element {
+      color: #9ca3af !important;
+    }
+
+    .mdc-floating-label,
+    .mat-mdc-floating-label {
+      color: #9ca3af !important;
+    }
+  }
+}
+
+.form-row {
+  margin-bottom: 0.5rem;
+
+  &.two-col {
+    display: flex;
+    gap: 1rem;
+
+    .form-field {
+      flex: 1;
+    }
+  }
+}
+
+.form-field {
+  &.full-width {
+    width: 100%;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.button-spinner {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+// Info section (roles, dates)
+.info-section {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+
+  &.disabled-info {
+    .info-value {
+      color: #dc2626;
+    }
+  }
+}
+
+.info-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.roles-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+
+  mat-chip {
+    height: 28px;
+    padding: 0 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+.no-roles {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+// Profile icon section — avatar to the right of username/email
+.form-top-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.form-fields {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-icon-section {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.profile-icon-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profile-icon-hint {
+  font-size: 0.675rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.avatar-upload-btn {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  background: none;
+
+  &:hover .avatar-overlay {
+    opacity: 1;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.profile-icon-preview {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 2px solid #e5e7eb;
+}
+
+.profile-icon-placeholder {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #d1d5db;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    color: #d1d5db;
+  }
+}
+
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  mat-icon {
+    color: white;
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.avatar-loading-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.remove-avatar-btn {
+  color: #9ca3af;
+
+  &:hover {
+    color: #dc2626;
+  }
+}
+
+// Password section
+.password-section {
+  background: white;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  overflow: hidden;
+}
+
+.password-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  user-select: none;
+  background: none;
+  border: none;
+  font-family: inherit;
+  text-align: left;
+
+  &:hover {
+    background: #f9fafb;
+  }
+
+  .password-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    mat-icon {
+      color: #6b7280;
+    }
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+}
+
+.password-form {
+  padding: 0 1.5rem 1.5rem;
+}
+
+.password-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+// Snackbar styles
+.error-snackbar {
+  --mdc-snackbar-container-color: #dc2626;
+  --mdc-snackbar-supporting-text-color: white;
+}
+
+

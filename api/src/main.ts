@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
@@ -24,6 +25,9 @@ const app = express();
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json({ limit: '16mb' }));
+
+// Serve uploaded files (avatars, etc.)
+app.use('/api/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.use(usersRouter);
 app.use(attractions);

@@ -26,7 +26,16 @@
       <!-- Username Column -->
       <ng-container matColumnDef="username">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Username</th>
-        <td mat-cell *matCellDef="let user">{{ user.username }}</td>
+        <td mat-cell *matCellDef="let user">
+          <div class="username-cell">
+            @if (user.profile_icon) {
+              <img [src]="user.profile_icon" alt="" class="user-avatar-img" />
+            } @else {
+              <span class="user-avatar-fallback">{{ user.username?.[0]?.toUpperCase() || 'U' }}</span>
+            }
+            <span>{{ user.username }}</span>
+          </div>
+        </td>
       </ng-container>
 
       <!-- Email Column -->

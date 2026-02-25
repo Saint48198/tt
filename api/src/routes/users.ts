@@ -1,7 +1,13 @@
 // api/src/routes/users.ts
 import { Router, Request, Response } from 'express';
+import formidable from 'formidable';
+import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
 import { userService } from '../services/userService';
 import { handleApiError } from '../utils/errorHandler';
+
+const AVATARS_DIR = path.join(__dirname, '..', 'uploads', 'avatars');
 
 const router = Router();
 
@@ -68,14 +74,14 @@ router.get('/api/users/:id', async (req: Request, res: Response) => {
 // PUT /api/users/:id
 router.put('/api/users/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { username, email, passwordHash } = req.body;
+  const { email, passwordHash, profile_icon } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: 'User ID is required' });
   }
 
   try {
-    const result = await userService.updateUser(id, { username, email, passwordHash });
+    const result = await userService.updateUser(id, { email, passwordHash, profile_icon });
 
     if (!result.success) {
       return res
@@ -151,6 +157,109 @@ router.put('/api/users/:id/password', async (req: Request, res: Response) => {
     return res.status(200).json({ message: 'Password updated successfully' });
   } catch (err: unknown) {
     return handleApiError(err, res, 'Failed to update password', 500);
+  }
+});
+
+/**
+ * POST /api/users/:id/avatar - Upload a profile icon image
+ */
+router.post('/api/users/:id/avatar', async (req: Request, res: Response): Promise<any> => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
+  // Ensure avatars directory exists
+  if (!fs.existsSync(AVATARS_DIR)) {
+    fs.mkdirSync(AVATARS_DIR, { recursive: true });
+  }
+
+  const form = formidable({
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    filter: ({ mimetype }) => !!mimetype && mimetype.startsWith('image/'),
+  });
+
+  form.parse(req, async (err: any, _fields: any, files: any) => {
+    if (err) {
+      console.error('Avatar upload parse error:', err);
+      if (err.code === 1009) {
+        return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
+      }
+      return res.status(500).json({ error: 'Error parsing upload' });
+    }
+
+    const fileField = files.file;
+    const file = Array.isArray(fileField) ? fileField[0] : fileField;
+
+    if (!file) {
+      return res.status(400).json({ error: 'No image file provided' });
+    }
+
+    try {
+      // Resize and convert to webp
+      const filename = `avatar-${id}-${Date.now()}.webp`;
+      const outputPath = path.join(AVATARS_DIR, filename);
+
+      await sharp(file.filepath)
+        .resize(256, 256, { fit: 'cover' })
+        .webp({ quality: 85 })
+        .toFile(outputPath);
+
+      // Clean up temp file
+      try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
+
+      // Delete old avatar file if it exists
+      const existingUser = await userService.getUserById(id);
+      if (existingUser?.profile_icon) {
+        const oldFilename = existingUser.profile_icon.split('/').pop();
+        if (oldFilename) {
+          const oldPath = path.join(AVATARS_DIR, oldFilename);
+          try { fs.unlinkSync(oldPath); } catch { /* ignore */ }
+        }
+      }
+
+      // Save the path to the database
+      const avatarUrl = `/api/uploads/avatars/${filename}`;
+      await userService.updateUser(id, { profile_icon: avatarUrl });
+
+      return res.status(200).json({ profile_icon: avatarUrl });
+    } catch (uploadErr) {
+      console.error('Avatar processing error:', uploadErr);
+      try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
+      return res.status(500).json({ error: 'Failed to process avatar image' });
+    }
+  });
+});
+
+/**
+ * DELETE /api/users/:id/avatar - Remove the profile icon
+ */
+router.delete('/api/users/:id/avatar', async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
+  try {
+    const existingUser = await userService.getUserById(id);
+
+    if (existingUser?.profile_icon) {
+      const oldFilename = existingUser.profile_icon.split('/').pop();
+      if (oldFilename) {
+        const oldPath = path.join(AVATARS_DIR, oldFilename);
+        try { fs.unlinkSync(oldPath); } catch { /* ignore */ }
+      }
+    }
+
+    // Clear profile_icon in DB — use a dedicated method to set null
+    await userService.clearProfileIcon(id);
+
+    return res.status(200).json({ message: 'Avatar removed successfully' });
+  } catch (err) {
+    console.error('Failed to remove avatar:', err);
+    return res.status(500).json({ error: 'Failed to remove avatar' });
   }
 });
 

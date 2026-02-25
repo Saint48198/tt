@@ -79,5 +79,31 @@ export class UsersService {
   deleteUser(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  /**
+   * Change a user's password
+   */
+  changePassword(userId: number, currentPassword: string, newPassword: string): Observable<UserResponse> {
+    return this.http.put<UserResponse>(`${this.apiUrl}/${userId}/password`, {
+      currentPassword,
+      newPassword,
+    });
+  }
+
+  /**
+   * Upload a profile avatar image
+   */
+  uploadAvatar(userId: number, file: File): Observable<{ profile_icon: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<{ profile_icon: string }>(`${this.apiUrl}/${userId}/avatar`, formData);
+  }
+
+  /**
+   * Remove a user's avatar
+   */
+  removeAvatar(userId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${userId}/avatar`);
+  }
 }
 

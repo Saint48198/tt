@@ -8,6 +8,7 @@ export interface User {
   google_access_token?: string | null;
   google_refresh_token?: string | null;
   google_token_expiry?: string | null;
+  profile_icon?: string | null;
   roles?: JwtRole[] | undefined;
 }
 

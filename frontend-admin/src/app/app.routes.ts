@@ -21,6 +21,20 @@ export const appRoutes: Route[] = [
     canActivate: [adminGuard],
   },
   {
+    path: 'users/new',
+    loadComponent: () =>
+      import('./pages/user-edit/user-edit.component').then((m) => m.UserEditComponent),
+    canActivate: [adminGuard],
+    canDeactivate: [unsavedChangesGuard],
+  },
+  {
+    path: 'users/:id',
+    loadComponent: () =>
+      import('./pages/user-edit/user-edit.component').then((m) => m.UserEditComponent),
+    canActivate: [adminGuard],
+    canDeactivate: [unsavedChangesGuard],
+  },
+  {
     path: 'countries',
     loadComponent: () =>
       import('./pages/countries-list/countries-list.component').then((m) => m.CountriesListComponent),
