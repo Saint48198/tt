@@ -23,29 +23,40 @@
   </div>
 
   <div class="filters-bar">
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-label>Search photos</mat-label>
-      <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Search by caption, URL, entity name, or tag...">
-      @if (searchQuery) {
-        <button matSuffix mat-icon-button (click)="clearSearch()" matTooltip="Clear search">
-          <mat-icon>close</mat-icon>
-        </button>
-      }
-    </mat-form-field>
+    <div class="filters-row">
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-label>Search photos</mat-label>
+        <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Search by caption, URL, entity name, or tag...">
+        @if (searchQuery) {
+          <button matSuffix mat-icon-button (click)="clearSearch()" matTooltip="Clear search">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
 
-    <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Source</mat-label>
-      <mat-select [(ngModel)]="sourceFilter" (selectionChange)="onFilterChange()">
-        <mat-option value="">All Sources</mat-option>
-        <mat-option value="database">Database Only</mat-option>
-        <mat-option value="cloudinary">Cloudinary Only</mat-option>
-      </mat-select>
-    </mat-form-field>
+      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+        <mat-label>Source</mat-label>
+        <mat-select [(ngModel)]="sourceFilter" (selectionChange)="onFilterChange()">
+          <mat-option value="">All Sources</mat-option>
+          <mat-option value="database">Database Only</mat-option>
+          <mat-option value="cloudinary">Cloudinary Only</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-    <button mat-raised-button color="primary" (click)="onSearch()">
-      <mat-icon>search</mat-icon>
-      Search
-    </button>
+      <button mat-raised-button color="primary" class="search-btn" (click)="onSearch()">
+        <mat-icon>search</mat-icon>
+        Search
+      </button>
+    </div>
+
+    <div class="filters-row-secondary">
+      <mat-slide-toggle
+        [checked]="tagsFilter()"
+        (change)="tagsFilter.set($event.checked); onFilterChange()"
+        matTooltip="Show only photos without tags">
+        No Tags
+      </mat-slide-toggle>
+    </div>
   </div>
 
   <div class="grid-container">
@@ -55,7 +66,7 @@
       </div>
     }
 
-    @if (!loading() && photos().length === 0) {
+    @if (!loading() && filteredPhotos().length === 0) {
       <div class="empty-state">
         <mat-icon class="empty-icon">photo_library</mat-icon>
         <p>No photos found.</p>
@@ -63,7 +74,7 @@
     }
 
     <div class="masonry-grid" [class.hidden]="viewMode() !== 'masonry'">
-      @for (photo of photos(); track photo.url) {
+      @for (photo of filteredPhotos(); track photo.url) {
         <div class="photo-card mat-elevation-z2">
           <div class="photo-image-wrapper" (click)="openEditDialog(photo)">
             <img [src]="photo.url" [alt]="photo.caption || 'Photo'" loading="lazy">
@@ -129,10 +140,26 @@
       }
     </div>
 
+    <!-- Infinite scroll sentinel (masonry) -->
+    @if (viewMode() === 'masonry') {
+      <div #scrollSentinel class="scroll-sentinel"></div>
+      @if (loadingMore()) {
+        <div class="loading-more">
+          <mat-spinner diameter="28"></mat-spinner>
+          <span>Loading more photos...</span>
+        </div>
+      }
+      @if (!hasMore() && filteredPhotos().length > 0 && !loading()) {
+        <div class="end-of-list">
+          <span>All {{ total() }} photos loaded</span>
+        </div>
+      }
+    }
+
     <!-- List view -->
     @if (viewMode() === 'list') {
       <div class="list-view">
-        @for (photo of photos(); track photo.url) {
+        @for (photo of filteredPhotos(); track photo.url) {
           <div class="list-item mat-elevation-z1" (click)="openEditDialog(photo)" (keydown.enter)="openEditDialog(photo)" tabindex="0" role="button">
             <div class="list-item-thumb">
               <img [src]="photo.url" [alt]="photo.caption || 'Photo'" loading="lazy">
@@ -197,12 +224,14 @@
     }
   </div>
 
-  <mat-paginator
-    [length]="total()"
-    [pageSize]="50"
-    [pageSizeOptions]="[25, 50, 100]"
-    (page)="onPageChange($event)"
-    showFirstLastButtons
-  ></mat-paginator>
+  @if (viewMode() === 'list') {
+    <mat-paginator
+      [length]="total()"
+      [pageSize]="50"
+      [pageSizeOptions]="[25, 50, 100]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
+  }
 </div>
 

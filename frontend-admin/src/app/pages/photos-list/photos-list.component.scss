@@ -48,10 +48,23 @@
 
 .filters-bar {
   display: flex;
-  gap: 1rem;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-bottom: 1.5rem;
-  flex-wrap: wrap;
+
+  .filters-row {
+    display: flex;
+    gap: 1rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .filters-row-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
 
   .search-field {
     flex: 1;
@@ -60,6 +73,10 @@
 
   .filter-field {
     min-width: 160px;
+  }
+
+  .search-btn {
+    height: 56px;
   }
 }
 
@@ -352,3 +369,27 @@ mat-paginator {
   border-radius: 8px;
   background: #fff;
 }
+
+// Infinite scroll
+.scroll-sentinel {
+  height: 1px;
+  width: 100%;
+}
+
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.end-of-list {
+  text-align: center;
+  padding: 1.5rem 0;
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+

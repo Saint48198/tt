@@ -413,9 +413,9 @@ class PhotoService {
   }
 
   public async getAllPhotosMerged(params: {
-    page?: number; limit?: number; source?: string; search?: string;
+    page?: number; limit?: number; source?: string; search?: string; noTags?: boolean;
   }): Promise<{ photos: any[]; total: number }> {
-    const { page = 1, limit = 25, source = 'all', search } = params;
+    const { page = 1, limit = 25, source = 'all', search, noTags } = params;
     const dbPhotos = await this.getAllDbPhotos();
 
     const dbByPhotoId = new Map<string, any>();
@@ -476,6 +476,9 @@ class PhotoService {
     }
 
     if (source === 'cloudinary') merged = merged.filter((p) => p.in_cloudinary && !p.in_database);
+    if (noTags) {
+      merged = merged.filter((p) => !p.tags || p.tags.length === 0);
+    }
     if (search) {
       const s = search.toLowerCase();
       merged = merged.filter((p) =>

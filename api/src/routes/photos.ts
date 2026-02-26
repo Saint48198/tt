@@ -32,8 +32,9 @@ router.get('/api/photos/all', async (req: Request, res: Response) => {
     const limit = req.query.limit ? Number(req.query.limit) : 25;
     const source = (req.query.source as string) || 'all';
     const search = req.query.search as string | undefined;
+    const noTags = req.query.noTags === 'true';
 
-    const result = await photoService.getAllPhotosMerged({ page, limit, source, search });
+    const result = await photoService.getAllPhotosMerged({ page, limit, source, search, noTags });
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch all photos:', error);

@@ -18,12 +18,14 @@ export class PhotosService {
     limit?: number;
     source?: string;
     search?: string;
+    noTags?: boolean;
   } = {}): Observable<AllPhotosResponse> {
     const queryParams: Record<string, string> = {};
     if (params.page) queryParams['page'] = String(params.page);
     if (params.limit) queryParams['limit'] = String(params.limit);
     if (params.source) queryParams['source'] = params.source;
     if (params.search) queryParams['search'] = params.search;
+    if (params.noTags === true) queryParams['noTags'] = 'true';
     return this.http.get<AllPhotosResponse>(`${this.apiUrl}/all`, { params: queryParams });
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
@@ -14,6 +14,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { PhotosService } from '../../services/photos.service';
 import { AdminPhoto } from '../../interfaces';
 import {
@@ -45,11 +46,12 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
     MatMenuModule,
     MatDialogModule,
     MatButtonToggleModule,
+    MatSlideToggleModule,
   ],
   templateUrl: './photos-list.component.html',
   styleUrl: './photos-list.component.scss',
 })
-export class PhotosListComponent implements OnInit {
+export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
   private readonly photosService = inject(PhotosService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
@@ -57,19 +59,73 @@ export class PhotosListComponent implements OnInit {
   photos = signal<AdminPhoto[]>([]);
   total = signal(0);
   loading = signal(false);
+  loadingMore = signal(false);
   viewMode = signal<'masonry' | 'list'>('masonry');
 
   searchQuery = '';
   sourceFilter = '';
+  tagsFilter = signal(false);
+
+  // Client-side filtered photos (ensures noTags filter always works)
+  filteredPhotos = computed(() => {
+    const all = this.photos();
+    if (this.tagsFilter()) {
+      return all.filter(p => !p.tags || p.tags.length === 0);
+    }
+    return all;
+  });
+
+  // Infinite scroll state
+  private currentPage = 1;
+  private readonly pageSize = 50;
+  hasMore = signal(true);
+  private scrollObserver: IntersectionObserver | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild('scrollSentinel') scrollSentinel!: ElementRef<HTMLDivElement>;
 
   ngOnInit(): void {
     this.loadPhotos();
   }
 
-  loadPhotos(page = 1, limit = 50): void {
+  ngAfterViewInit(): void {
+    this.setupScrollObserver();
+  }
+
+  ngOnDestroy(): void {
+    this.scrollObserver?.disconnect();
+  }
+
+  private setupScrollObserver(): void {
+    this.scrollObserver?.disconnect();
+
+    // Use a timeout to ensure the sentinel element is rendered
+    setTimeout(() => {
+      if (!this.scrollSentinel?.nativeElement) return;
+
+      this.scrollObserver = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          if (
+            entry.isIntersecting &&
+            this.viewMode() === 'masonry' &&
+            !this.loading() &&
+            !this.loadingMore() &&
+            this.hasMore()
+          ) {
+            this.loadMorePhotos();
+          }
+        },
+        { rootMargin: '200px' }
+      );
+
+      this.scrollObserver.observe(this.scrollSentinel.nativeElement);
+    });
+  }
+
+  loadPhotos(page = 1, limit = this.pageSize): void {
     this.loading.set(true);
+    this.currentPage = page;
 
     this.photosService
       .getAllPhotos({
@@ -77,12 +133,15 @@ export class PhotosListComponent implements OnInit {
         limit,
         source: this.sourceFilter || undefined,
         search: this.searchQuery || undefined,
+        noTags: this.tagsFilter(),
       })
       .subscribe({
         next: (response) => {
           this.photos.set(response.photos);
           this.total.set(response.total);
+          this.hasMore.set(response.photos.length >= limit && this.filteredPhotos().length < response.total);
           this.loading.set(false);
+          this.setupScrollObserver();
         },
         error: (err) => {
           this.snackBar.open(
@@ -95,11 +154,38 @@ export class PhotosListComponent implements OnInit {
       });
   }
 
+  private loadMorePhotos(): void {
+    this.loadingMore.set(true);
+    const nextPage = this.currentPage + 1;
+
+    this.photosService
+      .getAllPhotos({
+        page: nextPage,
+        limit: this.pageSize,
+        source: this.sourceFilter || undefined,
+        search: this.searchQuery || undefined,
+        noTags: this.tagsFilter(),
+      })
+      .subscribe({
+        next: (response) => {
+          this.currentPage = nextPage;
+          this.photos.update((current) => [...current, ...response.photos]);
+          this.total.set(response.total);
+          this.hasMore.set(response.photos.length >= this.pageSize && this.filteredPhotos().length < response.total);
+          this.loadingMore.set(false);
+        },
+        error: () => {
+          this.loadingMore.set(false);
+        },
+      });
+  }
+
   onPageChange(event: PageEvent): void {
     this.loadPhotos(event.pageIndex + 1, event.pageSize);
   }
 
   onSearch(): void {
+    this.currentPage = 1;
     if (this.paginator) {
       this.paginator.firstPage();
     }
@@ -107,6 +193,7 @@ export class PhotosListComponent implements OnInit {
   }
 
   onFilterChange(): void {
+    this.currentPage = 1;
     if (this.paginator) {
       this.paginator.firstPage();
     }
@@ -159,10 +246,9 @@ export class PhotosListComponent implements OnInit {
           this.snackBar.open('Photo deleted successfully', 'Close', {
             duration: 3000,
           });
-          this.loadPhotos(
-            this.paginator?.pageIndex ? this.paginator.pageIndex + 1 : 1,
-            this.paginator?.pageSize || 50
-          );
+          // Remove from local list instead of reloading
+          this.photos.update((list) => list.filter((p) => p.id !== photoId));
+          this.total.update((t) => t - 1);
         },
         error: (err) => {
           this.snackBar.open(
@@ -191,10 +277,8 @@ export class PhotosListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result: PhotoEditDialogResult | undefined) => {
       if (result?.updated) {
-        this.loadPhotos(
-          this.paginator?.pageIndex ? this.paginator.pageIndex + 1 : 1,
-          this.paginator?.pageSize || 50
-        );
+        // Reload from page 1 to refresh data
+        this.loadPhotos();
       }
     });
   }
