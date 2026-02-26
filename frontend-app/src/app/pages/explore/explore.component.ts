@@ -161,7 +161,7 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   });
 
   breadcrumbs = computed<BreadcrumbItem[]>(() => {
-    const crumbs: BreadcrumbItem[] = [{ label: '🌍 Countries', url: this.baseUrl() }];
+    const crumbs: BreadcrumbItem[] = [{ label: 'Countries', url: this.baseUrl() }];
     const country = this.selectedCountry();
     const state = this.selectedState();
     const lvl = this.level();

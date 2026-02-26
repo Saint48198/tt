@@ -22,7 +22,10 @@
 
     @if (selectedCountry() && level() !== 'attractions' && level() !== 'attraction' && level() !== 'countries' && level() !== 'city') {
       <button class="attractions-btn" (click)="onViewAttractions()">
-        🏰 View Attractions
+        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="16" height="16">
+          <path d="M4 26h24v-2H4v2zM6 22h2V12H6v10zm4 0h2V14h-2v8zm4 0h2V12h-2v10zm4 0h2V14h-2v8zm4 0h2V12h-2v10zm4 0h2V14h-2v8zM4 10h24l-4-4h-4V3h-2v3h-4V3h-2v3h-4l-4 4z" fill="#fff"/>
+        </svg>
+        View Attractions
       </button>
     }
   </div>
@@ -58,7 +61,12 @@
       <div class="card-grid">
         @for (country of countries(); track country.id) {
           <button class="explore-card" (click)="onCountryClick(country)">
-            <div class="card-icon">🌍</div>
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
+                <circle cx="16" cy="16" r="16" fill="#667eea"/>
+                <path d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#fff"/>
+              </svg>
+            </div>
             <div class="card-content">
               <h3>{{ country.name }}</h3>
               @if (country.abbreviation) {
@@ -66,9 +74,9 @@
               }
               @if (country.last_visited) {
                 <p class="card-meta">
-                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14" height="14">
-                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
-                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
+                    <circle cx="16" cy="16" r="16" fill="#fff"/>
+                    <path d="M9 6v2H6v18h20V8h-3V6h-2v2H11V6H9zM7 12h18v10H7V12zm3 2v3h3v-3h-3zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zm-10 5v3h3v-3h-3zm5 0v3h3v-3h-3z" fill="#1f2937"/>
                   </svg>
                   {{ formatDate(country.last_visited) }}
                 </p>
@@ -102,9 +110,9 @@
               }
               @if (state.last_visited) {
                 <p class="card-meta">
-                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14" height="14">
-                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
-                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
+                    <circle cx="16" cy="16" r="16" fill="#fff"/>
+                    <path d="M9 6v2H6v18h20V8h-3V6h-2v2H11V6H9zM7 12h18v10H7V12zm3 2v3h3v-3h-3zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zm-10 5v3h3v-3h-3zm5 0v3h3v-3h-3z" fill="#1f2937"/>
                   </svg>
                   {{ formatDate(state.last_visited) }}
                 </p>
@@ -125,7 +133,12 @@
       <div class="card-grid">
         @for (city of cities(); track city.id) {
           <button class="explore-card" (click)="onCityClick(city)">
-            <div class="card-icon">🏙️</div>
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
+                <circle cx="16" cy="16" r="16" fill="#667eea"/>
+                <path d="M6 24h20v-2H6v2zm2-4h3V10H8v10zm5 0h3V7h-3v13zm5 0h3V12h-3v8zm5 0h3V9h-3v11z" fill="#fff"/>
+              </svg>
+            </div>
             <div class="card-content">
               <h3>{{ city.name }}</h3>
               @if (city.state_name) {
@@ -133,9 +146,9 @@
               }
               @if (city.last_visited) {
                 <p class="card-meta">
-                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14" height="14">
-                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
-                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
+                    <circle cx="16" cy="16" r="16" fill="#fff"/>
+                    <path d="M9 6v2H6v18h20V8h-3V6h-2v2H11V6H9zM7 12h18v10H7V12zm3 2v3h3v-3h-3zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zm-10 5v3h3v-3h-3zm5 0v3h3v-3h-3z" fill="#1f2937"/>
                   </svg>
                   {{ formatDate(city.last_visited) }}
                 </p>
@@ -180,9 +193,9 @@
               </div>
               @if (attraction.last_visited) {
                 <p class="card-meta">
-                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="14" height="14">
-                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
-                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  <svg class="meta-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
+                    <circle cx="16" cy="16" r="16" fill="#fff"/>
+                    <path d="M9 6v2H6v18h20V8h-3V6h-2v2H11V6H9zM7 12h18v10H7V12zm3 2v3h3v-3h-3zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zm-10 5v3h3v-3h-3zm5 0v3h3v-3h-3z" fill="#1f2937"/>
                   </svg>
                   {{ formatDate(attraction.last_visited) }}
                 </p>
@@ -241,9 +254,9 @@
             @if (c.last_visited) {
               <div class="detail-card">
                 <span class="detail-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
-                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
-                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="30" height="30">
+                    <circle cx="16" cy="16" r="16" fill="#fff"/>
+                    <path d="M9 6v2H6v18h20V8h-3V6h-2v2H11V6H9zM7 12h18v10H7V12zm3 2v3h3v-3h-3zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zm-10 5v3h3v-3h-3zm5 0v3h3v-3h-3z" fill="#1f2937"/>
                   </svg>
                 </span>
                 <div class="detail-info">
@@ -255,7 +268,12 @@
 
             @if (c.country_name) {
               <div class="detail-card">
-                <span class="detail-icon">🌍</span>
+                <span class="detail-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
+                    <circle cx="16" cy="16" r="16" fill="#667eea"/>
+                    <path d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#fff"/>
+                  </svg>
+                </span>
                 <div class="detail-info">
                   <span class="detail-label">Country</span>
                   <span class="detail-value">{{ c.country_name }}</span>
@@ -400,9 +418,9 @@
             @if (a.last_visited) {
               <div class="detail-card">
                 <span class="detail-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
-                    <circle cx="16" cy="16" r="16" fill="#1f2937"/>
-                    <path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="30" height="30">
+                    <circle cx="16" cy="16" r="16" fill="#fff"/>
+                    <path d="M9 6v2H6v18h20V8h-3V6h-2v2H11V6H9zM7 12h18v10H7V12zm3 2v3h3v-3h-3zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zm-10 5v3h3v-3h-3zm5 0v3h3v-3h-3z" fill="#1f2937"/>
                   </svg>
                 </span>
                 <div class="detail-info">
@@ -414,7 +432,12 @@
 
             @if (a.country_name) {
               <div class="detail-card">
-                <span class="detail-icon">🌍</span>
+                <span class="detail-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
+                    <circle cx="16" cy="16" r="16" fill="#667eea"/>
+                    <path d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#fff"/>
+                  </svg>
+                </span>
                 <div class="detail-info">
                   <span class="detail-label">Country</span>
                   <span class="detail-value">{{ a.country_name }}</span>

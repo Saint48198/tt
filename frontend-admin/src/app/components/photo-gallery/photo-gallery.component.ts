@@ -130,9 +130,10 @@ export class PhotoGalleryComponent implements OnChanges {
   }
 
   addTag(): void {
-    const tag = this.tagInput.trim().toLowerCase();
-    if (tag && !this.editTags().includes(tag)) {
-      this.editTags.update((tags) => [...tags, tag]);
+    const parts = this.tagInput.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
+    const newTags = parts.filter((t) => !this.editTags().includes(t));
+    if (newTags.length) {
+      this.editTags.update((tags) => [...tags, ...newTags]);
     }
     this.tagInput = '';
   }

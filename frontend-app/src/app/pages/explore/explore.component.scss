@@ -79,6 +79,9 @@
 }
 
 .attractions-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   background: #3b82f6;
   color: white;
   border: none;
@@ -89,6 +92,12 @@
   font-family: inherit;
   font-weight: 500;
   transition: background 0.15s;
+
+  .btn-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
 
   &:hover {
     background: #2563eb;
@@ -186,8 +195,8 @@
   gap: 0.35rem;
 
   .meta-icon {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
     flex-shrink: 0;
   }
 }

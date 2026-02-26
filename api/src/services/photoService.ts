@@ -349,6 +349,37 @@ class PhotoService {
     }
 
     if (tags !== undefined) { await this.setTagsForPhoto(photoId, tags); }
+
+    // Sync caption and tags to Cloudinary
+    try {
+      const photoRow = await db.get<{ photo_id: string }>('SELECT photo_id FROM photos WHERE id = $1', [photoId]);
+      if (photoRow?.photo_id) {
+        const publicId = photoRow.photo_id;
+
+        // Update context metadata (caption)
+        if (caption !== undefined) {
+          await cloudinary.uploader.explicit(publicId, {
+            type: 'upload',
+            resource_type: 'image',
+            context: { caption: caption || '', alt: '' },
+          });
+        }
+
+        // Replace tags on the Cloudinary asset
+        if (tags !== undefined) {
+          const uniqueTags = [...new Set(tags.map((t) => t.trim().toLowerCase()).filter(Boolean))];
+          if (uniqueTags.length > 0) {
+            await cloudinary.uploader.replace_tag(uniqueTags.join(','), [publicId]);
+          } else {
+            await cloudinary.uploader.remove_all_tags([publicId]);
+          }
+        }
+      }
+    } catch (cloudErr) {
+      console.warn('Failed to sync photo update to Cloudinary:', cloudErr);
+      // Don't fail the request — the DB update already succeeded
+    }
+
     return { success: true };
   }
 

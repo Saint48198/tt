@@ -22,6 +22,15 @@
     font-size: 1.75rem;
     font-weight: 700;
     color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .title-icon {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+    }
   }
 }
 
@@ -103,7 +112,13 @@
   padding: 4rem 1rem;
 
   .empty-icon {
-    font-size: 3rem;
+    display: flex;
+    justify-content: center;
+
+    svg {
+      width: 48px;
+      height: 48px;
+    }
   }
 
   h2 {
@@ -198,12 +213,25 @@
 }
 
 .plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.8rem;
   background: #f1f5f9;
   color: #475569;
   padding: 0.2rem 0.6rem;
   border-radius: 6px;
   font-weight: 500;
+
+  .badge-icon {
+    display: flex;
+    align-items: center;
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
 
   &.empty {
     color: #94a3b8;

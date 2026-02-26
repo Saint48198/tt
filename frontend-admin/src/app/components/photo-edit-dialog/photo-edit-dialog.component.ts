@@ -184,9 +184,11 @@ export class PhotoEditDialogComponent implements OnInit {
   // ── Tags ──
 
   addTag(): void {
-    const tag = this.tagsInput.trim();
-    if (tag && !this.tags.includes(tag)) {
-      this.tags.push(tag);
+    const parts = this.tagsInput.split(',').map((t) => t.trim()).filter(Boolean);
+    for (const tag of parts) {
+      if (!this.tags.includes(tag)) {
+        this.tags.push(tag);
+      }
     }
     this.tagsInput = '';
   }

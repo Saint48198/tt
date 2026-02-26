@@ -75,7 +75,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         popup: `
           <div style="text-align: center; min-width: 120px;">
             <strong style="font-size: 1.1em;">${c.name}</strong>
-            ${c.last_visited ? `<br/><span style="color: #666;display:inline-flex;align-items:center;gap:3px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="12" height="12"><circle cx="16" cy="16" r="16" fill="#1f2937"/><path d="M10 8v2H8v14h16V10h-2V8h-2v2h-8V8h-2zm-1 6h14v8H9v-8zm3 2v2h2v-2h-2zm4 0v2h2v-2h-2zm4 0v2h2v-2h-2zm-8 4v2h2v-2h-2zm4 0v2h2v-2h-2z" fill="#fff"/></svg> ${new Date(c.last_visited).toLocaleDateString()}</span>` : ''}
+            ${c.last_visited ? `<br/><span style="color: #666;display:inline-flex;align-items:center;gap:3px;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="15" height="15"><circle cx="16" cy="16" r="16" fill="#fff"/><path d="M9 6v2H6v18h20V8h-3V6h-2v2H11V6H9zM7 12h18v10H7V12zm3 2v3h3v-3h-3zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zm-10 5v3h3v-3h-3zm5 0v3h3v-3h-3z" fill="#1f2937"/></svg> ${new Date(c.last_visited).toLocaleDateString()}</span>` : ''}
           </div>
         `,
       }));

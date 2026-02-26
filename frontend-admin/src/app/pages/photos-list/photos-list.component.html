@@ -122,13 +122,6 @@
               </div>
             }
 
-            @if (photo.tags && photo.tags.length > 0) {
-              <div class="photo-tags">
-                @for (tag of photo.tags; track tag) {
-                  <mat-chip class="tag-chip">{{ tag }}</mat-chip>
-                }
-              </div>
-            }
 
             <span class="photo-date">{{ photo.created_at | date:'mediumDate' }}</span>
           </div>
