@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, HostListener, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,9 +17,8 @@ import { User } from '../../interfaces';
 
 @Component({
   selector: 'app-user-edit',
-  standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
     ReactiveFormsModule,
     RouterModule,
     MatFormFieldModule,

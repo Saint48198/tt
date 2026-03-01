@@ -1,5 +1,4 @@
 import { Component, computed, input } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MapComponent, MapMarker } from '@shared/components';
 import { CountryVisited } from '../../interfaces';
 
@@ -9,8 +8,7 @@ import { CountryVisited } from '../../interfaces';
  */
 @Component({
   selector: 'app-dashboard-map',
-  standalone: true,
-  imports: [CommonModule, MapComponent],
+  imports: [MapComponent],
   templateUrl: './dashboard-map.component.html',
   styleUrl: './dashboard-map.component.scss',
 })

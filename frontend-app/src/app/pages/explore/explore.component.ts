@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectorRef, HostListener, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -23,8 +23,7 @@ interface BreadcrumbItem {
 
 @Component({
   selector: 'app-explore',
-  standalone: true,
-  imports: [CommonModule, MapComponent],
+  imports: [MapComponent],
   templateUrl: './explore.component.html',
   styleUrl: './explore.component.scss',
 })

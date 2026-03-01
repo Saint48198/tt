@@ -5,7 +5,6 @@ import { LoginService, LoginResponse } from '@shared/services';
 
 @Component({
   selector: 'lib-login',
-  standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './login.component.html',
 })

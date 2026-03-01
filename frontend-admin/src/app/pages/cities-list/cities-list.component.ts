@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -20,9 +20,9 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
 
 @Component({
   selector: 'app-cities-list',
-  standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
+    DecimalPipe,
     RouterModule,
     FormsModule,
     MatTableModule,

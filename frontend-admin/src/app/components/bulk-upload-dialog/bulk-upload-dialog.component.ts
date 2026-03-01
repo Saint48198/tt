@@ -1,5 +1,4 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -60,9 +59,7 @@ interface FilePreview {
 
 @Component({
   selector: 'app-bulk-upload-dialog',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatDialogModule,
     MatFormFieldModule,

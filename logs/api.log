@@ -150,3 +150,9 @@ Listening on port 3001
 [EXIF] Extracted metadata for ds7d18fji41g03a7lluwmfrsu.jpg {"keywords":["Coastline","iPhonePhotography"],"latitude":30.55202,"longitude":-81.44281666666667}
 [EXIF] Extracted metadata for g3ospbinizuszfq4dqww16m0x.jpg {"keywords":["Coastline","iPhonePhotography"],"latitude":30.55202,"longitude":-81.44281666666667}
 [EXIF] Extracted metadata for qg8l9d79v71hgr3qzftoqflhr.jpg {"keywords":["Coastline","iPhonePhotography"],"latitude":30.552028333333332,"longitude":-81.44280333333333}
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/f1b2aa68-d942-4e80-abd6-4af7fc8c206c[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/f1b2aa68-d942-4e80-abd6-4af7fc8c206c[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001

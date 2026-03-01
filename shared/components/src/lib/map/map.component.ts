@@ -10,7 +10,6 @@ import {
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import * as L from 'leaflet';
 import * as GeoJSON from 'geojson';
 
@@ -39,8 +38,6 @@ export interface OverlayClickEvent {
 
 @Component({
   selector: 'lib-map',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss',
 })

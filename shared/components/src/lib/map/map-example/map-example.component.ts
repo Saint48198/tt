@@ -1,12 +1,10 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MapComponent, MapMarker, MapOverlay } from '../map.component';
 import * as L from 'leaflet';
 
 @Component({
   selector: 'lib-map-example',
-  standalone: true,
-  imports: [CommonModule, MapComponent],
+  imports: [MapComponent],
   templateUrl: './map-example.component.html',
   styleUrl: './map-example.component.scss',
 })

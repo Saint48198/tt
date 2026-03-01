@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal, computed, HostListener } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
+import { DatePipe } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -17,7 +17,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { TripsService } from '../../services/trips.service';
 import { CountriesService } from '../../services/countries.service';
 import { CitiesService } from '../../services/cities.service';
@@ -39,9 +39,8 @@ import {
 
 @Component({
   selector: 'app-trip-edit',
-  standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
     ReactiveFormsModule,
     RouterModule,
     MatFormFieldModule,

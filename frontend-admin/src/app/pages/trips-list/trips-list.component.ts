@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe, SlicePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -23,9 +23,9 @@ interface TripRow extends Trip {
 
 @Component({
   selector: 'app-trips-list',
-  standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
+    SlicePipe,
     RouterModule,
     FormsModule,
     MatTableModule,

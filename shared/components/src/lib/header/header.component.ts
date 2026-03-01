@@ -1,12 +1,11 @@
 import { Component, Input, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, UpperCasePipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '@shared/services';
 
 @Component({
   selector: 'lib-header',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [AsyncPipe, UpperCasePipe, RouterModule],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })

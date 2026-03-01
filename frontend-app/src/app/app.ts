@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { HeaderComponent, FooterComponent } from '@shared/components';
 import { AuthService } from '@shared/services';
 import { filter, map, startWith } from 'rxjs';
@@ -8,8 +8,7 @@ import { PageViewService } from './services/page-view.service';
 import { environment } from '../environments/environment';
 
 @Component({
-  standalone: true,
-  imports: [RouterModule, CommonModule, HeaderComponent, FooterComponent],
+  imports: [RouterModule, AsyncPipe, HeaderComponent, FooterComponent],
   selector: 'app-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',

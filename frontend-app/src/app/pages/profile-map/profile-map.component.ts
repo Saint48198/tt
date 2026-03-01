@@ -1,5 +1,4 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { MapComponent, MapMarker } from '@shared/components';
@@ -18,8 +17,7 @@ interface PublicProfile {
 
 @Component({
   selector: 'app-profile-map',
-  standalone: true,
-  imports: [CommonModule, MapComponent],
+  imports: [MapComponent],
   templateUrl: './profile-map.component.html',
   styleUrl: './profile-map.component.scss',
 })

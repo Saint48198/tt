@@ -1,5 +1,4 @@
 import { Component, Input, OnChanges, SimpleChanges, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,9 +18,7 @@ import {
 
 @Component({
   selector: 'app-photo-gallery',
-  standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     MatIconModule,
     MatButtonModule,

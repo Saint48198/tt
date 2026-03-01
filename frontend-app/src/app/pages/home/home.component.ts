@@ -1,5 +1,4 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MapComponent, MapMarker, MapOverlay, OverlayClickEvent } from '@shared/components';
 import { CountryService, Country } from '../../services/country.service';
@@ -15,8 +14,7 @@ const GEOJSON_TO_DB_NAME: Record<string, string> = {
 
 @Component({
   selector: 'app-home',
-  standalone: true,
-  imports: [CommonModule, MapComponent],
+  imports: [MapComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

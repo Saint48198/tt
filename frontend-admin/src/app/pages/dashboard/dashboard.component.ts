@@ -3,14 +3,12 @@ import {
   Component,
   DestroyRef,
   inject,
-  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { forkJoin, catchError, of, Subscription, finalize } from 'rxjs';
+import { forkJoin, catchError, of, finalize } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '@shared/services';
 import { DashboardMapComponent } from '../../components/dashboard-map/dashboard-map.component';
@@ -20,8 +18,7 @@ import { CountryVisited } from '../../interfaces';
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule, RouterModule, DashboardMapComponent],
+  imports: [RouterModule, DashboardMapComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

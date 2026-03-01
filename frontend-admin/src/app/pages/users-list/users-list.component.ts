@@ -1,5 +1,4 @@
 import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
@@ -18,9 +17,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
 
 @Component({
   selector: 'app-users-list',
-  standalone: true,
   imports: [
-    CommonModule,
     RouterModule,
     MatTableModule,
     MatPaginatorModule,

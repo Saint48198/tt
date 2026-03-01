@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { MapComponent, MapMarker, MapOverlay } from './map.component';
 import * as GeoJSON from 'geojson';
 
@@ -9,8 +8,7 @@ import * as GeoJSON from 'geojson';
  */
 @Component({
   selector: 'lib-location-map',
-  standalone: true,
-  imports: [CommonModule, MapComponent],
+  imports: [MapComponent],
   template: `
     <div class="location-map-container">
       <h3>{{ title }}</h3>
@@ -277,7 +275,6 @@ import { MapComponent, MapMarker, MapOverlay } from '@tt/shared/components';
 
 @Component({
   selector: 'app-custom-map',
-  standalone: true,
   imports: [MapComponent],
   template: \`
     <lib-map

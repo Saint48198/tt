@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { concat } from 'rxjs';
 import { toArray } from 'rxjs/operators';
@@ -31,9 +31,8 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
 
 @Component({
   selector: 'app-photos-list',
-  standalone: true,
   imports: [
-    CommonModule,
+    DatePipe,
     FormsModule,
     MatPaginatorModule,
     MatButtonModule,

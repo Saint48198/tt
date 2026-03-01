@@ -1,5 +1,4 @@
 import { Component, inject, signal, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,9 +12,7 @@ import { TripsService } from '../../services/trips.service';
 
 @Component({
   selector: 'app-trip-create',
-  standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     MatFormFieldModule,

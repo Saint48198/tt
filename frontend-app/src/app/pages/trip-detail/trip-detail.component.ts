@@ -1,13 +1,10 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TripService, Trip, PlanItem } from '../../services/trip.service';
 
 @Component({
   selector: 'app-trip-detail',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './trip-detail.component.html',
   styleUrl: './trip-detail.component.scss',
 })

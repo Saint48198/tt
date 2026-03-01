@@ -1,13 +1,12 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { SlicePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TripService, Trip, PlanItem } from '../../services/trip.service';
 
 @Component({
   selector: 'app-trips',
-  standalone: true,
-  imports: [CommonModule],
+  imports: [SlicePipe],
   templateUrl: './trips.component.html',
   styleUrl: './trips.component.scss',
 })
