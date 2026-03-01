@@ -44,6 +44,7 @@ router.get('/api/photos/all', async (req: Request, res: Response) => {
 
 // GET /api/photos/:entityType/:entityId
 router.get('/api/photos/:entityType/:entityId', async (req: Request, res: Response) => {
+
   const { entityType, entityId } = req.params;
 
   if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
@@ -70,6 +71,7 @@ router.get('/api/photos/:entityType/:entityId', async (req: Request, res: Respon
 // POST /api/photos/suggest-titles
 router.post('/api/photos/suggest-titles', async (req: Request, res: Response) => {
   try {
+
     const { imageBase64, mimeType, hints } = req.body || {};
 
     const result = await photoService.suggestTitles({
@@ -95,6 +97,7 @@ router.post('/api/photos/suggest-titles', async (req: Request, res: Response) =>
 router.post(
   '/api/photos/add/:entityType/:entityId',
   async (req: Request, res: Response) => {
+
     const { entityType, entityId } = req.params;
 
     if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
@@ -196,6 +199,7 @@ router.delete('/api/photos/bulk/remove', async (req: Request, res: Response) => 
 // GET /api/photos/search
 router.get('/api/photos/search', async (req: Request, res: Response) => {
   try {
+
     const rawFolder = req.query.folder;
     const folder = (typeof rawFolder === 'string' ? rawFolder : Array.isArray(rawFolder) ? rawFolder[0] : undefined) as string | undefined;
 
@@ -233,10 +237,14 @@ router.post(
   '/api/photos/upload',
   async (req: Request, res: Response): Promise<any> => {
     try {
+
       const form = formidable({
         multiples: true,
         uploadDir: '/tmp',
         keepExtensions: true,
+        maxFileSize: 50 * 1024 * 1024, // 50MB per file
+        maxTotalFileSize: 500 * 1024 * 1024, // 500MB total
+        maxFiles: 50,
       });
 
       form.parse(req, async (err: any, fields: any, files: any) => {
@@ -245,7 +253,9 @@ router.post(
           return res.status(500).json({ error: 'Error parsing form data' });
         }
 
+        console.log('[Upload] Files keys:', Object.keys(files || {}));
         const fileField = (files as any).files;
+        console.log('[Upload] fileField type:', typeof fileField, 'isArray:', Array.isArray(fileField), 'length:', Array.isArray(fileField) ? fileField.length : fileField ? 1 : 0);
 
         if (!fileField) {
           return res.status(400).json({ error: 'No file uploaded' });
@@ -265,6 +275,7 @@ router.post(
         const tagsRaw = firstFieldValue((fields as any).tags);
         const title = firstFieldValue((fields as any).title) ?? '';
         const description = firstFieldValue((fields as any).description) ?? '';
+        const country = firstFieldValue((fields as any).country);
 
         try {
           const result = await photoService.uploadPhotos({
@@ -276,6 +287,7 @@ router.post(
             tags: tagsRaw,
             title,
             description,
+            country,
           });
 
           return res.status(200).json(result);
@@ -293,15 +305,13 @@ router.post(
 
 // POST /api/photos/add — add a Cloudinary photo to the database
 router.post('/api/photos/add', async (req: Request, res: Response) => {
-  const { photo_id, url, caption, city_id, attraction_id, user_id } = req.body;
+
+  const { photo_id, url, caption, city_id, attraction_id, user_id, latitude, longitude, tags, country_id } = req.body;
 
   if (!photo_id || !url) {
     return res.status(400).json({ error: 'Missing required fields: photo_id and url.' });
   }
 
-  if (!city_id && !attraction_id) {
-    return res.status(400).json({ error: 'At least one of city_id or attraction_id is required.' });
-  }
 
   try {
     const result = await photoService.addPhotoToDb({
@@ -311,6 +321,10 @@ router.post('/api/photos/add', async (req: Request, res: Response) => {
       city_id,
       attraction_id,
       user_id: user_id ? Number(user_id) : undefined,
+      latitude: latitude ? Number(latitude) : undefined,
+      longitude: longitude ? Number(longitude) : undefined,
+      country_id: country_id ? Number(country_id) : undefined,
+      tags: Array.isArray(tags) ? tags : undefined,
     });
     return res.status(201).json({ message: 'Photo added to database.', id: result.id });
   } catch (error) {
@@ -322,16 +336,17 @@ router.post('/api/photos/add', async (req: Request, res: Response) => {
 
 // PATCH /api/photos/:id
 router.patch('/api/photos/:id', async (req: Request, res: Response) => {
+
   const { id } = req.params;
 
   if (!id || Number.isNaN(Number(id))) {
     return res.status(400).json({ error: 'Invalid photo id' });
   }
 
-  const { caption, tags, city_id, attraction_id } = req.body;
+  const { caption, tags, city_id, attraction_id, latitude, longitude } = req.body;
 
   try {
-    const result = await photoService.updatePhoto(Number(id), caption ?? null, tags, city_id, attraction_id);
+    const result = await photoService.updatePhoto(Number(id), caption ?? null, tags, city_id, attraction_id, latitude, longitude);
     if (result.deleted) {
       return res.status(200).json({ message: 'Photo removed from database (no entity links).', deleted: true });
     }
@@ -352,6 +367,7 @@ router.patch('/api/photos/:id', async (req: Request, res: Response) => {
 router.delete(
   '/api/photos/remove/:entityType/:entityId',
   async (req: Request, res: Response) => {
+
     const { entityType, entityId } = req.params;
 
     if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
@@ -384,5 +400,26 @@ router.delete(
     }
   }
 );
+
+// DELETE /api/photos/:id — delete a photo by DB id (removes from S3 and database)
+router.delete('/api/photos/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id || Number.isNaN(Number(id))) {
+    return res.status(400).json({ error: 'Invalid photo id' });
+  }
+
+  try {
+    await photoService.deletePhotoById(Number(id));
+    return res.status(200).json({ message: 'Photo deleted successfully.' });
+  } catch (error) {
+    console.error('Failed to delete photo:', error);
+    const message = error instanceof Error ? error.message : 'Failed to delete photo';
+    if (message.includes('not found')) {
+      return res.status(404).json({ error: message });
+    }
+    return res.status(500).json({ error: message });
+  }
+});
 
 export default router;

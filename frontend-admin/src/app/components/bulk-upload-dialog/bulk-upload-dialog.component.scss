@@ -1,4 +1,4 @@
-// Photo Upload Dialog — Material Design 3 styling
+// Bulk Upload Dialog — Material Design 3 styling
 
 // ── Dialog Title ──
 h2[mat-dialog-title] {
@@ -26,6 +26,12 @@ mat-dialog-content {
   @media (max-width: 600px) {
     min-width: unset;
   }
+}
+
+// ── Country Select ──
+.country-select {
+  width: 100%;
+  margin-top: 16px;
 }
 
 // ── Drop Zone ──
@@ -132,7 +138,7 @@ mat-dialog-content {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 8px 8px 8px;
+  padding: 8px;
   border-radius: 12px;
   background: var(--mat-sys-surface-container-low, #f7f2fa);
 
@@ -164,6 +170,38 @@ mat-dialog-content {
       font-size: 0.7rem;
       color: var(--mat-sys-outline, #79747e);
     }
+  }
+}
+
+// ── EXIF Metadata Badges ──
+.exif-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.exif-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  background: rgba(103, 80, 164, 0.1);
+  color: var(--mat-sys-primary, #6750a4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  cursor: default;
+
+  .exif-badge-icon {
+    font-size: 12px;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
   }
 }
 

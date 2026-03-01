@@ -19,6 +19,7 @@ import { PhotosService } from '../../services/photos.service';
 import { CitiesService } from '../../services/cities.service';
 import { AttractionsService } from '../../services/attractions.service';
 import { AuthService, UserPayload } from '@shared/services';
+import { MapComponent, MapMarker } from '@shared/components';
 
 export interface PhotoEditDialogData {
   photo: AdminPhoto;
@@ -52,6 +53,7 @@ interface EntityOption {
     MatDividerModule,
     MatTabsModule,
     MatTooltipModule,
+    MapComponent,
   ],
   templateUrl: './photo-edit-dialog.component.html',
   styleUrl: './photo-edit-dialog.component.scss',
@@ -70,6 +72,22 @@ export class PhotoEditDialogComponent implements OnInit {
   caption = '';
   tagsInput = '';
   tags: string[] = [];
+  latitude: number | null = null;
+  longitude: number | null = null;
+
+  hasLocation = computed(() => this.latitude != null && this.longitude != null);
+  mapMarkers = computed<MapMarker[]>(() => {
+    if (this.latitude != null && this.longitude != null) {
+      return [{ lat: this.latitude, lng: this.longitude, title: this.caption || 'Photo location', popup: `<b>${this.caption || 'Photo'}</b><br/>Lat: ${this.latitude.toFixed(5)}, Lng: ${this.longitude.toFixed(5)}` }];
+    }
+    return [];
+  });
+  mapCenter = computed<[number, number]>(() => {
+    if (this.latitude != null && this.longitude != null) {
+      return [this.latitude, this.longitude];
+    }
+    return [39.8283, -98.5795];
+  });
 
   // City combobox
   cityId: number | null = null;
@@ -102,6 +120,8 @@ export class PhotoEditDialogComponent implements OnInit {
 
     this.caption = this.photo.caption || '';
     this.tags = [...(this.photo.tags || [])];
+    this.latitude = this.photo.latitude ?? null;
+    this.longitude = this.photo.longitude ?? null;
     this.cityId = this.photo.city_id;
     this.cityInputValue.set(this.photo.city_name || '');
     this.attractionId = this.photo.attraction_id;
@@ -113,7 +133,11 @@ export class PhotoEditDialogComponent implements OnInit {
 
   private loadCities(): void {
     this.loadingCities.set(true);
-    this.citiesService.getCities({ page: 1, limit: 500 }).subscribe({
+    const countryId = this.photo.country_id;
+    const params = countryId
+      ? { country_id: countryId, page: 1, limit: 500 }
+      : { page: 1, limit: 500 };
+    this.citiesService.getCities(params).subscribe({
       next: (res) => {
         this.allCities.set(res.cities.map((c) => ({ id: c.id, name: c.name })));
         this.loadingCities.set(false);
@@ -127,7 +151,11 @@ export class PhotoEditDialogComponent implements OnInit {
 
   private loadAttractions(): void {
     this.loadingAttractions.set(true);
-    this.attractionsService.getAttractions({ page: 1, limit: 500 }).subscribe({
+    const countryId = this.photo.country_id;
+    const params = countryId
+      ? { country_id: countryId, page: 1, limit: 500 }
+      : { page: 1, limit: 500 };
+    this.attractionsService.getAttractions(params).subscribe({
       next: (res) => {
         this.allAttractions.set(res.attractions.map((a) => ({ id: a.id, name: a.name })));
         this.loadingAttractions.set(false);
@@ -225,6 +253,9 @@ export class PhotoEditDialogComponent implements OnInit {
           city_id: this.cityId,
           attraction_id: this.attractionId,
           user_id: this.currentUser?.id,
+          latitude: this.latitude,
+          longitude: this.longitude,
+          tags: this.tags,
         })
         .subscribe({
           next: () => {
@@ -248,6 +279,8 @@ export class PhotoEditDialogComponent implements OnInit {
         tags: this.tags,
         city_id: this.cityId,
         attraction_id: this.attractionId,
+        latitude: this.latitude,
+        longitude: this.longitude,
       })
       .subscribe({
         next: (res) => {

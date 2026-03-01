@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { concat } from 'rxjs';
+import { toArray } from 'rxjs/operators';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -22,9 +24,9 @@ import {
   PhotoEditDialogResult,
 } from '../../components/photo-edit-dialog/photo-edit-dialog.component';
 import {
-  PhotoUploadDialogComponent,
-  PhotoUploadDialogResult,
-} from '../../components/photo-upload-dialog/photo-upload-dialog.component';
+  BulkUploadDialogComponent,
+  BulkUploadDialogResult,
+} from '../../components/bulk-upload-dialog/bulk-upload-dialog.component';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -214,18 +216,7 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    const entityType = photo.city_id ? 'cities' : photo.attraction_id ? 'attractions' : null;
-    const entityId = photo.city_id || photo.attraction_id;
-
-    if (!entityType || !entityId) {
-      this.snackBar.open('Cannot delete: photo is not linked to an entity', 'Close', {
-        duration: 5000,
-        panelClass: 'error-snackbar',
-      });
-      return;
-    }
-
-    const photoId = photo.id!;
+    const photoId = photo.id;
 
     this.dialog.open(ConfirmDialogComponent, {
       data: {
@@ -241,12 +232,19 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
       panelClass: 'confirm-dialog-panel',
     }).afterClosed().subscribe((confirmed) => {
       if (!confirmed) return;
-      this.photosService.deletePhoto(entityType, entityId, photoId).subscribe({
+
+      const entityType = photo.city_id ? 'cities' as const : photo.attraction_id ? 'attractions' as const : null;
+      const entityId = photo.city_id || photo.attraction_id;
+
+      const delete$ = entityType && entityId
+        ? this.photosService.deletePhoto(entityType, entityId, photoId)
+        : this.photosService.deletePhotoById(photoId);
+
+      delete$.subscribe({
         next: () => {
           this.snackBar.open('Photo deleted successfully', 'Close', {
             duration: 3000,
           });
-          // Remove from local list instead of reloading
           this.photos.update((list) => list.filter((p) => p.id !== photoId));
           this.total.update((t) => t - 1);
         },
@@ -284,16 +282,34 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   openUploadDialog(): void {
-    const dialogRef = this.dialog.open(PhotoUploadDialogComponent, {
+    const dialogRef = this.dialog.open(BulkUploadDialogComponent, {
+      data: { showCountrySelect: true },
       width: '600px',
       maxWidth: '95vw',
       maxHeight: '90vh',
       disableClose: false,
     });
 
-    dialogRef.afterClosed().subscribe((result: PhotoUploadDialogResult | undefined) => {
-      if (result?.uploaded) {
-        this.loadPhotos();
+    dialogRef.afterClosed().subscribe((result: BulkUploadDialogResult | undefined) => {
+      if (result?.uploaded && result.images?.length) {
+        // Save each uploaded photo to the database with EXIF metadata
+        const countryId = result.country_id ?? null;
+        const saveRequests = result.images.map((img) =>
+          this.photosService.addPhotoToDb({
+            photo_id: img.public_id,
+            url: img.secure_url || img.url,
+            caption: img.exif?.title || null,
+            tags: img.exif?.keywords || [],
+            latitude: img.exif?.latitude ?? null,
+            longitude: img.exif?.longitude ?? null,
+            country_id: countryId,
+          })
+        );
+
+        concat(...saveRequests).pipe(toArray()).subscribe({
+          next: () => this.loadPhotos(),
+          error: () => this.loadPhotos(),
+        });
       }
     });
   }

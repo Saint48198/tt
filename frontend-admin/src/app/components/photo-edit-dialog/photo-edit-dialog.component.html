@@ -177,6 +177,48 @@
             </div>
           </mat-tab>
 
+          <!-- Location Tab -->
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon class="tab-icon">location_on</mat-icon>
+              Location
+            </ng-template>
+
+            <div class="tab-content">
+              @if (hasLocation()) {
+                <div class="location-map-container">
+                  <lib-map
+                    [markers]="mapMarkers()"
+                    [center]="mapCenter()"
+                    [zoom]="14"
+                    [height]="'280px'"
+                    [enableZoom]="true"
+                    [enableDrag]="true"
+                    [showAttribution]="true">
+                  </lib-map>
+                </div>
+                <div class="location-coords">
+                  <div class="coord-item">
+                    <mat-icon class="coord-icon">north</mat-icon>
+                    <span class="coord-label">Latitude</span>
+                    <span class="coord-value">{{ latitude?.toFixed(6) }}</span>
+                  </div>
+                  <div class="coord-item">
+                    <mat-icon class="coord-icon">east</mat-icon>
+                    <span class="coord-label">Longitude</span>
+                    <span class="coord-value">{{ longitude?.toFixed(6) }}</span>
+                  </div>
+                </div>
+              } @else {
+                <div class="no-location">
+                  <mat-icon class="no-location-icon">location_off</mat-icon>
+                  <p class="no-location-text">No GPS location data available</p>
+                  <p class="no-location-hint">Photos taken with GPS-enabled devices will display their location here</p>
+                </div>
+              }
+            </div>
+          </mat-tab>
+
           <!-- Info Tab -->
           <mat-tab>
             <ng-template mat-tab-label>

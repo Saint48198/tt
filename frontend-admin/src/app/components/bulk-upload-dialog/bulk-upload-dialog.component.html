@@ -4,6 +4,20 @@
 </h2>
 
 <mat-dialog-content>
+  <!-- Country select (only shown when showCountrySelect is true) -->
+  @if (showCountrySelect) {
+    <mat-form-field appearance="outline" class="country-select">
+      <mat-label>Country</mat-label>
+      <mat-select [value]="selectedCountry()" (selectionChange)="selectedCountry.set($event.value)">
+        <mat-option value="">Uncategorized</mat-option>
+        @for (country of countries(); track country.id) {
+          <mat-option [value]="country.name">{{ country.name }}</mat-option>
+        }
+      </mat-select>
+      <mat-hint>Photos will be stored under this country folder</mat-hint>
+    </mat-form-field>
+  }
+
   <!-- Drop zone -->
   <div class="drop-zone"
        role="button"
@@ -56,6 +70,28 @@
           <div class="file-info">
             <span class="file-name">{{ file.name }}</span>
             <span class="file-size">{{ file.size }}</span>
+            @if (file.exif?.title || file.exif?.keywords?.length || file.exif?.latitude) {
+              <div class="exif-badges">
+                @if (file.exif?.title) {
+                  <span class="exif-badge" matTooltip="Title: {{ file.exif?.title }}">
+                    <mat-icon class="exif-badge-icon">title</mat-icon>
+                    {{ file.exif?.title }}
+                  </span>
+                }
+                @if (file.exif?.keywords?.length) {
+                  <span class="exif-badge" matTooltip="Keywords: {{ file.exif?.keywords?.join(', ') }}">
+                    <mat-icon class="exif-badge-icon">label</mat-icon>
+                    {{ file.exif?.keywords?.length }} tag{{ (file.exif?.keywords?.length || 0) > 1 ? 's' : '' }}
+                  </span>
+                }
+                @if (file.exif?.latitude !== null && file.exif?.latitude !== undefined && file.exif?.longitude !== null && file.exif?.longitude !== undefined) {
+                  <span class="exif-badge" matTooltip="GPS: {{ file.exif?.latitude?.toFixed(4) }}, {{ file.exif?.longitude?.toFixed(4) }}">
+                    <mat-icon class="exif-badge-icon">location_on</mat-icon>
+                    GPS
+                  </span>
+                }
+              </div>
+            }
           </div>
           <button mat-icon-button
                   (click)="removeFile(i); $event.stopPropagation()"
@@ -67,6 +103,7 @@
       }
     </div>
   }
+
 
   <!-- Upload progress -->
   @if (uploading()) {
@@ -91,5 +128,4 @@
     }
   </button>
 </mat-dialog-actions>
-
 

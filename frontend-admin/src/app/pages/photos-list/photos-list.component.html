@@ -104,7 +104,7 @@
                 </button>
                 <button mat-menu-item
                         (click)="deletePhoto(photo)"
-                        [disabled]="!photo.in_database || (!photo.city_id && !photo.attraction_id)">
+                        [disabled]="!photo.in_database">
                   <mat-icon color="warn">delete</mat-icon>
                   <span>Delete</span>
                 </button>
@@ -212,7 +212,7 @@
                 </button>
                 <button mat-menu-item
                         (click)="deletePhoto(photo)"
-                        [disabled]="!photo.in_database || (!photo.city_id && !photo.attraction_id)">
+                        [disabled]="!photo.in_database">
                   <mat-icon color="warn">delete</mat-icon>
                   <span>Delete</span>
                 </button>

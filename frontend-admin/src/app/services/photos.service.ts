@@ -46,6 +46,8 @@ export class PhotosService {
       tags?: string[];
       city_id?: number | null;
       attraction_id?: number | null;
+      latitude?: number | null;
+      longitude?: number | null;
     }
   ): Observable<{ message: string; deleted?: boolean }> {
     return this.http.patch<{ message: string; deleted?: boolean }>(`${this.apiUrl}/${photoId}`, data);
@@ -61,6 +63,13 @@ export class PhotosService {
   }
 
   /**
+   * Delete a photo by its database ID (removes from S3 and database)
+   */
+  deletePhotoById(photoId: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/${photoId}`);
+  }
+
+  /**
    * Add a Cloudinary-only photo to the database with entity assignments
    */
   addPhotoToDb(data: {
@@ -70,16 +79,21 @@ export class PhotosService {
     city_id?: number | null;
     attraction_id?: number | null;
     user_id?: number;
+    latitude?: number | null;
+    longitude?: number | null;
+    country_id?: number | null;
+    tags?: string[];
   }): Observable<{ message: string; id: number }> {
     return this.http.post<{ message: string; id: number }>(`${this.apiUrl}/add`, data);
   }
 
   /**
-   * Upload files to Cloudinary
+   * Upload files to S3
    */
-  uploadPhotos(files: File[]): Observable<UploadPhotosResponse> {
+  uploadPhotos(files: File[], country?: string): Observable<UploadPhotosResponse> {
     const formData = new FormData();
     files.forEach((file) => formData.append('files', file));
+    if (country) formData.append('country', country);
     return this.http.post<UploadPhotosResponse>(`${this.apiUrl}/upload`, formData);
   }
 
@@ -89,7 +103,7 @@ export class PhotosService {
   bulkAddPhotos(
     entityType: 'cities' | 'attractions',
     entityId: number,
-    photos: { photo_id: string; url: string; caption?: string | null }[]
+    photos: { photo_id: string; url: string; caption?: string | null; tags?: string[]; latitude?: number | null; longitude?: number | null }[]
   ): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}/bulk/add`, {
       entityType,

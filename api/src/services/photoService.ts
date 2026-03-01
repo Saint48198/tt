@@ -1,42 +1,48 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import fs from 'fs';
+import path from 'path';
 import sharp from 'sharp';
+import ExifReader from 'exifreader';
+import { randomUUID } from 'crypto';
 import { db } from '../db';
 
-interface CloudinaryPhoto { asset_id: string; secure_url: string; created_at: string; format: string; }
-interface CloudinaryResource {
-  public_id: string; secure_url: string; created_at: string; format: string;
-  access_mode?: string; type?: string;
-  context?: { custom?: { caption?: string; alt?: string } };
-}
+// --- Interfaces (unchanged public contract) ---
+
 interface Photo { id: string; url: string; created_at: string; format: string; }
 interface SearchPhotoResult { photo_id: string; url: string; title: string; caption: string; created_at: string; format: string; }
 interface SearchPhotosRequest { folder?: string; tag?: string; max_results?: number; next_cursor?: string; }
 interface SearchPhotosResponse { photos: SearchPhotoResult[]; next_cursor: string | null; }
 interface UploadFile { filepath: string; newFilename: string; }
-interface UploadPhotosRequest { files: UploadFile[]; visibility?: string; tags?: string; title?: string; description?: string; }
-interface UploadedPhoto { public_id: string; secure_url: string; url: string; [key: string]: any; }
+interface UploadPhotosRequest { files: UploadFile[]; visibility?: string; tags?: string; title?: string; description?: string; country?: string; }
+interface UploadedPhoto { public_id: string; secure_url: string; url: string; exif?: ExifMetadata; [key: string]: any; }
+interface ExifMetadata { title?: string; keywords?: string[]; latitude?: number; longitude?: number; }
 interface RemovePhotoRequest { entityType: string; entityId: string | number; photoId: string | number; }
 interface SuggestTitlesRequest { imageBase64: string; mimeType?: string; hints?: { tags?: string[]; city?: string; state?: string; country?: string; datetimeOriginal?: string; }; }
 interface AddPhotoByEntityRequest { entityType: string; entityId: string | number; url: string; userId: string; caption?: string; }
-interface PhotoItem { photo_id: string; url: string; caption?: string | null; }
+interface PhotoItem { photo_id: string; url: string; caption?: string | null; tags?: string[]; latitude?: number | null; longitude?: number | null; }
 interface BulkAddPhotosRequest { entityType: string; entityId: string | number; photos: PhotoItem[]; userId: string; }
 interface BulkRemovePhotosRequest { entityType: string; entityId: string | number; photos: { url: string }[]; userId: string; }
 interface PhotosByEntityResponse {
   photos: Array<{ id: number; url: string; user_id: string; entity_id: number; caption?: string | null; created_at: string; photo_id: string; tags: string[]; }>;
 }
 
+
 class PhotoService {
   private static instance: PhotoService;
   private cachedModelId: string | null = null;
   private initialized = false;
+  private s3: S3Client;
+  private bucket: string;
 
   private constructor() {
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
+    this.s3 = new S3Client({
+      region: process.env.AWS_REGION || 'us-east-2',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+      },
     });
+    this.bucket = process.env.S3_PHOTO_BUCKET || 'app-tt-photos';
   }
 
   private async ensureTable(): Promise<void> {
@@ -59,12 +65,81 @@ class PhotoService {
     return PhotoService.instance;
   }
 
-  public async getPhotos(): Promise<{ photos: Photo[] }> {
-    const folder = process.env.CLOUDINARY_FOLDER || '';
-    const resources = await cloudinary.api.resources({ type: 'upload', prefix: folder, max_results: 50 });
-    const photos: Photo[] = (resources.resources ?? []).map((r: CloudinaryPhoto) => ({
-      id: r.asset_id, url: r.secure_url, created_at: r.created_at, format: r.format,
+  // --- S3 Helpers ---
+
+  /**
+   * Build the S3 object key: uploads/{year}/{country}/{uuid}.{ext}
+   */
+  private buildS3Key(ext: string, country?: string): string {
+    const year = new Date().getFullYear().toString();
+    const slug = country
+      ? country.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      : 'uncategorized';
+    const uuid = randomUUID();
+    return `uploads/${year}/${slug}/${uuid}.${ext}`;
+  }
+
+  /**
+   * Upload a file buffer to S3 and return the object key.
+   */
+  private async uploadToS3(filePath: string, key: string, contentType: string): Promise<void> {
+    const body = fs.readFileSync(filePath);
+    await this.s3.send(new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
     }));
+  }
+
+  /**
+   * Get the public URL for an S3 object key.
+   */
+  private getPublicUrl(key: string): string {
+    const region = process.env.AWS_REGION || 'us-east-2';
+    return `https://${this.bucket}.s3.${region}.amazonaws.com/${key}`;
+  }
+
+  /**
+   * Delete an object from S3 by key.
+   */
+  private async deleteFromS3(key: string): Promise<void> {
+    await this.s3.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+  }
+
+  /**
+   * Resolve country name from city_id or attraction_id.
+   */
+  private async resolveCountryName(cityId?: number | null, attractionId?: number | null): Promise<string | undefined> {
+    if (cityId) {
+      const row = await db.get<{ name: string }>(
+        `SELECT co.name FROM cities c JOIN countries co ON c.country_id = co.id WHERE c.id = $1`,
+        [cityId]
+      );
+      return row?.name;
+    }
+    if (attractionId) {
+      const row = await db.get<{ name: string }>(
+        `SELECT co.name FROM attractions a JOIN countries co ON a.country_id = co.id WHERE a.id = $1`,
+        [attractionId]
+      );
+      return row?.name;
+    }
+    return undefined;
+  }
+
+  // --- Public API ---
+
+  public async getPhotos(): Promise<{ photos: Photo[] }> {
+    const rows = await db.all<any>(
+      `SELECT id, photo_id, caption, created_at, url FROM photos WHERE disabled_date IS NULL ORDER BY created_at DESC LIMIT 50`
+    );
+    const photos: Photo[] = [];
+    for (const row of rows) {
+      const ext = row.photo_id ? path.extname(row.photo_id).replace('.', '') : 'jpg';
+      const url = row.photo_id ? this.getPublicUrl(row.photo_id) : row.url;
+      photos.push({ id: String(row.id), url, created_at: row.created_at, format: ext });
+    }
     return { photos };
   }
 
@@ -122,8 +197,11 @@ class PhotoService {
   public async addPhotoToDb(params: {
     photo_id: string; url: string; caption?: string | null;
     city_id?: number | null; attraction_id?: number | null; user_id?: number;
+    latitude?: number | null; longitude?: number | null;
+    country_id?: number | null;
+    tags?: string[];
   }): Promise<{ id: number }> {
-    const { photo_id, url, caption, city_id, attraction_id } = params;
+    const { photo_id, url, caption, city_id, attraction_id, latitude, longitude, country_id } = params;
     if (!photo_id || !url) throw new Error('Missing required fields: photo_id and url.');
 
     let userId = params.user_id;
@@ -137,6 +215,17 @@ class PhotoService {
       userId = firstUser.id;
     }
 
+    // Resolve country_id: use explicit param, or derive from city/attraction
+    let resolvedCountryId = country_id || null;
+    if (!resolvedCountryId && city_id) {
+      const city = await db.get<{ country_id: number }>('SELECT country_id FROM cities WHERE id = $1', [city_id]);
+      resolvedCountryId = city?.country_id || null;
+    }
+    if (!resolvedCountryId && attraction_id) {
+      const attr = await db.get<{ country_id: number }>('SELECT country_id FROM attractions WHERE id = $1', [attraction_id]);
+      resolvedCountryId = attr?.country_id || null;
+    }
+
     if (city_id) {
       const cityExists = await db.get('SELECT id FROM cities WHERE id = $1', [city_id]);
       if (!cityExists) throw new Error(`City with id ${city_id} not found.`);
@@ -147,10 +236,16 @@ class PhotoService {
     }
 
     const result = await db.run(
-      `INSERT INTO photos (photo_id, url, user_id, city_id, attraction_id, caption) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
-      [photo_id, url, userId, city_id || null, attraction_id || null, caption || null]
+      `INSERT INTO photos (photo_id, url, user_id, city_id, attraction_id, caption, latitude, longitude, country_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+      [photo_id, url, userId, city_id || null, attraction_id || null, caption || null, latitude || null, longitude || null, resolvedCountryId]
     );
-    return { id: result.rows[0].id };
+    const newId = result.rows[0].id;
+
+    if (params.tags && params.tags.length > 0) {
+      await this.setTagsForPhoto(newId, params.tags);
+    }
+
+    return { id: newId };
   }
 
   public async bulkAddPhotos(request: BulkAddPhotosRequest): Promise<{ success: boolean }> {
@@ -159,14 +254,31 @@ class PhotoService {
     if (!entityId || !photos || photos.length === 0) throw new Error('Missing required fields: entityId or photos.');
     const entityColumn = entityType === 'cities' ? 'city_id' : 'attraction_id';
 
+    // Resolve country_id from entity
+    const countryTable = entityType === 'cities' ? 'cities' : 'attractions';
+    const entityRow = await db.get<{ country_id: number }>(`SELECT country_id FROM ${countryTable} WHERE id = $1`, [Number(entityId)]);
+    const countryId = entityRow?.country_id || null;
+
+    await this.ensureTable();
+
     const client = await db.pool.connect();
     try {
       await client.query('BEGIN');
       for (const photo of photos) {
-        await client.query(
-          `INSERT INTO photos (photo_id, url, user_id, ${entityColumn}, caption) VALUES ($1,$2,$3,$4,$5)`,
-          [photo.photo_id, photo.url, userId, entityId, photo.caption || null]
+        const insertResult = await client.query(
+          `INSERT INTO photos (photo_id, url, user_id, ${entityColumn}, caption, latitude, longitude, country_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+          [photo.photo_id, photo.url, userId, entityId, photo.caption || null, photo.latitude || null, photo.longitude || null, countryId]
         );
+        if (photo.tags && photo.tags.length > 0 && insertResult.rows[0]?.id) {
+          const photoDbId = insertResult.rows[0].id;
+          const uniqueTags = [...new Set(photo.tags.map((t) => t.trim().toLowerCase()).filter(Boolean))];
+          for (const name of uniqueTags) {
+            await client.query('INSERT INTO tags (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [name]);
+            const tagRow = await client.query('SELECT id FROM tags WHERE name = $1', [name]);
+            const tagId = tagRow.rows[0].id;
+            await client.query('INSERT INTO photo_tags (photo_id, tag_id) VALUES ($1, $2) ON CONFLICT (photo_id, tag_id) DO NOTHING', [photoDbId, tagId]);
+          }
+        }
       }
       await client.query('COMMIT');
     } catch (err) {
@@ -209,44 +321,122 @@ class PhotoService {
     await this.ensureTable();
 
     const rows = await db.all<any>(
-      `SELECT id, url, user_id, ${column} AS entity_id, caption, created_at, photo_id, created_date, updated_date, disabled_date FROM photos WHERE ${column} = $1 AND disabled_date IS NULL`,
+      `SELECT id, url, user_id, ${column} AS entity_id, caption, created_at, photo_id, latitude, longitude, created_date, updated_date, disabled_date FROM photos WHERE ${column} = $1 AND disabled_date IS NULL`,
       [Number(entityId)]
     );
     const photos = [];
     for (const row of rows) {
-      photos.push({ ...row, tags: await this.getTagsForPhoto(row.id) });
+      // photo_id stores the S3 key — use public URL
+      const url = row.photo_id ? this.getPublicUrl(row.photo_id) : row.url;
+      photos.push({ ...row, url, tags: await this.getTagsForPhoto(row.id) });
     }
     return { photos };
   }
 
   public async searchPhotos(request: SearchPhotosRequest): Promise<SearchPhotosResponse> {
-    const { folder, tag, max_results = 10, next_cursor } = request;
-    const expression: string[] = ['resource_type:image'];
-    if (folder) expression.push(`folder=${folder}`);
-    if (tag) expression.push(`tags=${tag}`);
-    const searchExpression = expression.join(' AND ');
-    const searchQuery = cloudinary.search.expression(searchExpression).with_field('context').with_field('tags').max_results(max_results);
-    if (next_cursor) searchQuery.next_cursor(String(next_cursor));
-    const result = await searchQuery.execute();
-    const photos: SearchPhotoResult[] = result.resources.map((photo: CloudinaryResource) => {
-      const title = photo.context?.custom?.caption || 'Untitled';
-      const caption = photo.context?.custom?.alt || '';
-      if (photo.access_mode === 'authenticated' || photo.type === 'private') {
-        const timestamp = Math.floor(Date.now() / 1000);
-        const signature = cloudinary.utils.api_sign_request({ public_id: photo.public_id, timestamp }, process.env.CLOUDINARY_API_SECRET as string);
-        return { photo_id: photo.public_id, title, caption, created_at: photo.created_at, format: photo.format, url: `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/authenticated/${photo.public_id}?api_key=${process.env.CLOUDINARY_API_KEY}&timestamp=${timestamp}&signature=${signature}` };
+    const { tag, max_results = 10, next_cursor } = request;
+
+    // Search is now DB-driven since S3 doesn't have metadata search
+    const params: any[] = [];
+    let idx = 1;
+    let whereExtra = '';
+
+    if (tag) {
+      whereExtra += ` AND EXISTS (
+        SELECT 1 FROM photo_tags pt
+        JOIN tags t ON pt.tag_id = t.id
+        WHERE pt.photo_id = p.id AND t.name = $${idx++}
+      )`;
+      params.push(tag.toLowerCase());
+    }
+
+    if (next_cursor) {
+      whereExtra += ` AND p.id < $${idx++}`;
+      params.push(Number(next_cursor));
+    }
+
+    params.push(max_results);
+    const limitIdx = idx++;
+
+    const query = `
+      SELECT p.id, p.photo_id, p.caption, p.created_at, p.url
+      FROM photos p
+      WHERE p.disabled_date IS NULL${whereExtra}
+      ORDER BY p.created_at DESC
+      LIMIT $${limitIdx}
+    `;
+
+    const rows = await db.all<any>(query, params);
+    const photos: SearchPhotoResult[] = [];
+
+    for (const row of rows) {
+      const ext = row.photo_id ? path.extname(row.photo_id).replace('.', '') : 'jpg';
+      const url = row.photo_id ? this.getPublicUrl(row.photo_id) : row.url;
+      photos.push({
+        photo_id: row.photo_id || String(row.id),
+        title: row.caption || 'Untitled',
+        caption: row.caption || '',
+        created_at: row.created_at,
+        format: ext,
+        url,
+      });
+    }
+
+    const lastId = rows.length > 0 ? String(rows[rows.length - 1].id) : null;
+    return { photos, next_cursor: rows.length >= max_results ? lastId : null };
+  }
+
+  private async extractExifMetadata(filePath: string): Promise<ExifMetadata> {
+    const metadata: ExifMetadata = {};
+    try {
+      const buffer = fs.readFileSync(filePath);
+      const tags = ExifReader.load(buffer, { expanded: true });
+
+      const xmpTitle = tags.xmp?.['dc:title']?.description || tags.xmp?.title?.description;
+      const iptcTitle = tags.iptc?.['Object Name']?.description;
+      const exifTitle = tags.exif?.ImageDescription?.description
+        || tags.exif?.['XPTitle']?.description;
+      metadata.title = xmpTitle || iptcTitle || exifTitle || undefined;
+
+      const xmpSubject = tags.xmp?.['dc:subject'] || tags.xmp?.subject;
+      const iptcKeywords = tags.iptc?.Keywords;
+      const exifKeywords = tags.exif?.['XPKeywords']?.description;
+
+      if (xmpSubject) {
+        if (Array.isArray(xmpSubject)) {
+          metadata.keywords = xmpSubject.map((k: any) => typeof k === 'string' ? k : k.description || String(k)).filter(Boolean);
+        } else if (typeof xmpSubject === 'object' && (xmpSubject as any).description) {
+          const val = (xmpSubject as any).description;
+          metadata.keywords = val.includes(',') ? val.split(',').map((s: string) => s.trim()).filter(Boolean) : [val];
+        }
+      } else if (iptcKeywords) {
+        if (Array.isArray(iptcKeywords)) {
+          metadata.keywords = iptcKeywords.map((k: any) => typeof k === 'string' ? k : k.description || String(k)).filter(Boolean);
+        } else if (typeof iptcKeywords === 'object' && (iptcKeywords as any).description) {
+          const val = (iptcKeywords as any).description;
+          metadata.keywords = val.includes(',') ? val.split(',').map((s: string) => s.trim()).filter(Boolean) : [val];
+        }
+      } else if (exifKeywords && typeof exifKeywords === 'string') {
+        metadata.keywords = exifKeywords.split(/[;,]/).map((s: string) => s.trim()).filter(Boolean);
       }
-      return { photo_id: photo.public_id, title, caption, created_at: photo.created_at, format: photo.format, url: photo.secure_url };
-    });
-    return { photos, next_cursor: result.next_cursor || null };
+
+      const gps = tags.gps;
+      if (gps?.Latitude !== undefined && gps?.Longitude !== undefined) {
+        metadata.latitude = gps.Latitude;
+        metadata.longitude = gps.Longitude;
+      }
+    } catch (err) {
+      console.warn('Failed to extract EXIF metadata:', err);
+    }
+    return metadata;
   }
 
   private async optimizeImage(filePath: string, outputPath: string): Promise<string> {
     try {
       if (!fs.existsSync(filePath)) throw new Error('File not found for optimization.');
-      const metadata = await sharp(filePath).metadata();
-      const format: keyof sharp.FormatEnum = metadata.format === 'png' ? 'png' : 'jpeg';
-      const width = metadata.width && metadata.width > 2000 ? 2000 : undefined;
+      const imgMeta = await sharp(filePath).metadata();
+      const format: keyof sharp.FormatEnum = imgMeta.format === 'png' ? 'png' : 'jpeg';
+      const width = imgMeta.width && imgMeta.width > 2000 ? 2000 : undefined;
       await sharp(filePath).resize(width).toFormat(format, { quality: 80 }).toFile(outputPath);
       return outputPath;
     } catch (error) {
@@ -255,33 +445,59 @@ class PhotoService {
     }
   }
 
-  private generateSignedUrl(publicId: string): string {
-    const timestamp = Math.floor(Date.now() / 1000);
-    const signature = cloudinary.utils.api_sign_request({ public_id: publicId, timestamp }, process.env.CLOUDINARY_API_SECRET as string);
-    return `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/authenticated/${publicId}?api_key=${process.env.CLOUDINARY_API_KEY}&timestamp=${timestamp}&signature=${signature}`;
-  }
-
   public async uploadPhotos(request: UploadPhotosRequest): Promise<{ success: boolean; images: UploadedPhoto[] }> {
-    const { files, visibility, tags: tagsRaw, title = '', description = '' } = request;
+    const { files, tags: tagsRaw, title = '', description = '', country } = request;
     if (!files || files.length === 0) throw new Error('No files provided for upload');
-    const uploadResults = await Promise.all(files.map(async (file) => {
+
+    const uploadResults: UploadedPhoto[] = [];
+
+    // Process files sequentially to avoid memory/sharp concurrency issues
+    for (const file of files) {
+      // Extract EXIF metadata before optimization (which may strip it)
+      const exif = await this.extractExifMetadata(file.filepath);
+      console.log('[EXIF] Extracted metadata for', file.newFilename, JSON.stringify(exif));
+
+      const effectiveTitle = title || exif.title || '';
+      const userTags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+      const exifTags = exif.keywords || [];
+      const mergedTags = [...new Set([...userTags, ...exifTags])];
+
+      // Optimize image
       const optimizedPath = `/tmp/optimized-${file.newFilename}`;
       const finalPath = await this.optimizeImage(file.filepath, optimizedPath);
-      const result = await cloudinary.uploader.upload(finalPath, {
-        folder: 'uploads', resource_type: 'image',
-        type: visibility === 'private' ? 'private' : 'upload',
-        access_mode: visibility === 'private' ? 'authenticated' : 'public',
-        context: { caption: title, alt: description },
-        tags: tagsRaw ? tagsRaw.split(',') : [],
-      });
+
+      // Determine format and content type
+      const imgMeta = await sharp(finalPath).metadata().catch(() => ({ format: 'jpeg' as const }));
+      const format = imgMeta.format === 'png' ? 'png' : 'jpeg';
+      const contentType = format === 'png' ? 'image/png' : 'image/jpeg';
+      const ext = format === 'png' ? 'png' : 'jpg';
+
+      // Build S3 key with country folder structure
+      const s3Key = this.buildS3Key(ext, country);
+
+      // Upload to S3
+      await this.uploadToS3(finalPath, s3Key, contentType);
+
+      // Generate public URL for immediate use
+      const publicUrl = this.getPublicUrl(s3Key);
+
+      // Clean up temp files
       try { fs.unlinkSync(file.filepath); } catch { console.warn('Failed to delete temp file:', file.filepath); }
       if (finalPath !== file.filepath) { try { fs.unlinkSync(finalPath); } catch { console.warn('Failed to delete optimized file:', finalPath); } }
-      return result;
-    }));
-    const processedPhotos = uploadResults.map((photo: any) => ({
-      ...photo, url: photo.type === 'private' ? this.generateSignedUrl(photo.public_id) : photo.secure_url,
-    }));
-    return { success: true, images: processedPhotos };
+
+      uploadResults.push({
+        public_id: s3Key,
+        secure_url: publicUrl,
+        url: publicUrl,
+        format,
+        created_at: new Date().toISOString(),
+        tags: mergedTags,
+        context: { custom: { caption: effectiveTitle, alt: description } },
+        exif,
+      });
+    }
+
+    return { success: true, images: uploadResults };
   }
 
   public async getTagsForPhoto(photoId: number): Promise<string[]> {
@@ -319,10 +535,15 @@ class PhotoService {
   public async updatePhoto(
     photoId: number, caption: string | null, tags?: string[],
     cityId?: number | null, attractionId?: number | null,
+    latitude?: number | null, longitude?: number | null,
   ): Promise<{ success: boolean; deleted?: boolean }> {
     if (cityId === null && attractionId === null) {
-      const existing = await db.get('SELECT id FROM photos WHERE id = $1', [photoId]);
+      const existing = await db.get<{ id: number; photo_id: string }>('SELECT id, photo_id FROM photos WHERE id = $1', [photoId]);
       if (!existing) throw new Error('Photo not found.');
+      // Delete from S3 if it has an S3 key
+      if (existing.photo_id) {
+        try { await this.deleteFromS3(existing.photo_id); } catch (err) { console.warn('Failed to delete from S3:', err); }
+      }
       await db.run('DELETE FROM photo_tags WHERE photo_id = $1', [photoId]);
       await db.run('DELETE FROM photos WHERE id = $1', [photoId]);
       return { success: true, deleted: true };
@@ -334,15 +555,36 @@ class PhotoService {
 
     if (cityId !== undefined) { setClauses.push(`city_id = $${idx++}`); params.push(cityId); }
     if (attractionId !== undefined) { setClauses.push(`attraction_id = $${idx++}`); params.push(attractionId); }
+    if (latitude !== undefined) { setClauses.push(`latitude = $${idx++}`); params.push(latitude); }
+    if (longitude !== undefined) { setClauses.push(`longitude = $${idx++}`); params.push(longitude); }
+
+    // Resolve and update country_id when city or attraction changes
+    if (cityId !== undefined || attractionId !== undefined) {
+      let resolvedCountryId: number | null = null;
+      const effectiveCityId = cityId !== undefined ? cityId : null;
+      const effectiveAttractionId = attractionId !== undefined ? attractionId : null;
+      if (effectiveCityId) {
+        const city = await db.get<{ country_id: number }>('SELECT country_id FROM cities WHERE id = $1', [effectiveCityId]);
+        resolvedCountryId = city?.country_id || null;
+      } else if (effectiveAttractionId) {
+        const attr = await db.get<{ country_id: number }>('SELECT country_id FROM attractions WHERE id = $1', [effectiveAttractionId]);
+        resolvedCountryId = attr?.country_id || null;
+      }
+      setClauses.push(`country_id = $${idx++}`);
+      params.push(resolvedCountryId);
+    }
 
     params.push(photoId);
     const result = await db.run(`UPDATE photos SET ${setClauses.join(', ')} WHERE id = $${idx}`, params);
     if (result.rowCount === 0) throw new Error('Photo not found.');
 
-    const updated = await db.get<{ city_id: number | null; attraction_id: number | null }>(
-      'SELECT city_id, attraction_id FROM photos WHERE id = $1', [photoId]
+    const updated = await db.get<{ city_id: number | null; attraction_id: number | null; photo_id: string }>(
+      'SELECT city_id, attraction_id, photo_id FROM photos WHERE id = $1', [photoId]
     );
     if (updated && updated.city_id === null && updated.attraction_id === null) {
+      if (updated.photo_id) {
+        try { await this.deleteFromS3(updated.photo_id); } catch (err) { console.warn('Failed to delete from S3:', err); }
+      }
       await db.run('DELETE FROM photo_tags WHERE photo_id = $1', [photoId]);
       await db.run('DELETE FROM photos WHERE id = $1', [photoId]);
       return { success: true, deleted: true };
@@ -350,43 +592,13 @@ class PhotoService {
 
     if (tags !== undefined) { await this.setTagsForPhoto(photoId, tags); }
 
-    // Sync caption and tags to Cloudinary
-    try {
-      const photoRow = await db.get<{ photo_id: string }>('SELECT photo_id FROM photos WHERE id = $1', [photoId]);
-      if (photoRow?.photo_id) {
-        const publicId = photoRow.photo_id;
-
-        // Update context metadata (caption)
-        if (caption !== undefined) {
-          await cloudinary.uploader.explicit(publicId, {
-            type: 'upload',
-            resource_type: 'image',
-            context: { caption: caption || '', alt: '' },
-          });
-        }
-
-        // Replace tags on the Cloudinary asset
-        if (tags !== undefined) {
-          const uniqueTags = [...new Set(tags.map((t) => t.trim().toLowerCase()).filter(Boolean))];
-          if (uniqueTags.length > 0) {
-            await cloudinary.uploader.replace_tag(uniqueTags.join(','), [publicId]);
-          } else {
-            await cloudinary.uploader.remove_all_tags([publicId]);
-          }
-        }
-      }
-    } catch (cloudErr) {
-      console.warn('Failed to sync photo update to Cloudinary:', cloudErr);
-      // Don't fail the request — the DB update already succeeded
-    }
-
     return { success: true };
   }
 
   private async getAllDbPhotos(): Promise<Array<any>> {
     const rows = await db.all<any>(
       `SELECT p.id, p.url, p.user_id, p.city_id, p.attraction_id, p.caption, p.created_at, p.photo_id,
-              p.created_date, p.updated_date, p.disabled_date,
+              p.latitude, p.longitude, p.created_date, p.updated_date, p.disabled_date, p.country_id,
               c.name as city_name, a.name as attraction_name
        FROM photos p
        LEFT JOIN cities c ON p.city_id = c.id
@@ -396,12 +608,15 @@ class PhotoService {
     );
     const result = [];
     for (const row of rows) {
+      const url = row.photo_id ? this.getPublicUrl(row.photo_id) : row.url;
       result.push({
-        id: row.id, url: row.url, user_id: row.user_id, caption: row.caption,
+        id: row.id, url, user_id: row.user_id, caption: row.caption,
         created_at: row.created_at, photo_id: row.photo_id,
+        latitude: row.latitude || null, longitude: row.longitude || null,
         created_date: row.created_date, updated_date: row.updated_date, disabled_date: row.disabled_date,
         city_id: row.city_id || null, city_name: row.city_name || null,
         attraction_id: row.attraction_id || null, attraction_name: row.attraction_name || null,
+        country_id: row.country_id || null,
         entity_type: row.city_id ? 'cities' : row.attraction_id ? 'attractions' : null,
         entity_id: row.city_id || row.attraction_id || null,
         entity_name: row.city_name || row.attraction_name || null,
@@ -415,83 +630,38 @@ class PhotoService {
   public async getAllPhotosMerged(params: {
     page?: number; limit?: number; source?: string; search?: string; noTags?: boolean;
   }): Promise<{ photos: any[]; total: number }> {
-    const { page = 1, limit = 25, source = 'all', search, noTags } = params;
-    const dbPhotos = await this.getAllDbPhotos();
+    const { page = 1, limit = 25, search, noTags } = params;
 
-    const dbByPhotoId = new Map<string, any>();
-    const dbByUrl = new Map<string, any>();
-    for (const p of dbPhotos) {
-      if (p.photo_id) dbByPhotoId.set(p.photo_id, p);
-      if (p.url) dbByUrl.set(p.url, p);
-    }
+    // All photos are now in the database — S3 is just storage, DB is the source of truth
+    let photos = await this.getAllDbPhotos();
 
-    let merged: any[] = [];
-
-    if (source === 'database') {
-      merged = dbPhotos.map((p) => ({ ...p, source: 'database', in_database: true, in_cloudinary: false }));
-    } else {
-      const cloudinaryPhotos: any[] = [];
-      try {
-        const folder = process.env.CLOUDINARY_FOLDER || '';
-        let nextCursor: string | undefined;
-        const maxFetches = 10;
-        for (let i = 0; i < maxFetches; i++) {
-          const options: any = { type: 'upload', prefix: folder, max_results: 500, context: true };
-          if (nextCursor) options.next_cursor = nextCursor;
-          const result = await cloudinary.api.resources(options);
-          const resources = result.resources ?? [];
-          for (const r of resources) {
-            cloudinaryPhotos.push({
-              photo_id: r.public_id, url: r.secure_url,
-              caption: r.context?.custom?.caption || r.context?.custom?.alt || null,
-              created_at: r.created_at, format: r.format,
-            });
-          }
-          nextCursor = result.next_cursor;
-          if (!nextCursor) break;
-        }
-      } catch (err) {
-        console.error('Failed to fetch Cloudinary photos for merge:', err);
-        if (source === 'cloudinary') return { photos: [], total: 0 };
-      }
-
-      const seenPhotoIds = new Set<string>();
-      for (const cp of cloudinaryPhotos) {
-        const dbMatch = dbByPhotoId.get(cp.photo_id) || dbByUrl.get(cp.url);
-        seenPhotoIds.add(cp.photo_id);
-        if (cp.url) seenPhotoIds.add(cp.url);
-        if (dbMatch) {
-          merged.push({ id: dbMatch.id, url: cp.url, user_id: dbMatch.user_id, caption: dbMatch.caption || cp.caption, created_at: cp.created_at, photo_id: cp.photo_id, city_id: dbMatch.city_id, city_name: dbMatch.city_name, attraction_id: dbMatch.attraction_id, attraction_name: dbMatch.attraction_name, entity_type: dbMatch.entity_type, entity_id: dbMatch.entity_id, entity_name: dbMatch.entity_name, tags: dbMatch.tags, source: 'both', in_database: true, in_cloudinary: true });
-        } else if (source !== 'database') {
-          merged.push({ id: null, url: cp.url, user_id: null, caption: cp.caption, created_at: cp.created_at, photo_id: cp.photo_id, city_id: null, city_name: null, attraction_id: null, attraction_name: null, entity_type: null, entity_id: null, entity_name: null, tags: [], source: 'cloudinary', in_database: false, in_cloudinary: true });
-        }
-      }
-      if (source === 'all') {
-        for (const dp of dbPhotos) {
-          if (!seenPhotoIds.has(dp.photo_id) && !seenPhotoIds.has(dp.url)) {
-            merged.push({ ...dp, source: 'database', in_database: true, in_cloudinary: false });
-          }
-        }
-      }
-    }
-
-    if (source === 'cloudinary') merged = merged.filter((p) => p.in_cloudinary && !p.in_database);
     if (noTags) {
-      merged = merged.filter((p) => !p.tags || p.tags.length === 0);
+      photos = photos.filter((p) => !p.tags || p.tags.length === 0);
     }
     if (search) {
       const s = search.toLowerCase();
-      merged = merged.filter((p) =>
-        (p.caption && p.caption.toLowerCase().includes(s)) || (p.url && p.url.toLowerCase().includes(s)) ||
-        (p.photo_id && p.photo_id.toLowerCase().includes(s)) || (p.entity_name && p.entity_name.toLowerCase().includes(s)) ||
+      photos = photos.filter((p) =>
+        (p.caption && p.caption.toLowerCase().includes(s)) ||
+        (p.photo_id && p.photo_id.toLowerCase().includes(s)) ||
+        (p.entity_name && p.entity_name.toLowerCase().includes(s)) ||
         (p.tags && p.tags.some((t: string) => t.toLowerCase().includes(s)))
       );
     }
-    merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    const total = merged.length;
+
+    photos.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const total = photos.length;
     const offset = (page - 1) * limit;
-    const paginated = merged.slice(offset, offset + limit);
-    return { photos: paginated, total };
+    const paginated = photos.slice(offset, offset + limit);
+
+    const result = paginated.map((p) => ({
+      ...p,
+      source: 'database',
+      in_database: true,
+      in_cloudinary: false,
+    }));
+
+    return { photos: result, total };
   }
 
   public async removePhoto(request: RemovePhotoRequest): Promise<{ success: boolean }> {
@@ -501,6 +671,22 @@ class PhotoService {
     const column = entityType === 'cities' ? 'city_id' : 'attraction_id';
     const result = await db.run(`UPDATE photos SET disabled_date = NOW() WHERE id = $1 AND ${column} = $2 AND disabled_date IS NULL`, [photoId, Number(entityId)]);
     if (result.rowCount === 0) throw new Error('Photo not found or does not belong to this entity.');
+    return { success: true };
+  }
+
+  public async deletePhotoById(id: number): Promise<{ success: boolean }> {
+    const photo = await db.get<{ id: number; photo_id: string }>('SELECT id, photo_id FROM photos WHERE id = $1', [id]);
+    if (!photo) throw new Error('Photo not found.');
+
+    // Delete from S3 if it has an S3 key
+    if (photo.photo_id) {
+      try { await this.deleteFromS3(photo.photo_id); } catch (err) { console.warn('Failed to delete from S3:', err); }
+    }
+
+    // Delete tags and photo record
+    await db.run('DELETE FROM photo_tags WHERE photo_id = $1', [id]);
+    await db.run('DELETE FROM photos WHERE id = $1', [id]);
+
     return { success: true };
   }
 }
