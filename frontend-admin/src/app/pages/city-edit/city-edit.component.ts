@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, HostListener } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, HostListener } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -61,6 +62,7 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
   private readonly geocodeService = inject(GeocodeService);
   private readonly infoService = inject(InfoService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
   isEditMode = signal(false);
@@ -102,8 +104,8 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     // React to lat/lng form changes to update the map
-    this.form.get('lat')?.valueChanges.subscribe(() => this.updateMapFromForm());
-    this.form.get('lng')?.valueChanges.subscribe(() => this.updateMapFromForm());
+    this.form.get('lat')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
+    this.form.get('lng')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
   }
 
   private initForm(): void {
@@ -135,7 +137,7 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   private loadCountries(): void {
-    this.countriesService.getAllCountries('name').subscribe({
+    this.countriesService.getAllCountries('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.countries.set(response.countries);
       },
@@ -150,7 +152,7 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   private loadStates(): void {
-    this.statesService.getAllStates('name').subscribe({
+    this.statesService.getAllStates('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.states.set(response.states);
       },
@@ -172,7 +174,7 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
 
   private loadCity(id: number): void {
     this.loading.set(true);
-    this.citiesService.getCity(id).subscribe({
+    this.citiesService.getCity(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (city: City) => {
         this.form.patchValue({
           name: city.name,
@@ -244,7 +246,7 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
       ? { city: name, country: country.name, state: state?.name }
       : { place: name };
 
-    this.geocodeService.forwardGeocode(request).subscribe({
+    this.geocodeService.forwardGeocode(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.form.patchValue({ lat: result.lat, lng: result.lng });
         this.snackBar.open(
@@ -279,7 +281,7 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
 
     this.loadingWiki.set(true);
     this.wikiInfo.set(null);
-    this.infoService.getInfo(wikiTerm).subscribe({
+    this.infoService.getInfo(wikiTerm).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.wikiInfo.set(result);
         this.loadingWiki.set(false);
@@ -318,7 +320,7 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
       ? this.citiesService.updateCity(this.cityId, payload)
       : this.citiesService.createCity(payload);
 
-    request$.subscribe({
+    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.saved = true;
         this.snackBar.open(

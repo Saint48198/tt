@@ -1,4 +1,6 @@
-import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter, switchMap } from 'rxjs';
 import { RouterModule } from '@angular/router';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
@@ -38,6 +40,7 @@ export class UsersListComponent implements OnInit, AfterViewInit {
   private readonly usersService = inject(UsersService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
 
   displayedColumns: string[] = ['username', 'email', 'roles', 'actions'];
   dataSource = new MatTableDataSource<User>([]);
@@ -68,6 +71,7 @@ export class UsersListComponent implements OnInit, AfterViewInit {
         sortOrder,
         includeDisabled: this.includeDisabled(),
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           this.dataSource.data = response.users;
@@ -128,23 +132,24 @@ export class UsersListComponent implements OnInit, AfterViewInit {
       width: '420px',
       autoFocus: false,
       panelClass: 'confirm-dialog-panel',
-    }).afterClosed().subscribe((confirmed) => {
-      if (!confirmed) return;
-      this.usersService.deleteUser(user.id).subscribe({
-        next: () => {
-          this.snackBar.open('User deleted successfully', 'Close', {
-            duration: 3000,
-          });
-          this.loadUsers();
-        },
-        error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to delete user',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
-        },
-      });
+    }).afterClosed().pipe(
+      filter((confirmed) => !!confirmed),
+      switchMap(() => this.usersService.deleteUser(user.id)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('User deleted successfully', 'Close', {
+          duration: 3000,
+        });
+        this.loadUsers();
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || 'Failed to delete user',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+      },
     });
   }
 

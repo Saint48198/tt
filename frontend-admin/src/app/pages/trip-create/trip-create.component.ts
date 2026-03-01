@@ -1,4 +1,5 @@
-import { Component, inject, signal, HostListener } from '@angular/core';
+import { Component, DestroyRef, inject, signal, HostListener } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -30,6 +31,7 @@ export class TripCreateComponent implements HasUnsavedChanges {
   private readonly router = inject(Router);
   private readonly tripsService = inject(TripsService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   saving = signal(false);
   private saved = false;
@@ -60,7 +62,7 @@ export class TripCreateComponent implements HasUnsavedChanges {
     this.saving.set(true);
     const { name, notes } = this.form.value;
 
-    this.tripsService.createTrip({ name, notes: notes || undefined }).subscribe({
+    this.tripsService.createTrip({ name, notes: notes || undefined }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.saved = true;
         this.snackBar.open('Trip created successfully', 'Close', { duration: 3000 });

@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, HostListener, ElementRef, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -40,6 +41,7 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
   private readonly router = inject(Router);
   private readonly usersService = inject(UsersService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild('avatarInput') avatarInput!: ElementRef<HTMLInputElement>;
 
@@ -97,7 +99,7 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
 
   private loadUser(id: number): void {
     this.loading.set(true);
-    this.usersService.getUser(id).subscribe({
+    this.usersService.getUser(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (user: User) => {
         this.user.set(user);
         this.form.patchValue({
@@ -139,7 +141,7 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
       payload.instagram = formValue.instagram?.trim() || null;
       payload.portfolio_url = formValue.portfolio_url?.trim() || null;
 
-      this.usersService.updateUser(this.userId, payload).subscribe({
+      this.usersService.updateUser(this.userId, payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.saved = true;
           this.snackBar.open('User updated successfully', 'Close', {
@@ -170,7 +172,7 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
         return;
       }
 
-      this.usersService.createUser(createPayload).subscribe({
+      this.usersService.createUser(createPayload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.saved = true;
           this.snackBar.open('User created successfully', 'Close', {
@@ -220,7 +222,7 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     this.uploadingAvatar.set(true);
-    this.usersService.uploadAvatar(this.userId, file).subscribe({
+    this.usersService.uploadAvatar(this.userId, file).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.profileIconPreview.set(res.profile_icon);
         this.snackBar.open('Profile icon updated', 'Close', { duration: 3000 });
@@ -247,7 +249,7 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     this.uploadingAvatar.set(true);
-    this.usersService.removeAvatar(this.userId).subscribe({
+    this.usersService.removeAvatar(this.userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.profileIconPreview.set(null);
         this.snackBar.open('Profile icon removed', 'Close', { duration: 3000 });
@@ -287,7 +289,7 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     if (!this.userId) return;
 
     this.savingPassword.set(true);
-    this.usersService.changePassword(this.userId, currentPassword, newPassword).subscribe({
+    this.usersService.changePassword(this.userId, currentPassword, newPassword).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.snackBar.open('Password changed successfully', 'Close', {
           duration: 3000,

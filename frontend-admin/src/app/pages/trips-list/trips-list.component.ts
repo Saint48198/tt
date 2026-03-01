@@ -1,4 +1,6 @@
-import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter, switchMap } from 'rxjs';
 import { DatePipe, SlicePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -46,6 +48,7 @@ export class TripsListComponent implements OnInit, AfterViewInit {
   private readonly tripsService = inject(TripsService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
 
   displayedColumns: string[] = ['name', 'startDate', 'endDate', 'notes', 'actions'];
   dataSource = new MatTableDataSource<TripRow>([]);
@@ -66,7 +69,7 @@ export class TripsListComponent implements OnInit, AfterViewInit {
 
   loadTrips(): void {
     this.loading.set(true);
-    this.tripsService.getTrips().subscribe({
+    this.tripsService.getTrips().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (trips) => {
         this.dataSource.data = trips.map((trip) => {
           const parsed = this.parsePlan(trip);
@@ -143,23 +146,24 @@ export class TripsListComponent implements OnInit, AfterViewInit {
       width: '420px',
       autoFocus: false,
       panelClass: 'confirm-dialog-panel',
-    }).afterClosed().subscribe((confirmed) => {
-      if (!confirmed) return;
-      this.tripsService.deleteTrip(trip.id).subscribe({
-        next: () => {
-          this.snackBar.open('Trip deleted successfully', 'Close', {
-            duration: 3000,
-          });
-          this.loadTrips();
-        },
-        error: (err) => {
-          this.snackBar.open(
-            err?.error?.error || 'Failed to delete trip',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
-        },
-      });
+    }).afterClosed().pipe(
+      filter((confirmed) => !!confirmed),
+      switchMap(() => this.tripsService.deleteTrip(trip.id)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('Trip deleted successfully', 'Close', {
+          duration: 3000,
+        });
+        this.loadTrips();
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.error || 'Failed to delete trip',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+      },
     });
   }
 }

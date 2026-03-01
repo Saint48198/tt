@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '@shared/services';
@@ -14,6 +15,7 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
   loginForm: FormGroup = this.fb.group({
     username: ['', [Validators.required]],
@@ -33,7 +35,7 @@ export class LoginComponent {
 
     const { username, password } = this.loginForm.value;
 
-    this.authService.login(username, password).subscribe({
+    this.authService.login(username, password).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         // Check if user has admin role
         if (this.authService.hasRole('admin')) {

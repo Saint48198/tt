@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, HostListener } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, HostListener } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -51,6 +52,7 @@ export class StateEditComponent implements OnInit, HasUnsavedChanges {
   private readonly statesService = inject(StatesService);
   private readonly countriesService = inject(CountriesService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
   isEditMode = signal(false);
@@ -110,7 +112,7 @@ export class StateEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   private loadCountries(): void {
-    this.countriesService.getAllCountries('name').subscribe({
+    this.countriesService.getAllCountries('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.countries.set(response.countries);
       },
@@ -126,7 +128,7 @@ export class StateEditComponent implements OnInit, HasUnsavedChanges {
 
   private loadState(id: number): void {
     this.loading.set(true);
-    this.statesService.getState(id).subscribe({
+    this.statesService.getState(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (state: State) => {
         this.form.patchValue({
           name: state.name,
@@ -169,7 +171,7 @@ export class StateEditComponent implements OnInit, HasUnsavedChanges {
       ? this.statesService.updateState(this.stateId, payload)
       : this.statesService.createState(payload);
 
-    request$.subscribe({
+    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.saved = true;
         this.snackBar.open(

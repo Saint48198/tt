@@ -1,4 +1,6 @@
-import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter, switchMap } from 'rxjs';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -47,6 +49,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
   private readonly attractionsService = inject(AttractionsService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   displayedColumns: string[] = ['name', 'country_name', 'tags', 'lat', 'lng', 'last_visited', 'actions'];
@@ -80,6 +83,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
         search: this.searchQuery() || undefined,
         includeDisabled: this.includeDisabled(),
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           this.dataSource.data = response.attractions;
@@ -161,23 +165,24 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
       width: '420px',
       autoFocus: false,
       panelClass: 'confirm-dialog-panel',
-    }).afterClosed().subscribe((confirmed) => {
-      if (!confirmed) return;
-      this.attractionsService.deleteAttraction(attraction.id).subscribe({
-        next: () => {
-          this.snackBar.open('Attraction deleted successfully', 'Close', {
-            duration: 3000,
-          });
-          this.loadAttractions();
-        },
-        error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to delete attraction',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
-        },
-      });
+    }).afterClosed().pipe(
+      filter((confirmed) => !!confirmed),
+      switchMap(() => this.attractionsService.deleteAttraction(attraction.id)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('Attraction deleted successfully', 'Close', {
+          duration: 3000,
+        });
+        this.loadAttractions();
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || 'Failed to delete attraction',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+      },
     });
   }
 }

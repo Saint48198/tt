@@ -1,4 +1,6 @@
-import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter, switchMap } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -38,6 +40,7 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
   private readonly countriesService = inject(CountriesService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
 
   displayedColumns: string[] = ['name', 'abbreviation', 'lat', 'lng', 'last_visited', 'actions'];
   dataSource = new MatTableDataSource<Country>([]);
@@ -68,6 +71,7 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
         sortOrder,
         includeDisabled: this.includeDisabled(),
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           this.dataSource.data = response.countries;
@@ -128,23 +132,24 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
       width: '420px',
       autoFocus: false,
       panelClass: 'confirm-dialog-panel',
-    }).afterClosed().subscribe((confirmed) => {
-      if (!confirmed) return;
-      this.countriesService.deleteCountry(country.id).subscribe({
-        next: () => {
-          this.snackBar.open('Country deleted successfully', 'Close', {
-            duration: 3000,
-          });
-          this.loadCountries();
-        },
-        error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to delete country',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
-        },
-      });
+    }).afterClosed().pipe(
+      filter((confirmed) => !!confirmed),
+      switchMap(() => this.countriesService.deleteCountry(country.id)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('Country deleted successfully', 'Close', {
+          duration: 3000,
+        });
+        this.loadCountries();
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || 'Failed to delete country',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+      },
     });
   }
 }

@@ -1,4 +1,6 @@
-import { Component, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter, switchMap } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -38,6 +40,7 @@ export class StatesListComponent implements OnInit, AfterViewInit {
   private readonly statesService = inject(StatesService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
 
   displayedColumns: string[] = ['name', 'abbr', 'country_name', 'last_visited', 'actions'];
   dataSource = new MatTableDataSource<State>([]);
@@ -68,6 +71,7 @@ export class StatesListComponent implements OnInit, AfterViewInit {
         sortOrder,
         includeDisabled: this.includeDisabled(),
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           this.dataSource.data = response.states;
@@ -128,23 +132,24 @@ export class StatesListComponent implements OnInit, AfterViewInit {
       width: '420px',
       autoFocus: false,
       panelClass: 'confirm-dialog-panel',
-    }).afterClosed().subscribe((confirmed) => {
-      if (!confirmed) return;
-      this.statesService.deleteState(state.id).subscribe({
-        next: () => {
-          this.snackBar.open('State deleted successfully', 'Close', {
-            duration: 3000,
-          });
-          this.loadStates();
-        },
-        error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to delete state',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
-        },
-      });
+    }).afterClosed().pipe(
+      filter((confirmed) => !!confirmed),
+      switchMap(() => this.statesService.deleteState(state.id)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('State deleted successfully', 'Close', {
+          duration: 3000,
+        });
+        this.loadStates();
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || 'Failed to delete state',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+      },
     });
   }
 }

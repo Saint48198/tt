@@ -9,7 +9,6 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { forkJoin, catchError, of, finalize } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '@shared/services';
 import { DashboardMapComponent } from '../../components/dashboard-map/dashboard-map.component';
 import { DashboardService, DashboardStats } from '../../services/dashboard.service';
@@ -59,7 +58,7 @@ export class DashboardComponent implements OnInit {
           console.error('Failed to load dashboard stats:', err);
           this.error.update((errors) => [
             ...errors,
-            `Failed to load dashboard stats: ${this.extractErrorMessage(err)}`,
+            'Failed to load dashboard stats. Please try again later.',
           ]);
           return of(null);
         }),
@@ -69,7 +68,7 @@ export class DashboardComponent implements OnInit {
           console.error('Failed to load countries visited:', err);
           this.error.update((errors) => [
             ...errors,
-            `Failed to load countries visited: ${this.extractErrorMessage(err)}`,
+            'Failed to load countries visited. Please try again later.',
           ]);
           return of(null);
         }),
@@ -87,20 +86,6 @@ export class DashboardComponent implements OnInit {
       });
   }
 
-  private extractErrorMessage(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      return (
-        err.error?.error ||
-        err.error?.message ||
-        err.statusText ||
-        'Unknown server error'
-      );
-    }
-    if (err instanceof Error) {
-      return err.message;
-    }
-    return 'An unexpected error occurred';
-  }
 
   logout(): void {
     this.authService.logout();

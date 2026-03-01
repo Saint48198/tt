@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -60,6 +61,7 @@ export class AttractionEditComponent implements OnInit {
   private readonly geocodeService = inject(GeocodeService);
   private readonly infoService = inject(InfoService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
   isEditMode = signal(false);
@@ -85,8 +87,8 @@ export class AttractionEditComponent implements OnInit {
       this.loadAttraction(this.attractionId);
     }
 
-    this.form.get('lat')?.valueChanges.subscribe(() => this.updateMapFromForm());
-    this.form.get('lng')?.valueChanges.subscribe(() => this.updateMapFromForm());
+    this.form.get('lat')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
+    this.form.get('lng')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
   }
 
   private initForm(): void {
@@ -119,7 +121,7 @@ export class AttractionEditComponent implements OnInit {
   }
 
   private loadCountries(): void {
-    this.countriesService.getAllCountries('name').subscribe({
+    this.countriesService.getAllCountries('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.countries.set(response.countries);
       },
@@ -135,7 +137,7 @@ export class AttractionEditComponent implements OnInit {
 
   private loadAttraction(id: number): void {
     this.loading.set(true);
-    this.attractionsService.getAttraction(id).subscribe({
+    this.attractionsService.getAttraction(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (attraction: Attraction) => {
         this.form.patchValue({
           name: attraction.name,
@@ -206,7 +208,7 @@ export class AttractionEditComponent implements OnInit {
       ? { place: `${name}, ${country.name}` }
       : { place: name };
 
-    this.geocodeService.forwardGeocode(request).subscribe({
+    this.geocodeService.forwardGeocode(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.form.patchValue({ lat: result.lat, lng: result.lng });
         this.snackBar.open(
@@ -241,7 +243,7 @@ export class AttractionEditComponent implements OnInit {
 
     this.loadingWiki.set(true);
     this.wikiInfo.set(null);
-    this.infoService.getInfo(wikiTerm).subscribe({
+    this.infoService.getInfo(wikiTerm).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.wikiInfo.set(result);
         this.loadingWiki.set(false);
@@ -281,7 +283,7 @@ export class AttractionEditComponent implements OnInit {
       ? this.attractionsService.updateAttraction(this.attractionId, payload)
       : this.attractionsService.createAttraction(payload);
 
-    request$.subscribe({
+    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.snackBar.open(
           `Attraction ${this.isEditMode() ? 'updated' : 'created'} successfully`,

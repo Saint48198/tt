@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { concat } from 'rxjs';
-import { toArray } from 'rxjs/operators';
+import { filter, switchMap, toArray } from 'rxjs/operators';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -52,10 +53,11 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
   templateUrl: './photos-list.component.html',
   styleUrl: './photos-list.component.scss',
 })
-export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
+export class PhotosListComponent implements OnInit, AfterViewInit {
   private readonly photosService = inject(PhotosService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
 
   photos = signal<AdminPhoto[]>([]);
   total = signal(0);
@@ -91,10 +93,7 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.setupScrollObserver();
-  }
-
-  ngOnDestroy(): void {
-    this.scrollObserver?.disconnect();
+    this.destroyRef.onDestroy(() => this.scrollObserver?.disconnect());
   }
 
   private setupScrollObserver(): void {
@@ -136,6 +135,7 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
         search: this.searchQuery || undefined,
         noTags: this.tagsFilter(),
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           this.photos.set(response.photos);
@@ -167,6 +167,7 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
         search: this.searchQuery || undefined,
         noTags: this.tagsFilter(),
       })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
           this.currentPage = nextPage;
@@ -229,32 +230,32 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
       width: '420px',
       autoFocus: false,
       panelClass: 'confirm-dialog-panel',
-    }).afterClosed().subscribe((confirmed) => {
-      if (!confirmed) return;
+    }).afterClosed().pipe(
+      filter((confirmed) => !!confirmed),
+      switchMap(() => {
+        const entityType = photo.city_id ? 'cities' as const : photo.attraction_id ? 'attractions' as const : null;
+        const entityId = photo.city_id || photo.attraction_id;
 
-      const entityType = photo.city_id ? 'cities' as const : photo.attraction_id ? 'attractions' as const : null;
-      const entityId = photo.city_id || photo.attraction_id;
-
-      const delete$ = entityType && entityId
-        ? this.photosService.deletePhoto(entityType, entityId, photoId)
-        : this.photosService.deletePhotoById(photoId);
-
-      delete$.subscribe({
-        next: () => {
-          this.snackBar.open('Photo deleted successfully', 'Close', {
-            duration: 3000,
-          });
-          this.photos.update((list) => list.filter((p) => p.id !== photoId));
-          this.total.update((t) => t - 1);
-        },
-        error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to delete photo',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
-        },
-      });
+        return entityType && entityId
+          ? this.photosService.deletePhoto(entityType, entityId, photoId)
+          : this.photosService.deletePhotoById(photoId);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('Photo deleted successfully', 'Close', {
+          duration: 3000,
+        });
+        this.photos.update((list) => list.filter((p) => p.id !== photoId));
+        this.total.update((t) => t - 1);
+      },
+      error: (err) => {
+        this.snackBar.open(
+          err?.error?.message || 'Failed to delete photo',
+          'Close',
+          { duration: 5000, panelClass: 'error-snackbar' }
+        );
+      },
     });
   }
 
@@ -272,7 +273,7 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
       maxHeight: '90vh',
     });
 
-    dialogRef.afterClosed().subscribe((result: PhotoEditDialogResult | undefined) => {
+    dialogRef.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result: PhotoEditDialogResult | undefined) => {
       if (result?.updated) {
         // Reload from page 1 to refresh data
         this.loadPhotos();
@@ -289,11 +290,11 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
       disableClose: false,
     });
 
-    dialogRef.afterClosed().subscribe((result: BulkUploadDialogResult | undefined) => {
-      if (result?.uploaded && result.images?.length) {
-        // Save each uploaded photo to the database with EXIF metadata
+    dialogRef.afterClosed().pipe(
+      filter((result): result is BulkUploadDialogResult => !!(result?.uploaded && result.images?.length)),
+      switchMap((result: BulkUploadDialogResult) => {
         const countryId = result.country_id ?? null;
-        const saveRequests = result.images.map((img) =>
+        const saveRequests = result.images!.map((img) =>
           this.photosService.addPhotoToDb({
             photo_id: img.public_id,
             url: img.secure_url || img.url,
@@ -304,12 +305,12 @@ export class PhotosListComponent implements OnInit, OnDestroy, AfterViewInit {
             country_id: countryId,
           })
         );
-
-        concat(...saveRequests).pipe(toArray()).subscribe({
-          next: () => this.loadPhotos(),
-          error: () => this.loadPhotos(),
-        });
-      }
+        return concat(...saveRequests).pipe(toArray());
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: () => this.loadPhotos(),
+      error: () => this.loadPhotos(),
     });
   }
 }

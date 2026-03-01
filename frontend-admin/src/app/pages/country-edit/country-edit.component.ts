@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, HostListener } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, HostListener } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -53,6 +54,7 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
   private readonly countriesService = inject(CountriesService);
   private readonly geocodeService = inject(GeocodeService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
   isEditMode = signal(false);
@@ -88,8 +90,8 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     // React to lat/lng form changes to update the map
-    this.form.get('lat')?.valueChanges.subscribe(() => this.updateMapFromForm());
-    this.form.get('lng')?.valueChanges.subscribe(() => this.updateMapFromForm());
+    this.form.get('lat')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
+    this.form.get('lng')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
   }
 
   private initForm(): void {
@@ -122,7 +124,7 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
 
   private loadCountry(id: number): void {
     this.loading.set(true);
-    this.countriesService.getCountry(id).subscribe({
+    this.countriesService.getCountry(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (country: Country) => {
         this.form.patchValue({
           name: country.name,
@@ -196,7 +198,7 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
       ? this.countriesService.updateCountry(this.countryId, payload)
       : this.countriesService.createCountry(payload);
 
-    request$.subscribe({
+    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.saved = true;
         this.snackBar.open(
@@ -225,7 +227,7 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     this.geocoding.set(true);
-    this.geocodeService.forwardGeocode({ country: name }).subscribe({
+    this.geocodeService.forwardGeocode({ country: name }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.form.patchValue({ lat: result.lat, lng: result.lng });
         this.snackBar.open(

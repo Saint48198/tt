@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal, computed } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { MapComponent, MapMarker } from '@shared/components';
@@ -24,6 +25,7 @@ interface PublicProfile {
 export class ProfileMapComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private http = inject(HttpClient);
+  private destroyRef = inject(DestroyRef);
 
   username = signal('');
   profile = signal<PublicProfile | null>(null);
@@ -63,7 +65,9 @@ export class ProfileMapComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.http.get<PublicProfile>(`/api/public/profile/${encodeURIComponent(username)}`).subscribe({
+    this.http.get<PublicProfile>(`/api/public/profile/${encodeURIComponent(username)}`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (profile) => {
         this.profile.set(profile);
         this.loading.set(false);

@@ -1,4 +1,16 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectorRef, HostListener, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  OnDestroy,
+  AfterViewChecked,
+  ChangeDetectorRef,
+  HostListener,
+  ViewChild,
+  ElementRef,
+  signal,
+  computed,
+} from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -560,7 +572,7 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
     return name
       .toLowerCase()
       .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9\-]/g, '');
+      .replace(/[^a-z0-9-]/g, '');
   }
 
   /** Match a slug against a name: "new-york" matches "New York" */
@@ -581,8 +593,9 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   onOverlayClick(event: OverlayClickEvent): void {
     // Find the matching state by name and navigate to it
     if (event.name) {
+      const eventName = event.name;
       const state = this.states().find(
-        (s) => s.name.toLowerCase() === event.name!.toLowerCase()
+        (s) => s.name.toLowerCase() === eventName.toLowerCase()
       );
       if (state) {
         this.onStateClick(state);

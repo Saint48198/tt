@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal, computed, HostListener } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed, HostListener } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -74,6 +75,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   private readonly geocodeService = inject(GeocodeService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly datePipe = inject(DatePipe);
+  private readonly destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
   loading = signal(false);
@@ -210,7 +212,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   private loadCountries(): void {
-    this.countriesService.getAllCountries('name').subscribe({
+    this.countriesService.getAllCountries('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.countries.set(response.countries);
       },
@@ -225,7 +227,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   private loadCities(): void {
-    this.citiesService.getAllCities('name').subscribe({
+    this.citiesService.getAllCities('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         this.cities.set(response.cities);
       },
@@ -260,7 +262,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
     const geoMapId = `new-${slug}-${Date.now()}`;
     const lat = this.newCountryLat() ?? 0;
     const lng = this.newCountryLng() ?? 0;
-    this.countriesService.createCountry({ name, abbreviation: '', lat, lng, slug, geo_map_id: geoMapId }).subscribe({
+    this.countriesService.createCountry({ name, abbreviation: '', lat, lng, slug, geo_map_id: geoMapId }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         const newCountry: Country = { id: response.id!, name, abbreviation: '', lat, lng };
         this.countries.update((c) => [...c, newCountry].sort((a, b) => a.name.localeCompare(b.name)));
@@ -308,7 +310,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
     this.savingCity.set(true);
     const lat = this.newCityLat() ?? 0;
     const lng = this.newCityLng() ?? 0;
-    this.citiesService.createCity({ name, lat, lng, country_id: countryId }).subscribe({
+    this.citiesService.createCity({ name, lat, lng, country_id: countryId }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         const countryName = this.countries().find((c) => c.id === countryId)?.name || '';
         const newCity: City = { id: response.id!, name, lat, lng, country_id: countryId, country_name: countryName };
@@ -339,7 +341,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
       return;
     }
     this.geocodingCountry.set(true);
-    this.geocodeService.forwardGeocode({ country: name }).subscribe({
+    this.geocodeService.forwardGeocode({ country: name }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.newCountryLat.set(result.lat);
         this.newCountryLng.set(result.lng);
@@ -365,7 +367,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
     const request = country
       ? { city: name, country: country.name }
       : { place: name };
-    this.geocodeService.forwardGeocode(request).subscribe({
+    this.geocodeService.forwardGeocode(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (result) => {
         this.newCityLat.set(result.lat);
         this.newCityLng.set(result.lng);
@@ -422,7 +424,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
 
   private loadTrip(id: number): void {
     this.loading.set(true);
-    this.tripsService.getTrip(id).subscribe({
+    this.tripsService.getTrip(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (trip: Trip) => {
         this.form.patchValue({
           name: trip.name,
@@ -466,7 +468,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
     this.planItemForm = this.buildPlanItemForm(type);
 
     // Default end date to start date when user picks a start date
-    this.planItemForm.get('startDate')?.valueChanges.subscribe((value) => {
+    this.planItemForm.get('startDate')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
       const endDate = this.planItemForm.get('endDate')?.value;
       if (value && !endDate) {
         this.planItemForm.get('endDate')?.setValue(value);
@@ -682,7 +684,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
 
     const request$ = this.tripsService.updateTrip(this.tripId, payload);
 
-    request$.subscribe({
+    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.saved = true;
         this.snackBar.open('Trip updated successfully', 'Close', { duration: 3000 });
