@@ -259,12 +259,6 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getEntityTypeLabel(type: string | null): string {
-    if (type === 'cities') return 'City';
-    if (type === 'attractions') return 'Attraction';
-    return '-';
-  }
-
   openEditDialog(photo: AdminPhoto): void {
     const dialogRef = this.dialog.open(PhotoEditDialogComponent, {
       data: { photo },

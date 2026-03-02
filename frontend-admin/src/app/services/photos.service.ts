@@ -49,8 +49,8 @@ export class PhotosService {
       latitude?: number | null;
       longitude?: number | null;
     }
-  ): Observable<{ message: string; deleted?: boolean }> {
-    return this.http.patch<{ message: string; deleted?: boolean }>(`${this.apiUrl}/${photoId}`, data);
+  ): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(`${this.apiUrl}/${photoId}`, data);
   }
 
   /**

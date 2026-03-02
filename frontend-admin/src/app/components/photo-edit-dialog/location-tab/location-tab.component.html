@@ -1,0 +1,152 @@
+<div class="tab-content">
+  @if (hasLocation()) {
+    <div class="location-map-container">
+      <lib-map
+        [markers]="mapMarkers()"
+        [center]="mapCenter()"
+        [zoom]="14"
+        [height]="'280px'"
+        [enableZoom]="true"
+        [enableDrag]="true"
+        [showAttribution]="true">
+      </lib-map>
+    </div>
+    <div class="location-coords">
+      <div class="coord-item">
+        <mat-icon class="coord-icon">north</mat-icon>
+        <span class="coord-label">Latitude</span>
+        <span class="coord-value">{{ latitude()?.toFixed(6) }}</span>
+      </div>
+      <div class="coord-item">
+        <mat-icon class="coord-icon">east</mat-icon>
+        <span class="coord-label">Longitude</span>
+        <span class="coord-value">{{ longitude()?.toFixed(6) }}</span>
+      </div>
+    </div>
+
+    <!-- Reverse Geocode Section -->
+    <div class="reverse-geo-section">
+      @if (reverseGeoLoading()) {
+        <div class="reverse-geo-loading">
+          <mat-spinner diameter="20"></mat-spinner>
+          <span>Looking up location…</span>
+        </div>
+      } @else if (reverseGeoError()) {
+        <div class="reverse-geo-error">
+          <mat-icon class="error-icon">error_outline</mat-icon>
+          <span>{{ reverseGeoError() }}</span>
+          <button mat-button color="primary" (click)="lookupLocation()">
+            Retry
+          </button>
+        </div>
+      } @else if (reverseGeo(); as geo) {
+        <div class="reverse-geo-result">
+          <mat-icon class="geo-icon">place</mat-icon>
+          <div class="geo-details">
+            <span class="geo-label">Detected Location</span>
+            <span class="geo-value">
+              {{ geo.city || 'Unknown city' }}@if (geo.state) {, {{ geo.state }}}@if (geo.country) {, {{ geo.country }}}
+            </span>
+          </div>
+          <button mat-icon-button matTooltip="Refresh lookup" (click)="lookupLocation()">
+            <mat-icon>refresh</mat-icon>
+          </button>
+        </div>
+
+        <!-- Matched cities from database -->
+        @if (matchingCities()) {
+          <div class="reverse-geo-loading">
+            <mat-spinner diameter="18"></mat-spinner>
+            <span>Searching for matching cities…</span>
+          </div>
+        } @else if (assigned()) {
+          <div class="city-assigned">
+            <mat-icon class="assigned-icon">check_circle</mat-icon>
+            <span>City assigned successfully</span>
+          </div>
+        } @else if (matchedCities().length > 0) {
+          <div class="matched-cities">
+            <span class="matched-label">Matching cities in database:</span>
+            @for (city of matchedCities(); track city.id) {
+              <button
+                mat-stroked-button
+                class="city-match-btn"
+                [class.current]="city.id === currentCityId()"
+                (click)="assignCity(city)"
+                [disabled]="city.id === currentCityId()"
+                [matTooltip]="city.id === currentCityId() ? 'Already assigned' : 'Assign this city to the photo'">
+                <mat-icon>location_city</mat-icon>
+                <span class="city-name">{{ city.name }}</span>
+                @if (city.country_name) {
+                  <span class="city-country">{{ city.country_name }}</span>
+                }
+                @if (city.id === currentCityId()) {
+                  <mat-icon class="current-icon">check</mat-icon>
+                }
+              </button>
+            }
+          </div>
+        } @else if (geo.city && geo.city !== 'Unknown City') {
+          <div class="no-match-hint">
+            <mat-icon class="hint-icon">info_outline</mat-icon>
+            <span>No matching city found in database for "{{ geo.city }}"</span>
+          </div>
+
+          <!-- Add State (US/Canada only) -->
+          @if (canAddState()) {
+            <div class="add-entity-action">
+              @if (creatingState()) {
+                <button mat-stroked-button disabled class="add-entity-btn">
+                  <mat-spinner diameter="18"></mat-spinner>
+                  Creating state…
+                </button>
+              } @else {
+                <button mat-stroked-button class="add-entity-btn" (click)="addState()"
+                        matTooltip="Add this state to the database">
+                  <mat-icon>add_location_alt</mat-icon>
+                  Add "{{ geo.state }}" as a new state
+                </button>
+              }
+            </div>
+          }
+          @if (stateCreated()) {
+            <div class="entity-created">
+              <mat-icon class="created-icon">check_circle</mat-icon>
+              <span>State "{{ geo.state }}" added</span>
+            </div>
+          }
+
+          <!-- Add City -->
+          @if (canAddCity()) {
+            <div class="add-entity-action">
+              @if (creatingCity()) {
+                <button mat-flat-button disabled class="add-entity-btn">
+                  <mat-spinner diameter="18"></mat-spinner>
+                  Creating city…
+                </button>
+              } @else {
+                <button mat-flat-button color="primary" class="add-entity-btn" (click)="addCity()"
+                        matTooltip="Add this city to the database and assign it to the photo">
+                  <mat-icon>add_location</mat-icon>
+                  Add "{{ geo.city }}" as a new city
+                </button>
+              }
+            </div>
+          }
+        }
+      } @else {
+        <button mat-stroked-button (click)="lookupLocation()" class="lookup-btn">
+          <mat-icon>search</mat-icon>
+          Look up city from coordinates
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="no-location">
+      <mat-icon class="no-location-icon">location_off</mat-icon>
+      <p class="no-location-text">No GPS location data available</p>
+      <p class="no-location-hint">Photos taken with GPS-enabled devices will display their location here</p>
+    </div>
+  }
+</div>
+

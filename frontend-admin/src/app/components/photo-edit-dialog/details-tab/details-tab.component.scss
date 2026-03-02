@@ -1,0 +1,44 @@
+:host {
+  display: block;
+}
+
+.tab-content {
+  padding: 20px 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+// ── Tags ──
+.tags-section {
+  margin-top: 4px;
+}
+
+.tags-chip-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.no-tags-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant, #49454f);
+  font-style: italic;
+
+  .hint-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--mat-sys-outline, #79747e);
+  }
+}
+

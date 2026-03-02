@@ -1,0 +1,80 @@
+<div class="tab-content">
+  <!-- City Combobox -->
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>City</mat-label>
+    <input matInput
+           type="text"
+           [value]="cityInputValue()"
+           (input)="onCityInput($any($event.target).value)"
+           [matAutocomplete]="cityAuto"
+           placeholder="Type to search cities...">
+    <mat-icon matPrefix>location_city</mat-icon>
+    @if (cityId()) {
+      <button matSuffix mat-icon-button (click)="clearCity()" matTooltip="Clear city">
+        <mat-icon>close</mat-icon>
+      </button>
+    } @else {
+      <mat-icon matSuffix>arrow_drop_down</mat-icon>
+    }
+    <mat-autocomplete #cityAuto="matAutocomplete"
+                      (optionSelected)="onCitySelected($event.option.value)"
+                      [displayWith]="displayCityFn"
+                      autoActiveFirstOption>
+      @for (city of filteredCities(); track city.id) {
+        <mat-option [value]="city">
+          <mat-icon>location_city</mat-icon>
+          {{ city.name }}
+        </mat-option>
+      }
+      @if (!loadingCities() && filteredCities().length === 0) {
+        <mat-option disabled>No cities found</mat-option>
+      }
+      @if (loadingCities()) {
+        <mat-option disabled>
+          <mat-spinner diameter="18" class="option-spinner"></mat-spinner>
+          Loading...
+        </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+
+  <!-- Attraction Combobox -->
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Attraction</mat-label>
+    <input matInput
+           type="text"
+           [value]="attractionInputValue()"
+           (input)="onAttractionInput($any($event.target).value)"
+           [matAutocomplete]="attractionAuto"
+           placeholder="Type to search attractions...">
+    <mat-icon matPrefix>attractions</mat-icon>
+    @if (attractionId()) {
+      <button matSuffix mat-icon-button (click)="clearAttraction()" matTooltip="Clear attraction">
+        <mat-icon>close</mat-icon>
+      </button>
+    } @else {
+      <mat-icon matSuffix>arrow_drop_down</mat-icon>
+    }
+    <mat-autocomplete #attractionAuto="matAutocomplete"
+                      (optionSelected)="onAttractionSelected($event.option.value)"
+                      [displayWith]="displayAttractionFn"
+                      autoActiveFirstOption>
+      @for (attraction of filteredAttractions(); track attraction.id) {
+        <mat-option [value]="attraction">
+          <mat-icon>attractions</mat-icon>
+          {{ attraction.name }}
+        </mat-option>
+      }
+      @if (!loadingAttractions() && filteredAttractions().length === 0) {
+        <mat-option disabled>No attractions found</mat-option>
+      }
+      @if (loadingAttractions()) {
+        <mat-option disabled>
+          <mat-spinner diameter="18" class="option-spinner"></mat-spinner>
+          Loading...
+        </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+</div>
+

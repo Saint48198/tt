@@ -1,0 +1,53 @@
+<div class="tab-content">
+  <!-- Caption -->
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Caption</mat-label>
+    <textarea matInput
+              [(ngModel)]="caption"
+              placeholder="Enter a caption..."
+              rows="3"
+              cdkTextareaAutosize
+              cdkAutosizeMinRows="2"
+              cdkAutosizeMaxRows="5"></textarea>
+    <mat-icon matPrefix>short_text</mat-icon>
+    <mat-hint>Describe the photo</mat-hint>
+  </mat-form-field>
+
+  <!-- Tags -->
+  <div class="tags-section">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Add tags</mat-label>
+      <input matInput
+             [(ngModel)]="tagsInput"
+             (keydown)="onTagKeydown($event)"
+             placeholder="Type a tag and press Enter...">
+      <mat-icon matPrefix>label</mat-icon>
+      <button matSuffix mat-icon-button
+              (click)="addTag()"
+              [disabled]="!tagsInput.trim()"
+              matTooltip="Add tag">
+        <mat-icon>add_circle</mat-icon>
+      </button>
+      <mat-hint>Press Enter or comma to add</mat-hint>
+    </mat-form-field>
+
+    <mat-chip-set class="tags-chip-set">
+      @for (tag of tags(); track tag) {
+        <mat-chip (removed)="removeTag(tag)" color="primary" highlighted>
+          <mat-icon matChipAvatar>sell</mat-icon>
+          {{ tag }}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip>
+      }
+    </mat-chip-set>
+    @if (tags().length === 0) {
+      <p class="no-tags-hint">
+        <mat-icon class="hint-icon">info_outline</mat-icon>
+        No tags yet — add some to organize your photos
+      </p>
+    }
+  </div>
+</div>
+

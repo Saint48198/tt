@@ -346,10 +346,7 @@ router.patch('/api/photos/:id', async (req: Request, res: Response) => {
   const { caption, tags, city_id, attraction_id, latitude, longitude } = req.body;
 
   try {
-    const result = await photoService.updatePhoto(Number(id), caption ?? null, tags, city_id, attraction_id, latitude, longitude);
-    if (result.deleted) {
-      return res.status(200).json({ message: 'Photo removed from database (no entity links).', deleted: true });
-    }
+    await photoService.updatePhoto(Number(id), caption ?? null, tags, city_id, attraction_id, latitude, longitude);
     return res.status(200).json({ message: 'Photo updated successfully.' });
   } catch (error) {
     console.error('Failed to update photo:', error);

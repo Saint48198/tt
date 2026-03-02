@@ -536,18 +536,7 @@ class PhotoService {
     photoId: number, caption: string | null, tags?: string[],
     cityId?: number | null, attractionId?: number | null,
     latitude?: number | null, longitude?: number | null,
-  ): Promise<{ success: boolean; deleted?: boolean }> {
-    if (cityId === null && attractionId === null) {
-      const existing = await db.get<{ id: number; photo_id: string }>('SELECT id, photo_id FROM photos WHERE id = $1', [photoId]);
-      if (!existing) throw new Error('Photo not found.');
-      // Delete from S3 if it has an S3 key
-      if (existing.photo_id) {
-        try { await this.deleteFromS3(existing.photo_id); } catch (err) { console.warn('Failed to delete from S3:', err); }
-      }
-      await db.run('DELETE FROM photo_tags WHERE photo_id = $1', [photoId]);
-      await db.run('DELETE FROM photos WHERE id = $1', [photoId]);
-      return { success: true, deleted: true };
-    }
+  ): Promise<{ success: boolean }> {
 
     const setClauses = ['caption = $1', 'updated_date = NOW()'];
     const params: any[] = [caption];
@@ -578,17 +567,6 @@ class PhotoService {
     const result = await db.run(`UPDATE photos SET ${setClauses.join(', ')} WHERE id = $${idx}`, params);
     if (result.rowCount === 0) throw new Error('Photo not found.');
 
-    const updated = await db.get<{ city_id: number | null; attraction_id: number | null; photo_id: string }>(
-      'SELECT city_id, attraction_id, photo_id FROM photos WHERE id = $1', [photoId]
-    );
-    if (updated && updated.city_id === null && updated.attraction_id === null) {
-      if (updated.photo_id) {
-        try { await this.deleteFromS3(updated.photo_id); } catch (err) { console.warn('Failed to delete from S3:', err); }
-      }
-      await db.run('DELETE FROM photo_tags WHERE photo_id = $1', [photoId]);
-      await db.run('DELETE FROM photos WHERE id = $1', [photoId]);
-      return { success: true, deleted: true };
-    }
 
     if (tags !== undefined) { await this.setTagsForPhoto(photoId, tags); }
 

@@ -1,4 +1,5 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -76,11 +77,12 @@ interface FilePreview {
   templateUrl: './bulk-upload-dialog.component.html',
   styleUrl: './bulk-upload-dialog.component.scss',
 })
-export class BulkUploadDialogComponent implements OnInit {
+export class BulkUploadDialogComponent implements OnInit, OnDestroy {
   private readonly dialogRef = inject(MatDialogRef<BulkUploadDialogComponent>);
   private readonly photosService = inject(PhotosService);
   private readonly countriesService = inject(CountriesService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
   readonly data: BulkUploadDialogData = inject(MAT_DIALOG_DATA, { optional: true }) ?? {};
 
   files = signal<FilePreview[]>([]);
@@ -96,10 +98,16 @@ export class BulkUploadDialogComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.showCountrySelect) {
-      this.countriesService.getAllCountries('name').subscribe({
-        next: (res) => this.countries.set(res.countries),
-      });
+      this.countriesService.getAllCountries('name')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (res) => this.countries.set(res.countries),
+        });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.files().forEach((f) => URL.revokeObjectURL(f.previewUrl));
   }
 
   onFileSelected(event: Event): void {
@@ -247,7 +255,9 @@ export class BulkUploadDialogComponent implements OnInit {
       ? this.selectedCountry() || undefined
       : undefined;
 
-    this.photosService.uploadPhotos(rawFiles, country).subscribe({
+    this.photosService.uploadPhotos(rawFiles, country)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (res) => {
         this.uploading.set(false);
         this.uploadProgress.set(100);
