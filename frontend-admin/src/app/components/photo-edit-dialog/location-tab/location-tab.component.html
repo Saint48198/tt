@@ -76,10 +76,7 @@
                 [disabled]="city.id === currentCityId()"
                 [matTooltip]="city.id === currentCityId() ? 'Already assigned' : 'Assign this city to the photo'">
                 <mat-icon>location_city</mat-icon>
-                <span class="city-name">{{ city.name }}</span>
-                @if (city.country_name) {
-                  <span class="city-country">{{ city.country_name }}</span>
-                }
+                <span class="city-name">{{ city.name }}@if (city.state_name) {, {{ city.state_name }}}@if (city.country_name) {, {{ city.country_name }}}</span>
                 @if (city.id === currentCityId()) {
                   <mat-icon class="current-icon">check</mat-icon>
                 }

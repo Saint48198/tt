@@ -54,7 +54,10 @@ class GeocodeService {
           format: 'json',
           addressdetails: 1,
         },
-        headers: { 'User-Agent': this.userAgent },
+        headers: {
+          'User-Agent': this.userAgent,
+          'Accept-Language': 'en',
+        },
       }
     );
 
@@ -100,7 +103,10 @@ class GeocodeService {
           format: 'json',
           limit: 1,
         },
-        headers: { 'User-Agent': this.userAgent },
+        headers: {
+          'User-Agent': this.userAgent,
+          'Accept-Language': 'en',
+        },
       }
     );
 

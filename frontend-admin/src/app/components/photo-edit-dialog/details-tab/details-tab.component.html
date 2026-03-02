@@ -48,6 +48,48 @@
         No tags yet — add some to organize your photos
       </p>
     }
+
+    <!-- Suggest Tags -->
+    @if (photoUrl()) {
+      <div class="suggest-tags-section">
+        @if (suggestingTags()) {
+          <button mat-stroked-button disabled class="suggest-btn">
+            <mat-spinner diameter="18"></mat-spinner>
+            Analyzing image…
+          </button>
+        } @else {
+          <button mat-stroked-button (click)="suggestTags()" class="suggest-btn"
+                  matTooltip="Use AI to suggest tags based on the photo">
+            <mat-icon>auto_awesome</mat-icon>
+            Suggest Tags
+          </button>
+        }
+
+        @if (suggestError()) {
+          <div class="suggest-error">
+            <mat-icon class="error-icon">error_outline</mat-icon>
+            <span>{{ suggestError() }}</span>
+            <button mat-button color="primary" (click)="suggestTags()">Retry</button>
+          </div>
+        }
+
+        @if (suggestedTags().length > 0) {
+          <div class="suggested-tags">
+            <span class="suggested-label">Suggested — click to add:</span>
+            <mat-chip-set class="tags-chip-set">
+              @for (tag of suggestedTags(); track tag) {
+                <mat-chip class="suggested-chip"
+                          (click)="addSuggestedTag(tag)"
+                          matTooltip="Add this tag">
+                  <mat-icon matChipAvatar>add_circle_outline</mat-icon>
+                  {{ tag }}
+                </mat-chip>
+              }
+            </mat-chip-set>
+          </div>
+        }
+      </div>
+    }
   </div>
 </div>
 

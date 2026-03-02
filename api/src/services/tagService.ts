@@ -9,13 +9,9 @@ interface CloudinaryResource {
   tags?: string[];
 }
 
-interface VisionResponse {
-  error?: { message: string };
-  responses?: any[];
-}
-
 class TagService {
   private static instance: TagService;
+
   private cloudName: string;
   private apiKey: string;
   private apiSecret: string;
@@ -114,45 +110,69 @@ class TagService {
    */
   public async suggestTags(imageBase64: string): Promise<{ tags: string[] }> {
     if (!imageBase64 || typeof imageBase64 !== 'string') throw new Error('Missing imageBase64');
-    const apiKey = process.env.GOOGLE_API_KEY;
-    if (!apiKey) throw new Error('Missing GOOGLE_API_KEY');
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error('Missing GEMINI_API_KEY');
 
-    // Vision needs RAW base64 (no data URL prefix)
+    // Gemini needs RAW base64 (no data URL prefix)
     const content = this.stripDataUrlPrefix(imageBase64);
+    const mimeType = this.detectMimeType(imageBase64);
 
-    // Structure Vision API requires
-    const visionBody = {
-      requests: [{
-        image: { content },
-        features: [
-          { type: 'LABEL_DETECTION', maxResults: 20 },
-          { type: 'WEB_DETECTION', maxResults: 10 },
-          { type: 'OBJECT_LOCALIZATION', maxResults: 10 },
+    const prompt = [
+      'Analyze this image and suggest relevant tags for categorizing it.',
+      'Return descriptive, single-word or hyphenated tags (e.g. "sunset", "beach", "old-town").',
+      'Include tags for: objects, scene type, colors, mood, location type, activities.',
+      'Return 10-20 tags. Return ONLY a JSON array of lowercase strings. No extra text.',
+    ].join(' ');
+
+    const body = {
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inline_data: { mime_type: mimeType, data: content } },
         ],
       }],
     };
 
-    const endpoint = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
-    const vr = await fetch(endpoint, {
+    // Use gemini-2.0-flash as default model
+    const modelId = 'gemini-2.0-flash';
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+    const resp = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(visionBody),
+      body: JSON.stringify(body),
     });
 
-    const vjson = (await vr.json()) as VisionResponse;
-    if (!vr.ok) {
-      throw new Error(vjson?.error?.message || 'Vision API error');
+    if (!resp.ok) {
+      const errorText = await resp.text();
+      throw new Error(`Gemini API error: ${errorText}`);
     }
 
-    const resp = vjson?.responses?.[0] ?? {};
-    const labelTags: string[] = (resp.labelAnnotations ?? []).map((a: any) => a.description);
-    const webGuess: string[] = (resp.webDetection?.bestGuessLabels ?? []).map((x: any) => x.label);
-    const webEntities: string[] = (resp.webDetection?.webEntities ?? [])
-      .filter((e: any) => !!e.description).map((e: any) => e.description);
+    const data = (await resp.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]';
+    const cleaned = String(text).trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
 
-    const tags = Array.from(new Set([...labelTags, ...webGuess, ...webEntities]))
-      .map((tag) => this.normalizeTag(tag)).filter(Boolean);
+    let tags: string[] = [];
+    try {
+      tags = JSON.parse(cleaned);
+    } catch {
+      tags = cleaned.split('\n').map((s: string) => s.replace(/^[-*•]\s*/, '').trim()).filter(Boolean);
+    }
+
+    tags = tags
+      .map((tag) => this.normalizeTag(tag))
+      .filter(Boolean);
+
     return { tags };
+  }
+
+  /**
+   * Detect MIME type from base64 data URL prefix
+   */
+  private detectMimeType(b64: string): string {
+    const match = b64.match(/^data:([^;]+);base64,/);
+    return match?.[1] || 'image/jpeg';
   }
 
   /**

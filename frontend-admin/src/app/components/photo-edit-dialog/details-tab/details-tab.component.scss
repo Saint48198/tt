@@ -42,3 +42,55 @@
   }
 }
 
+// ── Suggest Tags ──
+.suggest-tags-section {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggest-btn {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggest-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--mat-sys-error, #b3261e);
+
+  .error-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  span {
+    flex: 1;
+  }
+}
+
+.suggested-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .suggested-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--mat-sys-on-surface-variant, #49454f);
+    font-weight: 500;
+  }
+}
+
+.suggested-chip {
+  cursor: pointer;
+}
+

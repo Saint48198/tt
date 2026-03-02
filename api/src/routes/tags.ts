@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import axios from 'axios';
 import { tagService } from '../services/tagService';
 
 const router = Router();
@@ -56,12 +57,34 @@ router.post('/api/tags/sync', async (_req: Request, res: Response) => {
 // POST /api/tags/suggest
 router.post('/api/tags/suggest', async (req: Request, res: Response) => {
   try {
-    const { imageBase64 } = req.body || {};
+    const { imageBase64, imageUrl } = req.body || {};
 
-    const result = await tagService.suggestTags(imageBase64);
+    let base64 = imageBase64;
+
+    // If a URL is provided instead of base64, fetch the image server-side
+    if (!base64 && imageUrl) {
+      try {
+        const imgResponse = await axios.get(imageUrl, {
+          responseType: 'arraybuffer',
+          timeout: 30000,
+        });
+        const contentType = imgResponse.headers['content-type'] || 'image/jpeg';
+        const b64 = Buffer.from(imgResponse.data).toString('base64');
+        base64 = `data:${contentType};base64,${b64}`;
+      } catch (fetchErr) {
+        console.error('Failed to fetch image from URL:', imageUrl, fetchErr instanceof Error ? fetchErr.message : fetchErr);
+        return res.status(400).json({ error: 'Failed to fetch image from URL' });
+      }
+    }
+
+    if (!base64) {
+      return res.status(400).json({ error: 'No image provided. Send imageBase64 or imageUrl.' });
+    }
+
+    const result = await tagService.suggestTags(base64);
     return res.status(200).json(result);
   } catch (error) {
-    console.error('Failed to suggest tags:', error);
+    console.error('Failed to suggest tags:', error instanceof Error ? error.message : error);
     const message = error instanceof Error ? error.message : 'Server error';
 
     if (message.includes('Missing')) {
