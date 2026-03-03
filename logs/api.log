@@ -3,8 +3,10 @@
 
 
 
-> nx run types:build  [existing outputs match the cache, left as is]
+> nx run types:build  [local cache]
 
+
+> nx run api:build:production  [local cache]
 
 > nx run api:build:production
 
@@ -12,147 +14,132 @@
 > nx run api:serve:development
 
 [ [32mwatch[39m ] build succeeded, watching for changes...
-[1m[31mStarting inspector on localhost:9229 failed: address already in use[39m[22m
-[1m[31m[39m[22m
-[1m[31mError: listen EADDRINUSE: address already in use :::3001[39m[22m
-[1m[31m    at Server.setupListenHandle [as _listen2] (node:net:1940:16)[39m[22m
-[1m[31m    at listenInCluster (node:net:1997:12)[39m[22m
-[1m[31m    at Server.listen (node:net:2102:7)[39m[22m
-[1m[31m    at app.listen (/Users/scottiedaniels/Web/tt/node_modules/express/lib/application.js:635:24)[39m[22m
-[1m[31m    at Object.<anonymous> (/Users/scottiedaniels/Web/tt/api/src/main.ts:51:5)[39m[22m
-[1m[31m    at Module._compile (node:internal/modules/cjs/loader:1761:14)[39m[22m
-[1m[31m    at Object..js (node:internal/modules/cjs/loader:1893:10)[39m[22m
-[1m[31m    at Module.load (node:internal/modules/cjs/loader:1481:32)[39m[22m
-[1m[31m    at Module.<anonymous> (node:internal/modules/cjs/loader:1300:12)[39m[22m
-[1m[31m    at Module._load (/Users/scottiedaniels/Web/tt/node_modules/@nx/js/src/executors/node/node-with-require-overrides.js:18:31)[39m[22m
-[1m[31m[39m[22m
-[7m[1m[36m NX [39m[22m[27m [1mProcess exited with code 1, waiting for changes to restart...[22m
-[ [32mwatch[39m ] build succeeded, watching for changes...
-[1m[31mDebugger listening on ws://localhost:9229/6a412e34-aeb8-4135-a883-7e79b79fe0c8[39m[22m
-[1m[31mDebugger listening on ws://localhost:9229/6a412e34-aeb8-4135-a883-7e79b79fe0c8[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/4c349bb1-76e4-414c-a2c2-e2881a6bc78a[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/4c349bb1-76e4-414c-a2c2-e2881a6bc78a[39m[22m
 [1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
 [1m[31m[39m[22m
 Listening on port 3001
-[1m[31mFailed to extract EXIF metadata: Error: Invalid image format[39m[22m
-[1m[31m    at Object.parseAppMarkers [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexifreader[24m/dist/webpack:/ExifReader/src/image-header.js:53:15[90m)[39m[31m[39m[22m
-[1m[31m    at loadView [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexifreader[24m/dist/webpack:/ExifReader/src/exif-reader.js:262:21[90m)[39m[31m[39m[22m
-[1m[31m    at loadFromData [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexifreader[24m/dist/webpack:/ExifReader/src/exif-reader.js:200:12[90m)[39m[31m[39m[22m
-[1m[31m    at Object.co [as load] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexifreader[24m/dist/webpack:/ExifReader/src/exif-reader.js:65:12[90m)[39m[31m[39m[22m
-[1m[31m    at PhotoService.extractExifMetadata [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:393:31[90m)[39m[31m[39m[22m
-[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:454:31[39m[22m
-[1m[31m    at Array.map (<anonymous>)[39m[22m
-[1m[31m    at PhotoService.uploadPhotos [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:452:51[90m)[39m[31m[39m[22m
-[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/photos.ts:276:45[39m[22m
-[1m[31m    at zalgoSafe [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mdezalgo[24m/dezalgo.js:20:10[90m)[39m[31m[39m[22m
+[1m[31mFailed to fetch data from Wikipedia: Error: Query parameter is required and must be a string.[39m[22m
+[1m[31m    at InfoService.getInfo [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/infoService.ts:40:13[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/info.ts:12:38[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:149:13[90m)[39m[31m[39m[22m
+[1m[31m    at Route.dispatch [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/route.js:119:3[90m)[39m[31m[39m[22m
+[1m[31m    at Layer.handle [as handle_request] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/layer.js:95:5[90m)[39m[31m[39m[22m
+[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:284:15[39m[22m
+[1m[31m    at router.process_params [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:346:12[90m)[39m[31m[39m[22m
+[1m[31m    at next [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:280:10[90m)[39m[31m[39m[22m
+[1m[31m    at router.handle [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexpress[24m/lib/router/index.js:175:3[90m)[39m[31m[39m[22m
 [1m[31m[39m[22m
-[1m[31mFailed to extract EXIF metadata: Error: Invalid image format[39m[22m
-[1m[31m    at Object.parseAppMarkers [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexifreader[24m/dist/webpack:/ExifReader/src/image-header.js:53:15[90m)[39m[31m[39m[22m
-[1m[31m    at loadView [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexifreader[24m/dist/webpack:/ExifReader/src/exif-reader.js:262:21[90m)[39m[31m[39m[22m
-[1m[31m    at loadFromData [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexifreader[24m/dist/webpack:/ExifReader/src/exif-reader.js:200:12[90m)[39m[31m[39m[22m
-[1m[31m    at Object.co [as load] [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mexifreader[24m/dist/webpack:/ExifReader/src/exif-reader.js:65:12[90m)[39m[31m[39m[22m
-[1m[31m    at PhotoService.extractExifMetadata [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:393:31[90m)[39m[31m[39m[22m
-[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:454:31[39m[22m
-[1m[31m    at Array.map (<anonymous>)[39m[22m
-[1m[31m    at PhotoService.uploadPhotos [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:452:51[90m)[39m[31m[39m[22m
-[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/photos.ts:276:45[39m[22m
-[1m[31m    at zalgoSafe [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4mdezalgo[24m/dezalgo.js:20:10[90m)[39m[31m[39m[22m
-[1m[31m[39m[22m
-[EXIF] Extracted metadata for fu30rf2teejcgfq3o7o5qlisl.jpg {}
-[EXIF] Extracted metadata for b51vrjv3zr6110txa026jm6vz.jpg {}
-[1m[31mImage optimization failed: Error: Input file contains unsupported image format[39m[22m
-[1m[31m    at Sharp.metadata [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4msharp[24m/lib/input.js:637:17[90m)[39m[31m[39m[22m
-[1m[31m    at PhotoService.optimizeImage [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:437:45[90m)[39m[31m[39m[22m
-[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:464:36[39m[22m
-[1m[31m[90m    at processTicksAndRejections (node:internal/process/task_queues:103:5)[39m[31m[39m[22m
-[1m[31m    at async Promise.all (index 0)[39m[22m
-[1m[31m    at PhotoService.uploadPhotos [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:452:27[90m)[39m[31m[39m[22m
-[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/photos.ts:276:26[39m[22m
-[1m[31m[39m[22m
-[1m[31mImage optimization failed: Error: Input file contains unsupported image format[39m[22m
-[1m[31m    at Sharp.metadata [90m(/Users/scottiedaniels/Web/tt/[39m[31mnode_modules/[4msharp[24m/lib/input.js:637:17[90m)[39m[31m[39m[22m
-[1m[31m    at PhotoService.optimizeImage [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:437:45[90m)[39m[31m[39m[22m
-[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:464:36[39m[22m
-[1m[31m[90m    at processTicksAndRejections (node:internal/process/task_queues:103:5)[39m[31m[39m[22m
-[1m[31m    at async Promise.all (index 1)[39m[22m
-[1m[31m    at PhotoService.uploadPhotos [90m(/Users/scottiedaniels/Web/tt/[39m[31mapi/src/services/photoService.ts:452:27[90m)[39m[31m[39m[22m
-[1m[31m    at [90m/Users/scottiedaniels/Web/tt/[39m[31mapi/src/routes/photos.ts:276:26[39m[22m
-[1m[31m[39m[22m
-[ [32mwatch[39m ] build succeeded, watching for changes...
-[1m[31mDebugger listening on ws://localhost:9229/cdf6a814-ca8a-4740-8bbc-f1bb826ed1f1[39m[22m
-[1m[31mDebugger listening on ws://localhost:9229/cdf6a814-ca8a-4740-8bbc-f1bb826ed1f1[39m[22m
-[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
-[1m[31m[39m[22m
-Listening on port 3001
-[ [32mwatch[39m ] build succeeded, watching for changes...
-[7m[1m[36m NX [39m[22m[27m [1mProcess exited with code null, waiting for changes to restart...[22m
-[1m[31mDebugger listening on ws://localhost:9229/5bd36c41-054c-466a-ba3c-9a145927603c[39m[22m
-[1m[31mDebugger listening on ws://localhost:9229/5bd36c41-054c-466a-ba3c-9a145927603c[39m[22m
-[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
-[1m[31m[39m[22m
-Listening on port 3001
-[ [32mwatch[39m ] build succeeded, watching for changes...
-[1m[31mDebugger listening on ws://localhost:9229/9f7ca571-7f3e-4253-938b-ce6fe2dbea8f[39m[22m
-[1m[31mDebugger listening on ws://localhost:9229/9f7ca571-7f3e-4253-938b-ce6fe2dbea8f[39m[22m
-[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
-[1m[31m[39m[22m
-Listening on port 3001
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for tfgi9sjcmaiut8ltbb52zh8qh.jpg {"keywords":["Billboard","Blue","Casino","Replica","Sign","Sky","Tower","iPhonePhotography"],"latitude":36.11066666666667,"longitude":-115.17316666666666}
 [Upload] Files keys: [ [32m'files'[39m ]
 [Upload] fileField type: object isArray: [33mtrue[39m length: [33m6[39m
-[EXIF] Extracted metadata for wht2gfinmnv5m8p5im7mhibkw.jpg {"keywords":["Casino","Replica","Tower","iPhonePhotography"],"latitude":36.1125,"longitude":-115.17283333333333}
-[EXIF] Extracted metadata for kgka7m05yi9e4xdpq97k1wzyy.jpg {"keywords":["Artist","Car","Road","iPhonePhotography"],"latitude":36.107166666666664,"longitude":-115.173}
-[EXIF] Extracted metadata for dc21zlg1hxawhjxu81435vp1e.jpg {"keywords":["Fountain","Landmark","Lights","Night","iPhonePhotography"],"latitude":36.11233333333333,"longitude":-115.175}
-[EXIF] Extracted metadata for m8eue186ak5g16brriorpzlim.jpg {"keywords":["Fountain","Landmark","Lights","Night","iPhonePhotography"],"latitude":36.113166666666665,"longitude":-115.17483333333334}
-[EXIF] Extracted metadata for vc2t6y3e25oszr8rnn9n30j5v.jpg {"keywords":["Casino","Lights","Night","Replica","Tower","iPhonePhotography"],"latitude":36.11366666666667,"longitude":-115.17466666666667}
-[EXIF] Extracted metadata for d5qldwbheozrksinucwc6xyr6.jpg {"keywords":["Casino","Lights","Night","Replica","Tower","iPhonePhotography"],"latitude":36.11366666666667,"longitude":-115.17466666666667}
+[EXIF] Merged metadata for ffhegb1jgb685taax5f2701hr.jpg {"keywords":["Casino","Replica","Tower","iPhonePhotography"],"latitude":36.1125,"longitude":-115.17283333333333}
+[EXIF] Merged metadata for zg80p6bkrfo2d9u9et89mefdb.jpg {"keywords":["Artist","Car","Road","iPhonePhotography"],"latitude":36.107166666666664,"longitude":-115.173}
+[EXIF] Merged metadata for wpsbda6sl7xo4xv7nisvr9a8w.jpg {"keywords":["Fountain","Landmark","Lights","Night","iPhonePhotography"],"latitude":36.11233333333333,"longitude":-115.175}
+[EXIF] Merged metadata for h6ska9hpjyb1byo5qtipagwti.jpg {"keywords":["Fountain","Landmark","Lights","Night","iPhonePhotography"],"latitude":36.113166666666665,"longitude":-115.17483333333334}
+[EXIF] Merged metadata for faqk0p2w8npo0uat1leeey63k.jpg {"keywords":["Casino","Lights","Night","Replica","Tower","iPhonePhotography"],"latitude":36.11366666666667,"longitude":-115.17466666666667}
+[EXIF] Merged metadata for sucfyhtw7g3t3te67px3lrex3.jpg {"keywords":["Casino","Lights","Night","Replica","Tower","iPhonePhotography"],"latitude":36.11366666666667,"longitude":-115.17466666666667}
 [Upload] Files keys: [ [32m'files'[39m ]
 [Upload] fileField type: object isArray: [33mtrue[39m length: [33m4[39m
-[EXIF] Extracted metadata for tlvagmwdflt3nmvta792db6dl.jpg {"keywords":["Public","Statue"],"latitude":32.70764166666667,"longitude":-117.157045}
-[EXIF] Extracted metadata for cyxenwxu97h3lbze5pgz6owkb.jpg {"keywords":["Boats","Coastline","Pier"],"latitude":32.72597833333333,"longitude":-117.17416333333334}
-[EXIF] Extracted metadata for op641o7q189p30qo9dfaugci6.jpg {"keywords":["Coastline","Pier"],"latitude":32.72597833333333,"longitude":-117.17416333333334}
-[EXIF] Extracted metadata for uob82th6v3130vxwo6b1gyiis.jpg {"keywords":["Boats","Museum","Pier"],"latitude":32.720938333333336,"longitude":-117.17400333333333}
+[EXIF] Merged metadata for anacxajsmgnu1vkhpmea2sxyp.jpg {"keywords":["Public","Statue"],"latitude":32.70764166666667,"longitude":-117.157045}
+[EXIF] Merged metadata for xqymssngq032gab0xs3720bz0.jpg {"keywords":["Boats","Coastline","Pier"],"latitude":32.72597833333333,"longitude":-117.17416333333334}
+[EXIF] Merged metadata for y6ka195x6moknmkq9kg4hydv7.jpg {"keywords":["Coastline","Pier"],"latitude":32.72597833333333,"longitude":-117.17416333333334}
+[EXIF] Merged metadata for a21i3x2gppydp90xrc2h37sq0.jpg {"keywords":["Boats","Museum","Pier"],"latitude":32.720938333333336,"longitude":-117.17400333333333}
 [Upload] Files keys: [ [32m'files'[39m ]
 [Upload] fileField type: object isArray: [33mtrue[39m length: [33m6[39m
-[EXIF] Extracted metadata for t927nhw7e803t22lhaseee3x2.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["ArchitecturePhotography","Building","iPhonePhotography"],"latitude":47.61366666666667,"longitude":-122.33783333333334}
-[EXIF] Extracted metadata for qka7lb2smtl8puf878cniquvm.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["ArchitecturePhotography","Cityscape","iPhonePhotography"],"latitude":47.61383333333333,"longitude":-122.33816666666667}
-[EXIF] Extracted metadata for gkuewdv3q8h421hl6uf7wvz0v.jpg {"keywords":["Artifact","Museum","iPhonePhotography"],"latitude":47.621833333333335,"longitude":-122.34766666666667}
-[EXIF] Extracted metadata for p5cy3bnltdhcfblk2im1y9l8a.jpg {"keywords":["Artwork","Museum","iPhonePhotography"],"latitude":47.6215,"longitude":-122.34783333333333}
-[EXIF] Extracted metadata for bvw9n71tua7dqckr1v07l2gew.jpg {"keywords":["Artifact","Museum","iPhonePhotography"],"latitude":47.6215,"longitude":-122.34783333333333}
-[EXIF] Extracted metadata for rgbwmfwyy7n8sm9mvdmx11ist.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["Cityscape","Skyline","iPhonePhotography"],"latitude":47.614666666666665,"longitude":-122.3415}
-[Upload] Files keys: [ [32m'files'[39m ]
-[Upload] fileField type: object isArray: [33mtrue[39m length: [33m6[39m
-[EXIF] Extracted metadata for ryv5my9ydizw86xijqdoq92xy.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["ArchitecturePhotography","Building","iPhonePhotography"],"latitude":47.61366666666667,"longitude":-122.33783333333334}
-[EXIF] Extracted metadata for eh2f7run510f1n6xbxtnrr4y4.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["ArchitecturePhotography","Cityscape","iPhonePhotography"],"latitude":47.61383333333333,"longitude":-122.33816666666667}
-[EXIF] Extracted metadata for h9eyp73zdxmso73erv125i4bo.jpg {"keywords":["Artifact","Museum","iPhonePhotography"],"latitude":47.621833333333335,"longitude":-122.34766666666667}
-[EXIF] Extracted metadata for odu60lalswbod21ibbedgdz2x.jpg {"keywords":["Artwork","Museum","iPhonePhotography"],"latitude":47.6215,"longitude":-122.34783333333333}
-[EXIF] Extracted metadata for okhmeokizpwshkttisjcibnii.jpg {"keywords":["Artifact","Museum","iPhonePhotography"],"latitude":47.6215,"longitude":-122.34783333333333}
-[EXIF] Extracted metadata for m8rxjisbu91ok42o03zokjq42.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["Cityscape","Skyline","iPhonePhotography"],"latitude":47.614666666666665,"longitude":-122.3415}
+[EXIF] Merged metadata for egmdw5shsmrbtnjv1g6nutol2.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["ArchitecturePhotography","Building","iPhonePhotography"],"latitude":47.61366666666667,"longitude":-122.33783333333334}
+[EXIF] Merged metadata for pbzkb9zpqtj5wuxd5d0j92y3s.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["ArchitecturePhotography","Cityscape","iPhonePhotography"],"latitude":47.61383333333333,"longitude":-122.33816666666667}
+[EXIF] Merged metadata for rsdd8nqqi1o8ah9x0yzds7ew7.jpg {"keywords":["Artifact","Museum","iPhonePhotography"],"latitude":47.621833333333335,"longitude":-122.34766666666667}
+[EXIF] Merged metadata for kl7y7yuw4hu4uq3d455meqzuu.jpg {"keywords":["Artwork","Museum","iPhonePhotography"],"latitude":47.6215,"longitude":-122.34783333333333}
+[EXIF] Merged metadata for tmnnq2upjdwjl2o2z2adtr9wu.jpg {"keywords":["Artifact","Museum","iPhonePhotography"],"latitude":47.6215,"longitude":-122.34783333333333}
+[EXIF] Merged metadata for blqhdvwba5inuh2ayb8047xzt.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["Cityscape","Skyline","iPhonePhotography"],"latitude":47.614666666666665,"longitude":-122.3415}
 [Upload] Files keys: [ [32m'files'[39m ]
 [Upload] fileField type: object isArray: [33mtrue[39m length: [33m5[39m
-[EXIF] Extracted metadata for eowoyj7azu5swkd09x7h3w8of.jpg {"keywords":["ArchitecturePhotography","Building","Dome","GovernmentBuilding"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
-[EXIF] Extracted metadata for s45vlmkl1pmqr4x1f6kwepx16.jpg {"keywords":["Park","Trees"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
-[EXIF] Extracted metadata for qmmq7robpgbilgo616saeqkvg.jpg {"keywords":["ArchitecturePhotography","Park"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
-[EXIF] Extracted metadata for q8egxr41xxl78be8hw1ej34k9.jpg {"keywords":["ArchitecturePhotography","Column","Park","Statue"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
-[EXIF] Extracted metadata for ln9co94jw163flnloxm12s019.jpg {"keywords":["Building","GovernmentBuilding"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
-[Upload] Files keys: [ [32m'files'[39m ]
-[Upload] fileField type: object isArray: [33mtrue[39m length: [33m15[39m
-[EXIF] Extracted metadata for ev7b0mki2gggmqe8173pfn5j8.jpg {"keywords":["Coastline","Pool","Trees","iPhonePhotography"],"latitude":30.555613333333334,"longitude":-81.44365}
-[EXIF] Extracted metadata for no49rmaz74okvgbs1p6o2jon4.jpg {"keywords":["Beach","Coastline","Night","iPhonePhotography"],"latitude":30.55518,"longitude":-81.44357166666667}
-[EXIF] Extracted metadata for rmau0033vv7vf22sngc146ra8.jpg {"keywords":["Beach","Coastline","Night","iPhonePhotography"],"latitude":30.55500333333333,"longitude":-81.44358}
-[EXIF] Extracted metadata for czxyuqx1qs433hhor76d4zvg7.jpg {"keywords":["Beach","Coastline","Night","iPhonePhotography"],"latitude":30.55495,"longitude":-81.44356666666667}
-[EXIF] Extracted metadata for qn6j7u6rlrxtbiuomr53hhrak.jpg {"keywords":["Beach","Coastline","Night","Pool","iPhonePhotography"],"latitude":30.55495,"longitude":-81.44356666666667}
-[EXIF] Extracted metadata for tpeuoz2nrbsuwm7ji6t70bfcd.jpg {"keywords":["Beach","Coastline","Night","Pool","iPhonePhotography"],"latitude":30.554905,"longitude":-81.44354166666666}
-[EXIF] Extracted metadata for dx45njjizlncdpzivioevlhtm.jpg {"keywords":["Lights","Night","Pool","iPhonePhotography"],"latitude":30.555713333333333,"longitude":-81.44351166666667}
-[EXIF] Extracted metadata for j79wz4h3i7ffv0qb4qwcufisx.jpg {"keywords":["LandscapePhotography","Skyline","Swamp","iPhonePhotography"],"latitude":30.549841666666666,"longitude":-81.46060833333334}
-[EXIF] Extracted metadata for ci6e1n33ylp4in66u5mrc3dry.jpg {"keywords":["LandscapePhotography","River","Skyline","Swamp","iPhonePhotography"],"latitude":30.549891666666667,"longitude":-81.46064666666666}
-[EXIF] Extracted metadata for j40dxznhutxofkeq21o8sr93g.jpg {"keywords":["LandscapePhotography","Skyline","Swamp","iPhonePhotography"],"latitude":30.549828333333334,"longitude":-81.46067}
-[EXIF] Extracted metadata for ry7xv905nspjqlm2jef57mbly.jpg {"keywords":["LandscapePhotography","River","Skyline","Swamp","iPhonePhotography"],"latitude":30.55038,"longitude":-81.46018333333333}
-[EXIF] Extracted metadata for yt4cwlwjxkcrfflslrxaelwgo.jpg {"keywords":["River","Trees","iPhonePhotography"],"latitude":30.557625,"longitude":-81.45318666666667}
-[EXIF] Extracted metadata for ds7d18fji41g03a7lluwmfrsu.jpg {"keywords":["Coastline","iPhonePhotography"],"latitude":30.55202,"longitude":-81.44281666666667}
-[EXIF] Extracted metadata for g3ospbinizuszfq4dqww16m0x.jpg {"keywords":["Coastline","iPhonePhotography"],"latitude":30.55202,"longitude":-81.44281666666667}
-[EXIF] Extracted metadata for qg8l9d79v71hgr3qzftoqflhr.jpg {"keywords":["Coastline","iPhonePhotography"],"latitude":30.552028333333332,"longitude":-81.44280333333333}
+[EXIF] Merged metadata for xzg88goheb3z4cfhwwpmanpc3.jpg {"keywords":["ArchitecturePhotography","Building","Dome","GovernmentBuilding"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
+[EXIF] Merged metadata for g4f1ww3a9tul98dny0baek3bu.jpg {"keywords":["Park","Trees"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
+[EXIF] Merged metadata for wgile6anqu7vy2uldrqmnnffx.jpg {"keywords":["ArchitecturePhotography","Park"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
+[EXIF] Merged metadata for gz18nyt5208eyw1db35gnbshj.jpg {"keywords":["ArchitecturePhotography","Column","Park","Statue"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
+[EXIF] Merged metadata for buaobjorrdtayury8mt2g222o.jpg {"keywords":["Building","GovernmentBuilding"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
 [ [32mwatch[39m ] build succeeded, watching for changes...
-[1m[31mDebugger listening on ws://localhost:9229/f1b2aa68-d942-4e80-abd6-4af7fc8c206c[39m[22m
-[1m[31mDebugger listening on ws://localhost:9229/f1b2aa68-d942-4e80-abd6-4af7fc8c206c[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/27847e7a-09c4-48d6-85ca-2dec926b5d54[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/27847e7a-09c4-48d6-85ca-2dec926b5d54[39m[22m
 [1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
 [1m[31m[39m[22m
 Listening on port 3001
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for rol2i2ujjizjmf6d0w2tpje9a.jpg {"title":"Angkor Wat","keywords":["Angkor","Angkor Wat","Architecture","Asia","Buildings","Cambodia","East Asia","Southeast Asia","UNESCO","ancient","architecture","architecture photography","body of water","bridge","building","culture","dusk","famous","historic","history","lake","landmark","landscape","old","park","reflection","religious","sky","stone","structure","temple","tower","travel","trees","wat","water","waterfront"],"latitude":13.411811,"longitude":103.859657}
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/893cf388-c931-4367-910f-3325d4b176fc[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/893cf388-c931-4367-910f-3325d4b176fc[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m7[39m
+[EXIF] Merged metadata for pxrddxj1podk7639yvo2sx9ud.jpg {"keywords":["Billboard","Blue","Casino","Replica","Sign","Sky","Tower","iPhonePhotography"],"latitude":36.11066666666667,"longitude":-115.17316666666666}
+[EXIF] Merged metadata for y0latjqpi3o4s4dv9xshxbafo.jpg {"keywords":["Casino","Replica","Tower","iPhonePhotography"],"latitude":36.1125,"longitude":-115.17283333333333}
+[EXIF] Merged metadata for wsu6xrqepbnv0ymcijmbz7azh.jpg {"keywords":["Artist","Car","Road","iPhonePhotography"],"latitude":36.107166666666664,"longitude":-115.173}
+[EXIF] Merged metadata for zg4tepueswownbd3cjrri22j7.jpg {"keywords":["Fountain","Landmark","Lights","Night","iPhonePhotography"],"latitude":36.11233333333333,"longitude":-115.175}
+[EXIF] Merged metadata for tcda55dkbg52ag8lv9fp13q93.jpg {"keywords":["Fountain","Landmark","Lights","Night","iPhonePhotography"],"latitude":36.113166666666665,"longitude":-115.17483333333334}
+[EXIF] Merged metadata for htf207jb263f4v43cqx55vpdm.jpg {"keywords":["Casino","Lights","Night","Replica","Tower","iPhonePhotography"],"latitude":36.11366666666667,"longitude":-115.17466666666667}
+[EXIF] Merged metadata for uqpw87h72xs8nagay2ic86d8w.jpg {"keywords":["Casino","Lights","Night","Replica","Tower","iPhonePhotography"],"latitude":36.11366666666667,"longitude":-115.17466666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m4[39m
+[EXIF] Merged metadata for skmhqt0ggt8g73khz513vz9jy.jpg {"keywords":["Public","Statue"],"latitude":32.70764166666667,"longitude":-117.157045}
+[EXIF] Merged metadata for nry5n88d7xaem2cfyww9oa3ac.jpg {"keywords":["Boats","Coastline","Pier"],"latitude":32.72597833333333,"longitude":-117.17416333333334}
+[EXIF] Merged metadata for ieaq11xte0akeciemcjgintkr.jpg {"keywords":["Coastline","Pier"],"latitude":32.72597833333333,"longitude":-117.17416333333334}
+[EXIF] Merged metadata for w78t99f2kwbozgwha7psc3e5p.jpg {"keywords":["Boats","Museum","Pier"],"latitude":32.720938333333336,"longitude":-117.17400333333333}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m6[39m
+[EXIF] Merged metadata for lcma602qe9j58w4608oi89wkw.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["ArchitecturePhotography","Building","iPhonePhotography"],"latitude":47.61366666666667,"longitude":-122.33783333333334}
+[EXIF] Merged metadata for z20n0t6cq1ova22utmjyss6id.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["ArchitecturePhotography","Cityscape","iPhonePhotography"],"latitude":47.61383333333333,"longitude":-122.33816666666667}
+[EXIF] Merged metadata for znnaizd5a7z5khhcnxsef7je6.jpg {"keywords":["Artifact","Museum","iPhonePhotography"],"latitude":47.621833333333335,"longitude":-122.34766666666667}
+[EXIF] Merged metadata for tsiz4muc8ey6rvb0nznu8lmd3.jpg {"keywords":["Artwork","Museum","iPhonePhotography"],"latitude":47.6215,"longitude":-122.34783333333333}
+[EXIF] Merged metadata for l04rkfdh3hhejim5fj124y4ld.jpg {"keywords":["Artifact","Museum","iPhonePhotography"],"latitude":47.6215,"longitude":-122.34783333333333}
+[EXIF] Merged metadata for lam46xnuyq3vjhwj5ial8876l.jpg {"title":"Seattle Skyline from the Space Needle","keywords":["Cityscape","Skyline","iPhonePhotography"],"latitude":47.614666666666665,"longitude":-122.3415}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m5[39m
+[EXIF] Merged metadata for mf32ohfatm743gbv6nl8yvou8.jpg {"keywords":["ArchitecturePhotography","Building","Dome","GovernmentBuilding"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
+[EXIF] Merged metadata for kh6dltbo39qkouldet7cfp9ud.jpg {"keywords":["Park","Trees"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
+[EXIF] Merged metadata for t0aeqi2r72dfixkogwkh9mfyv.jpg {"keywords":["ArchitecturePhotography","Park"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
+[EXIF] Merged metadata for e8ulq28u7kp3uts7nb587r5lt.jpg {"keywords":["ArchitecturePhotography","Column","Park","Statue"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
+[EXIF] Merged metadata for z4l13bdb3zyhlrdlp7mbc3mko.jpg {"keywords":["Building","GovernmentBuilding"],"latitude":30.274678333333334,"longitude":-97.74034666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for cvjyzp51p84cl6ag3vsuo8uwn.jpg {"keywords":["Coastline","Pool","Trees","iPhonePhotography"],"latitude":30.555613333333334,"longitude":-81.44365}
+[EXIF] Merged metadata for kgvqntfu08d7y8bk1rqqg1fag.jpg {"keywords":["Beach","Coastline","Night","iPhonePhotography"],"latitude":30.55518,"longitude":-81.44357166666667}
+[EXIF] Merged metadata for p78j3nu9adyx346xfjgpch54v.jpg {"keywords":["Beach","Coastline","Night","iPhonePhotography"],"latitude":30.55500333333333,"longitude":-81.44358}
+[EXIF] Merged metadata for itj4pfqufdor8z7tn7qrhtxi3.jpg {"keywords":["Beach","Coastline","Night","iPhonePhotography"],"latitude":30.55495,"longitude":-81.44356666666667}
+[EXIF] Merged metadata for gmquaffpud14ghrkq0j2qtgzi.jpg {"keywords":["Beach","Coastline","Night","Pool","iPhonePhotography"],"latitude":30.55495,"longitude":-81.44356666666667}
+[EXIF] Merged metadata for ie3xpb3r9cux3lrywmj31ry4w.jpg {"keywords":["Beach","Coastline","Night","Pool","iPhonePhotography"],"latitude":30.554905,"longitude":-81.44354166666666}
+[EXIF] Merged metadata for y7qnhlfbf2r9dgkwh3iq1w3ou.jpg {"keywords":["Lights","Night","Pool","iPhonePhotography"],"latitude":30.555713333333333,"longitude":-81.44351166666667}
+[EXIF] Merged metadata for m9cspy3ku4e0geu5l5rk42wpq.jpg {"keywords":["LandscapePhotography","Skyline","Swamp","iPhonePhotography"],"latitude":30.549841666666666,"longitude":-81.46060833333334}
+[EXIF] Merged metadata for krgh1tcvjjotju6fy7xqmmoxx.jpg {"keywords":["LandscapePhotography","River","Skyline","Swamp","iPhonePhotography"],"latitude":30.549891666666667,"longitude":-81.46064666666666}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m6[39m
+[EXIF] Merged metadata for g6pzknev9701ohlhdln1r8t9f.jpg {"keywords":["LandscapePhotography","Skyline","Swamp","iPhonePhotography"],"latitude":30.549828333333334,"longitude":-81.46067}
+[EXIF] Merged metadata for ky7d031h64aw68jnh0g444br6.jpg {"keywords":["LandscapePhotography","River","Skyline","Swamp","iPhonePhotography"],"latitude":30.55038,"longitude":-81.46018333333333}
+[EXIF] Merged metadata for end80e1eti2draifc24ke5xbe.jpg {"keywords":["River","Trees","iPhonePhotography"],"latitude":30.557625,"longitude":-81.45318666666667}
+[EXIF] Merged metadata for by7lfc3dzwcm9quo4475mw7z9.jpg {"keywords":["Coastline","iPhonePhotography"],"latitude":30.55202,"longitude":-81.44281666666667}
+[EXIF] Merged metadata for d7g9jjamt4ps4regg0rie210s.jpg {"keywords":["Coastline","iPhonePhotography"],"latitude":30.55202,"longitude":-81.44281666666667}
+[EXIF] Merged metadata for rqbs9ur88u063vp8j394jteqs.jpg {"keywords":["Coastline","iPhonePhotography"],"latitude":30.552028333333332,"longitude":-81.44280333333333}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m7[39m
+[EXIF] Merged metadata for carjok8wufz0gdpyuc7fm1mu5.jpg {"keywords":["Boats","Coastline","Pier","Skyline","iPhonePhotography"],"latitude":37.809055,"longitude":-122.414055}
+[EXIF] Merged metadata for jq99ru1m0zxd6764uqjqavtfn.jpg {"keywords":["Boats","Coastline","Landmark","Skyline","TravelPhotography","iPhonePhotography"],"latitude":37.80905833333333,"longitude":-122.41408666666666}
+[EXIF] Merged metadata for v0eokj6p6xl89k870tn56iloz.jpg {"keywords":["Boats","Pier","iPhonePhotography"],"latitude":37.809203333333336,"longitude":-122.413095}
+[EXIF] Merged metadata for fgkruuqw75n93grsbqza4ko0s.jpg {"keywords":["Boats","Coastline","Pier","iPhonePhotography"],"latitude":37.810208333333335,"longitude":-122.412405}
+[EXIF] Merged metadata for lodr27m4x2l44d3ixx2issx8k.jpg {"keywords":["Coastline","Landmark","Skyline","TravelPhotography","iPhonePhotography"],"latitude":37.810658333333336,"longitude":-122.41277166666667}
+[EXIF] Merged metadata for os9uf1bp4ztvo5uba83ew49n1.jpg {"keywords":["Boardwalk","Coastline","PanoramicPhotography","Pier","iPhonePhotography"],"latitude":37.81064666666666,"longitude":-122.41279666666667}
+[EXIF] Merged metadata for e3w30xetzg0hav3moqvbqjvot.jpg {"keywords":["Boats","Coastline","Pier","Skyline","iPhonePhotography"],"latitude":37.810633333333335,"longitude":-122.41279666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m5[39m
+[EXIF] Merged metadata for ohagw3guipcv902yu5vmzcj8x.jpg {"title":"Steigenberger Frankfurter Hof (Hotel)","keywords":["ArchitecturePhotography","Building","Lights","Night"],"latitude":50.109278333333336,"longitude":8.674855}
+[EXIF] Merged metadata for slajyy0flvvfkbnnqyqmwnchh.jpg {"title":"Denkmal der deutschen Revolution (German Revolution 1848/1849)","keywords":["ArchitecturePhotography","Artwork","Lights","Memorial","Night","Statue","Stone"],"latitude":50.109278333333336,"longitude":8.674855}
+[EXIF] Merged metadata for zm05fc2fz9omj28wmpa8w504f.jpg {"title":"Old St Nicholas Church, a medieval Lutheran church","keywords":["ArchitecturePhotography","Church","Landmark","Lights","Night","Religious"],"latitude":50.109278333333336,"longitude":8.674855}
+[EXIF] Merged metadata for atgxw9615amh6caqvnevga79e.jpg {"title":"Römer (medieval building  and city hall to Frankfurt)","keywords":["ArchitecturePhotography","Building","Clock","GovernmentBuilding","Landmark","Night","Sky","Tower"],"latitude":50.109278333333336,"longitude":8.674855}
+[EXIF] Merged metadata for u4ojdjx7gui2rhq9nrxenoa2a.jpg {"title":"Eiserner Steg (Iron Bridge)","keywords":["ArchitecturePhotography","Bridge","Lights","Night","Road","TravelPhotography"],"latitude":50.10733,"longitude":8.682428333333334}

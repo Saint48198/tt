@@ -13,6 +13,7 @@ import { DetailsTabComponent } from './details-tab/details-tab.component';
 import { EntityTabComponent } from './entity-tab/entity-tab.component';
 import { LocationTabComponent, CitySelectedEvent } from './location-tab/location-tab.component';
 import { InfoTabComponent } from './info-tab/info-tab.component';
+import { ImageLoaderComponent } from '@shared/components';
 
 export interface PhotoEditDialogData {
   photo: AdminPhoto;
@@ -35,6 +36,7 @@ export interface PhotoEditDialogResult {
     EntityTabComponent,
     LocationTabComponent,
     InfoTabComponent,
+    ImageLoaderComponent,
   ],
   templateUrl: './photo-edit-dialog.component.html',
   styleUrl: './photo-edit-dialog.component.scss',
@@ -56,6 +58,7 @@ export class PhotoEditDialogComponent implements OnInit {
 
   cityId: number | null = null;
   attractionId: number | null = null;
+  stateId: number | null = null;
 
   saving = signal(false);
 
@@ -72,6 +75,7 @@ export class PhotoEditDialogComponent implements OnInit {
     this.longitude = this.photo.longitude ?? null;
     this.cityId = this.photo.city_id;
     this.attractionId = this.photo.attraction_id;
+    this.stateId = this.photo.state_id ?? null;
   }
 
   // ── Save ──
@@ -93,6 +97,7 @@ export class PhotoEditDialogComponent implements OnInit {
           caption: this.caption || null,
           city_id: this.cityId,
           attraction_id: this.attractionId,
+          state_id: this.stateId,
           user_id: this.currentUser?.id,
           latitude: this.latitude,
           longitude: this.longitude,
@@ -120,6 +125,7 @@ export class PhotoEditDialogComponent implements OnInit {
         tags: this.tags,
         city_id: this.cityId,
         attraction_id: this.attractionId,
+        state_id: this.stateId,
         latitude: this.latitude,
         longitude: this.longitude,
       })

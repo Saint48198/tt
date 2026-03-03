@@ -1,8 +1,1 @@
 Waiting for frontend-admin:serve:development in another nx process
-Task "frontend-admin:serve:development" is continuous but exited with code 0
-
-
-
- NX   Successfully ran target serve for project frontend-admin
-
-

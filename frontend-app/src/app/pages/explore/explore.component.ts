@@ -15,7 +15,7 @@ import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { MapComponent, MapMarker, MapOverlay, OverlayClickEvent } from '@shared/components';
+import { MapComponent, MapMarker, MapOverlay, OverlayClickEvent, ImageLoaderComponent } from '@shared/components';
 import {
   ExploreService,
   ExploreCountry,
@@ -35,7 +35,7 @@ interface BreadcrumbItem {
 
 @Component({
   selector: 'app-explore',
-  imports: [MapComponent],
+  imports: [MapComponent, ImageLoaderComponent],
   templateUrl: './explore.component.html',
   styleUrl: './explore.component.scss',
 })

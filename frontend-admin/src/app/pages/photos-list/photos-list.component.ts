@@ -2,8 +2,8 @@ import { Component, DestroyRef, OnInit, inject, signal, computed, ViewChild, Ele
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { concat } from 'rxjs';
-import { filter, switchMap, toArray } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
+import { filter, switchMap, catchError } from 'rxjs/operators';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,6 +29,7 @@ import {
   BulkUploadDialogResult,
 } from '../../components/bulk-upload-dialog/bulk-upload-dialog.component';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
+import { ImageLoaderComponent } from '@shared/components';
 
 @Component({
   selector: 'app-photos-list',
@@ -49,6 +50,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
     MatDialogModule,
     MatButtonToggleModule,
     MatSlideToggleModule,
+    ImageLoaderComponent,
   ],
   templateUrl: './photos-list.component.html',
   styleUrl: './photos-list.component.scss',
@@ -297,9 +299,9 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
             latitude: img.exif?.latitude ?? null,
             longitude: img.exif?.longitude ?? null,
             country_id: countryId,
-          })
+          }).pipe(catchError(() => of(null)))
         );
-        return concat(...saveRequests).pipe(toArray());
+        return forkJoin(saveRequests);
       }),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({

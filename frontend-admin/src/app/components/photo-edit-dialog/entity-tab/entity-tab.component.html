@@ -38,6 +38,47 @@
     </mat-autocomplete>
   </mat-form-field>
 
+  <!-- State / Province Combobox -->
+  @if (allStatesCount() > 0 || stateId()) {
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>State / Province</mat-label>
+      <input matInput
+             type="text"
+             [value]="stateInputValue()"
+             (input)="onStateInput($any($event.target).value)"
+             [matAutocomplete]="stateAuto"
+             placeholder="Type to search states...">
+      <mat-icon matPrefix>map</mat-icon>
+      @if (stateId()) {
+        <button matSuffix mat-icon-button (click)="clearState()" matTooltip="Clear state">
+          <mat-icon>close</mat-icon>
+        </button>
+      } @else {
+        <mat-icon matSuffix>arrow_drop_down</mat-icon>
+      }
+      <mat-autocomplete #stateAuto="matAutocomplete"
+                        (optionSelected)="onStateSelected($event.option.value)"
+                        [displayWith]="displayStateFn"
+                        autoActiveFirstOption>
+        @for (state of filteredStates(); track state.id) {
+          <mat-option [value]="state">
+            <mat-icon>map</mat-icon>
+            {{ state.name }}
+          </mat-option>
+        }
+        @if (!loadingStates() && filteredStates().length === 0) {
+          <mat-option disabled>No states found</mat-option>
+        }
+        @if (loadingStates()) {
+          <mat-option disabled>
+            <mat-spinner diameter="18" class="option-spinner"></mat-spinner>
+            Loading...
+          </mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  }
+
   <!-- Attraction Combobox -->
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Attraction</mat-label>

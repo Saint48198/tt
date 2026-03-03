@@ -46,6 +46,7 @@ export class PhotosService {
       tags?: string[];
       city_id?: number | null;
       attraction_id?: number | null;
+      state_id?: number | null;
       latitude?: number | null;
       longitude?: number | null;
     }
@@ -78,6 +79,7 @@ export class PhotosService {
     caption?: string | null;
     city_id?: number | null;
     attraction_id?: number | null;
+    state_id?: number | null;
     user_id?: number;
     latitude?: number | null;
     longitude?: number | null;
@@ -90,10 +92,11 @@ export class PhotosService {
   /**
    * Upload files to S3
    */
-  uploadPhotos(files: File[], country?: string): Observable<UploadPhotosResponse> {
+  uploadPhotos(files: File[], country?: string, exifData?: Array<{ title?: string; keywords?: string[]; latitude?: number; longitude?: number }>): Observable<UploadPhotosResponse> {
     const formData = new FormData();
     files.forEach((file) => formData.append('files', file));
     if (country) formData.append('country', country);
+    if (exifData) formData.append('exifData', JSON.stringify(exifData));
     return this.http.post<UploadPhotosResponse>(`${this.apiUrl}/upload`, formData);
   }
 

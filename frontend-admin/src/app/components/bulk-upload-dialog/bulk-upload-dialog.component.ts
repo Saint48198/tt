@@ -211,6 +211,9 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
     return exif;
   }
 
+  private readonly MAX_FILE_SIZE = 500 * 1024; // 500KB
+  private readonly MAX_DIMENSION = 2000; // max width or height in pixels
+
   private async addFiles(newFiles: File[]): Promise<void> {
     const existing = this.files();
     const existingNames = new Set(existing.map((f) => f.name));
@@ -220,16 +223,85 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
 
     for (const file of filtered) {
       const exif = await this.extractExif(file);
+      const resized = file.size > this.MAX_FILE_SIZE && file.type.startsWith('image/')
+        ? await this.resizeImage(file)
+        : file;
       previews.push({
-        file,
-        previewUrl: URL.createObjectURL(file),
+        file: resized,
+        previewUrl: URL.createObjectURL(resized),
         name: file.name,
-        size: this.formatFileSize(file.size),
+        size: this.formatFileSize(resized.size),
         exif,
       });
     }
 
     this.files.set([...existing, ...previews]);
+  }
+
+  /**
+   * Resize an image file to fit within MAX_DIMENSION and compress to stay under MAX_FILE_SIZE.
+   * Preserves aspect ratio. Uses canvas for resizing.
+   */
+  private async resizeImage(file: File): Promise<File> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(img.src);
+
+        let { width, height } = img;
+
+        // Scale down to fit within MAX_DIMENSION
+        if (width > this.MAX_DIMENSION || height > this.MAX_DIMENSION) {
+          const ratio = Math.min(this.MAX_DIMENSION / width, this.MAX_DIMENSION / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Try progressively lower quality until under MAX_FILE_SIZE
+        const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        let quality = 0.85;
+        const minQuality = 0.3;
+
+        const tryCompress = () => {
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve(file); // fallback to original
+                return;
+              }
+
+              if (blob.size > this.MAX_FILE_SIZE && quality > minQuality && mimeType !== 'image/png') {
+                quality -= 0.1;
+                tryCompress();
+                return;
+              }
+
+              const resizedFile = new File([blob], file.name, {
+                type: mimeType,
+                lastModified: file.lastModified,
+              });
+              resolve(resizedFile);
+            },
+            mimeType,
+            mimeType === 'image/png' ? undefined : quality,
+          );
+        };
+
+        tryCompress();
+      };
+
+      img.onerror = () => {
+        resolve(file); // fallback to original on error
+      };
+
+      img.src = URL.createObjectURL(file);
+    });
   }
 
   removeFile(index: number): void {
@@ -251,11 +323,12 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
     this.uploadProgress.set(0);
 
     const rawFiles = fileList.map((f) => f.file);
+    const exifData = fileList.map((f) => f.exif || {});
     const country = this.showCountrySelect
       ? this.selectedCountry() || undefined
       : undefined;
 
-    this.photosService.uploadPhotos(rawFiles, country)
+    this.photosService.uploadPhotos(rawFiles, country, exifData)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
       next: (res) => {
@@ -275,12 +348,21 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
           uploaded: true,
           count,
           country_id: matchedCountry?.id ?? null,
-          images: res.images?.map((img) => ({
-            public_id: img.public_id,
-            secure_url: img.secure_url,
-            url: img.url,
-            exif: img.exif,
-          })),
+          images: res.images?.map((img, idx) => {
+            const clientExif = fileList[idx]?.exif || {};
+            const serverExif = img.exif || {};
+            return {
+              public_id: img.public_id,
+              secure_url: img.secure_url,
+              url: img.url,
+              exif: {
+                title: serverExif.title || clientExif.title || undefined,
+                keywords: serverExif.keywords?.length ? serverExif.keywords : clientExif.keywords || undefined,
+                latitude: serverExif.latitude ?? clientExif.latitude ?? undefined,
+                longitude: serverExif.longitude ?? clientExif.longitude ?? undefined,
+              },
+            };
+          }),
         });
       },
       error: (err) => {

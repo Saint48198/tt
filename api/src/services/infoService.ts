@@ -40,11 +40,19 @@ class InfoService {
       throw new Error('Query parameter is required and must be a string.');
     }
 
-    const response = await fetch(
-      `${this.WIKIPEDIA_API_URL}?action=query&format=json&prop=extracts|info&exintro&explaintext&titles=${encodeURIComponent(
-        query
-      )}&inprop=url`
-    );
+    const url = new URL(this.WIKIPEDIA_API_URL);
+    url.searchParams.set('action', 'query');
+    url.searchParams.set('format', 'json');
+    url.searchParams.set('prop', 'extracts|info');
+    url.searchParams.set('exintro', '1');
+    url.searchParams.set('explaintext', '1');
+    url.searchParams.set('titles', query);
+    url.searchParams.set('inprop', 'url');
+    url.searchParams.set('redirects', '1');
+
+    const response = await fetch(url.toString(), {
+      headers: { 'User-Agent': 'TripTracker/1.0' },
+    });
 
     if (!response.ok) {
       throw new Error('Failed to fetch data from Wikipedia.');

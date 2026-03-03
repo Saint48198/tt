@@ -24,7 +24,7 @@
   <div class="photos-grid">
     @for (photo of photos(); track photo.id) {
       <div class="photo-card" (click)="openEditModal(photo)" (keydown.enter)="openEditModal(photo)" tabindex="0" role="button">
-        <img [src]="photo.url" [alt]="photo.caption || 'Photo'" loading="lazy" />
+        <lib-image-loader [src]="photo.url" [alt]="photo.caption || 'Photo'" [lazy]="true" borderRadius="12px"></lib-image-loader>
         <button
           class="delete-btn"
           (click)="requestDelete($event, photo)"
@@ -54,7 +54,7 @@
 
       <div class="modal-body">
         <div class="edit-preview">
-          <img [src]="editingPhoto()!.url" [alt]="editingPhoto()!.caption || 'Photo'" />
+          <lib-image-loader [src]="editingPhoto()!.url" [alt]="editingPhoto()!.caption || 'Photo'" borderRadius="8px"></lib-image-loader>
         </div>
 
         <mat-form-field appearance="outline" class="caption-field">
@@ -117,7 +117,7 @@
 
       <div class="modal-body">
         <div class="confirm-preview">
-          <img [src]="confirmingDelete()!.url" [alt]="confirmingDelete()!.caption || 'Photo'" />
+          <lib-image-loader [src]="confirmingDelete()!.url" [alt]="confirmingDelete()!.caption || 'Photo'" borderRadius="8px"></lib-image-loader>
         </div>
         <p class="confirm-message">Are you sure you want to delete this photo? This action cannot be undone.</p>
       </div>

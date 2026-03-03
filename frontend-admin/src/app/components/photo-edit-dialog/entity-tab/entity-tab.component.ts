@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CitiesService } from '../../../services/cities.service';
 import { AttractionsService } from '../../../services/attractions.service';
+import { StatesService } from '../../../services/states.service';
 
 export interface EntityOption {
   id: number;
@@ -34,14 +35,17 @@ export interface EntityOption {
 export class EntityTabComponent implements OnInit {
   private readonly citiesService = inject(CitiesService);
   private readonly attractionsService = inject(AttractionsService);
+  private readonly statesService = inject(StatesService);
   private readonly destroyRef = inject(DestroyRef);
 
   countryId = input<number | null>(null);
   initialCityName = input<string>('');
   initialAttractionName = input<string>('');
+  initialStateName = input<string>('');
 
   cityId = model.required<number | null>();
   attractionId = model.required<number | null>();
+  stateId = model.required<number | null>();
 
   // City combobox
   cityInputValue = signal('');
@@ -51,6 +55,17 @@ export class EntityTabComponent implements OnInit {
     const q = this.cityInputValue().toLowerCase();
     const all = this.allCities();
     return q ? all.filter((c) => c.name.toLowerCase().includes(q)) : all;
+  });
+
+  // State combobox
+  stateInputValue = signal('');
+  private allStates = signal<EntityOption[]>([]);
+  loadingStates = signal(false);
+  allStatesCount = computed(() => this.allStates().length);
+  filteredStates = computed(() => {
+    const q = this.stateInputValue().toLowerCase();
+    const all = this.allStates();
+    return q ? all.filter((s) => s.name.toLowerCase().includes(q)) : all;
   });
 
   // Attraction combobox
@@ -66,8 +81,10 @@ export class EntityTabComponent implements OnInit {
   ngOnInit(): void {
     this.cityInputValue.set(this.initialCityName() || '');
     this.attractionInputValue.set(this.initialAttractionName() || '');
+    this.stateInputValue.set(this.initialStateName() || '');
     this.loadCities();
     this.loadAttractions();
+    this.loadStates();
   }
 
   private loadCities(): void {
@@ -106,6 +123,24 @@ export class EntityTabComponent implements OnInit {
     });
   }
 
+  private loadStates(): void {
+    this.loadingStates.set(true);
+    this.statesService.getAllStates('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (res) => {
+        const cid = this.countryId();
+        const states = cid
+          ? res.states.filter((s) => Number(s.country_id) === Number(cid))
+          : res.states;
+        this.allStates.set(states.map((s) => ({ id: s.id, name: s.name })));
+        this.loadingStates.set(false);
+      },
+      error: () => {
+        this.allStates.set([]);
+        this.loadingStates.set(false);
+      },
+    });
+  }
+
   // ── City combobox ──
   onCityInput(value: string): void {
     this.cityInputValue.set(value);
@@ -125,6 +160,26 @@ export class EntityTabComponent implements OnInit {
   }
 
   displayCityFn = (option: EntityOption): string => option?.name ?? '';
+
+  // ── State combobox ──
+  onStateInput(value: string): void {
+    this.stateInputValue.set(value);
+    if (!value) {
+      this.stateId.set(null);
+    }
+  }
+
+  onStateSelected(option: EntityOption): void {
+    this.stateId.set(option.id);
+    this.stateInputValue.set(option.name);
+  }
+
+  clearState(): void {
+    this.stateId.set(null);
+    this.stateInputValue.set('');
+  }
+
+  displayStateFn = (option: EntityOption): string => option?.name ?? '';
 
   // ── Attraction combobox ──
   onAttractionInput(value: string): void {

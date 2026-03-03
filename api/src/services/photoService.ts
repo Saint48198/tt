@@ -13,7 +13,7 @@ interface SearchPhotoResult { photo_id: string; url: string; title: string; capt
 interface SearchPhotosRequest { folder?: string; tag?: string; max_results?: number; next_cursor?: string; }
 interface SearchPhotosResponse { photos: SearchPhotoResult[]; next_cursor: string | null; }
 interface UploadFile { filepath: string; newFilename: string; }
-interface UploadPhotosRequest { files: UploadFile[]; visibility?: string; tags?: string; title?: string; description?: string; country?: string; }
+interface UploadPhotosRequest { files: UploadFile[]; visibility?: string; tags?: string; title?: string; description?: string; country?: string; clientExifData?: Array<{ title?: string; keywords?: string[]; latitude?: number; longitude?: number }>; }
 interface UploadedPhoto { public_id: string; secure_url: string; url: string; exif?: ExifMetadata; [key: string]: any; }
 interface ExifMetadata { title?: string; keywords?: string[]; latitude?: number; longitude?: number; }
 interface RemovePhotoRequest { entityType: string; entityId: string | number; photoId: string | number; }
@@ -68,15 +68,14 @@ class PhotoService {
   // --- S3 Helpers ---
 
   /**
-   * Build the S3 object key: uploads/{year}/{country}/{uuid}.{ext}
+   * Build the S3 object key: uploads/{country}/{uuid}.{ext}
    */
   private buildS3Key(ext: string, country?: string): string {
-    const year = new Date().getFullYear().toString();
     const slug = country
       ? country.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       : 'uncategorized';
     const uuid = randomUUID();
-    return `uploads/${year}/${slug}/${uuid}.${ext}`;
+    return `uploads/${slug}/${uuid}.${ext}`;
   }
 
   /**
@@ -198,10 +197,11 @@ class PhotoService {
     photo_id: string; url: string; caption?: string | null;
     city_id?: number | null; attraction_id?: number | null; user_id?: number;
     latitude?: number | null; longitude?: number | null;
-    country_id?: number | null;
+    country_id?: number | null; state_id?: number | null;
     tags?: string[];
   }): Promise<{ id: number }> {
     const { photo_id, url, caption, city_id, attraction_id, latitude, longitude, country_id } = params;
+    let { state_id } = params;
     if (!photo_id || !url) throw new Error('Missing required fields: photo_id and url.');
 
     let userId = params.user_id;
@@ -215,15 +215,30 @@ class PhotoService {
       userId = firstUser.id;
     }
 
-    // Resolve country_id: use explicit param, or derive from city/attraction
-    let resolvedCountryId = country_id || null;
+    // Resolve country_id: use explicit param, or derive from city/attraction, or from S3 key
+    let resolvedCountryId = country_id ?? null;
     if (!resolvedCountryId && city_id) {
-      const city = await db.get<{ country_id: number }>('SELECT country_id FROM cities WHERE id = $1', [city_id]);
+      const city = await db.get<{ country_id: number; state_id: number | null }>('SELECT country_id, state_id FROM cities WHERE id = $1', [city_id]);
       resolvedCountryId = city?.country_id || null;
+      if (!state_id && city?.state_id) state_id = city.state_id;
     }
     if (!resolvedCountryId && attraction_id) {
       const attr = await db.get<{ country_id: number }>('SELECT country_id FROM attractions WHERE id = $1', [attraction_id]);
       resolvedCountryId = attr?.country_id || null;
+    }
+    // Last resort: extract country slug from S3 key (uploads/{country-slug}/{uuid}.ext)
+    if (!resolvedCountryId && photo_id) {
+      const parts = photo_id.split('/');
+      if (parts.length >= 3 && parts[0] === 'uploads') {
+        const slug = parts[1];
+        if (slug && slug !== 'uncategorized') {
+          const country = await db.get<{ id: number }>(
+            `SELECT id FROM countries WHERE LOWER(REPLACE(name, ' ', '-')) = $1 AND disabled_date IS NULL`,
+            [slug]
+          );
+          resolvedCountryId = country?.id || null;
+        }
+      }
     }
 
     if (city_id) {
@@ -236,8 +251,8 @@ class PhotoService {
     }
 
     const result = await db.run(
-      `INSERT INTO photos (photo_id, url, user_id, city_id, attraction_id, caption, latitude, longitude, country_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-      [photo_id, url, userId, city_id || null, attraction_id || null, caption || null, latitude || null, longitude || null, resolvedCountryId]
+      `INSERT INTO photos (photo_id, url, user_id, city_id, attraction_id, caption, latitude, longitude, country_id, state_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
+      [photo_id, url, userId, city_id ?? null, attraction_id ?? null, caption ?? null, latitude ?? null, longitude ?? null, resolvedCountryId, state_id ?? null]
     );
     const newId = result.rows[0].id;
 
@@ -446,16 +461,26 @@ class PhotoService {
   }
 
   public async uploadPhotos(request: UploadPhotosRequest): Promise<{ success: boolean; images: UploadedPhoto[] }> {
-    const { files, tags: tagsRaw, title = '', description = '', country } = request;
+    const { files, tags: tagsRaw, title = '', description = '', country, clientExifData } = request;
     if (!files || files.length === 0) throw new Error('No files provided for upload');
 
     const uploadResults: UploadedPhoto[] = [];
 
     // Process files sequentially to avoid memory/sharp concurrency issues
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       // Extract EXIF metadata before optimization (which may strip it)
-      const exif = await this.extractExifMetadata(file.filepath);
-      console.log('[EXIF] Extracted metadata for', file.newFilename, JSON.stringify(exif));
+      const serverExif = await this.extractExifMetadata(file.filepath);
+      // Merge with client-provided EXIF (client data is fallback when server extraction returns empty,
+      // e.g. after canvas resize in the browser strips metadata)
+      const clientExif = clientExifData?.[i] || {};
+      const exif: ExifMetadata = {
+        title: serverExif.title || clientExif.title || undefined,
+        keywords: serverExif.keywords?.length ? serverExif.keywords : clientExif.keywords || undefined,
+        latitude: serverExif.latitude ?? clientExif.latitude ?? undefined,
+        longitude: serverExif.longitude ?? clientExif.longitude ?? undefined,
+      };
+      console.log('[EXIF] Merged metadata for', file.newFilename, JSON.stringify(exif));
 
       const effectiveTitle = title || exif.title || '';
       const userTags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
@@ -536,6 +561,7 @@ class PhotoService {
     photoId: number, caption: string | null, tags?: string[],
     cityId?: number | null, attractionId?: number | null,
     latitude?: number | null, longitude?: number | null,
+    stateId?: number | null,
   ): Promise<{ success: boolean }> {
 
     const setClauses = ['caption = $1', 'updated_date = NOW()'];
@@ -546,6 +572,7 @@ class PhotoService {
     if (attractionId !== undefined) { setClauses.push(`attraction_id = $${idx++}`); params.push(attractionId); }
     if (latitude !== undefined) { setClauses.push(`latitude = $${idx++}`); params.push(latitude); }
     if (longitude !== undefined) { setClauses.push(`longitude = $${idx++}`); params.push(longitude); }
+    if (stateId !== undefined) { setClauses.push(`state_id = $${idx++}`); params.push(stateId); }
 
     // Resolve and update country_id when city or attraction changes
     if (cityId !== undefined || attractionId !== undefined) {
@@ -553,8 +580,13 @@ class PhotoService {
       const effectiveCityId = cityId !== undefined ? cityId : null;
       const effectiveAttractionId = attractionId !== undefined ? attractionId : null;
       if (effectiveCityId) {
-        const city = await db.get<{ country_id: number }>('SELECT country_id FROM cities WHERE id = $1', [effectiveCityId]);
+        const city = await db.get<{ country_id: number; state_id: number | null }>('SELECT country_id, state_id FROM cities WHERE id = $1', [effectiveCityId]);
         resolvedCountryId = city?.country_id || null;
+        // Auto-resolve state from city if not explicitly provided
+        if (stateId === undefined && city?.state_id) {
+          setClauses.push(`state_id = $${idx++}`);
+          params.push(city.state_id);
+        }
       } else if (effectiveAttractionId) {
         const attr = await db.get<{ country_id: number }>('SELECT country_id FROM attractions WHERE id = $1', [effectiveAttractionId]);
         resolvedCountryId = attr?.country_id || null;
@@ -576,11 +608,12 @@ class PhotoService {
   private async getAllDbPhotos(): Promise<Array<any>> {
     const rows = await db.all<any>(
       `SELECT p.id, p.url, p.user_id, p.city_id, p.attraction_id, p.caption, p.created_at, p.photo_id,
-              p.latitude, p.longitude, p.created_date, p.updated_date, p.disabled_date, p.country_id,
-              c.name as city_name, a.name as attraction_name
+              p.latitude, p.longitude, p.created_date, p.updated_date, p.disabled_date, p.country_id, p.state_id,
+              c.name as city_name, a.name as attraction_name, s.name as state_name
        FROM photos p
        LEFT JOIN cities c ON p.city_id = c.id
        LEFT JOIN attractions a ON p.attraction_id = a.id
+       LEFT JOIN states s ON p.state_id = s.id
        WHERE p.disabled_date IS NULL
        ORDER BY p.created_at DESC`
     );
@@ -594,6 +627,7 @@ class PhotoService {
         created_date: row.created_date, updated_date: row.updated_date, disabled_date: row.disabled_date,
         city_id: row.city_id || null, city_name: row.city_name || null,
         attraction_id: row.attraction_id || null, attraction_name: row.attraction_name || null,
+        state_id: row.state_id || null, state_name: row.state_name || null,
         country_id: row.country_id || null,
         entity_type: row.city_id ? 'cities' : row.attraction_id ? 'attractions' : null,
         entity_id: row.city_id || row.attraction_id || null,

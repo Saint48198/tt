@@ -276,6 +276,11 @@ router.post(
         const title = firstFieldValue((fields as any).title) ?? '';
         const description = firstFieldValue((fields as any).description) ?? '';
         const country = firstFieldValue((fields as any).country);
+        const exifDataRaw = firstFieldValue((fields as any).exifData);
+        let clientExifData: Array<{ title?: string; keywords?: string[]; latitude?: number; longitude?: number }> | undefined;
+        try {
+          if (exifDataRaw) clientExifData = JSON.parse(exifDataRaw);
+        } catch { /* ignore parse errors */ }
 
         try {
           const result = await photoService.uploadPhotos({
@@ -288,6 +293,7 @@ router.post(
             title,
             description,
             country,
+            clientExifData,
           });
 
           return res.status(200).json(result);
@@ -306,7 +312,7 @@ router.post(
 // POST /api/photos/add — add a Cloudinary photo to the database
 router.post('/api/photos/add', async (req: Request, res: Response) => {
 
-  const { photo_id, url, caption, city_id, attraction_id, user_id, latitude, longitude, tags, country_id } = req.body;
+  const { photo_id, url, caption, city_id, attraction_id, user_id, latitude, longitude, tags, country_id, state_id } = req.body;
 
   if (!photo_id || !url) {
     return res.status(400).json({ error: 'Missing required fields: photo_id and url.' });
@@ -320,10 +326,11 @@ router.post('/api/photos/add', async (req: Request, res: Response) => {
       caption,
       city_id,
       attraction_id,
-      user_id: user_id ? Number(user_id) : undefined,
-      latitude: latitude ? Number(latitude) : undefined,
-      longitude: longitude ? Number(longitude) : undefined,
-      country_id: country_id ? Number(country_id) : undefined,
+      user_id: user_id != null ? Number(user_id) : undefined,
+      latitude: latitude != null ? Number(latitude) : undefined,
+      longitude: longitude != null ? Number(longitude) : undefined,
+      country_id: country_id != null ? Number(country_id) : undefined,
+      state_id: state_id != null ? Number(state_id) : undefined,
       tags: Array.isArray(tags) ? tags : undefined,
     });
     return res.status(201).json({ message: 'Photo added to database.', id: result.id });
@@ -343,10 +350,10 @@ router.patch('/api/photos/:id', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Invalid photo id' });
   }
 
-  const { caption, tags, city_id, attraction_id, latitude, longitude } = req.body;
+  const { caption, tags, city_id, attraction_id, latitude, longitude, state_id } = req.body;
 
   try {
-    await photoService.updatePhoto(Number(id), caption ?? null, tags, city_id, attraction_id, latitude, longitude);
+    await photoService.updatePhoto(Number(id), caption ?? null, tags, city_id, attraction_id, latitude, longitude, state_id);
     return res.status(200).json({ message: 'Photo updated successfully.' });
   } catch (error) {
     console.error('Failed to update photo:', error);

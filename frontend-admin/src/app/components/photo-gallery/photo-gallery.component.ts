@@ -15,6 +15,7 @@ import {
   BulkUploadDialogComponent,
   BulkUploadDialogResult,
 } from '../bulk-upload-dialog/bulk-upload-dialog.component';
+import { ImageLoaderComponent } from '@shared/components';
 
 @Component({
   selector: 'app-photo-gallery',
@@ -29,6 +30,7 @@ import {
     MatChipsModule,
     MatSnackBarModule,
     MatDialogModule,
+    ImageLoaderComponent,
   ],
   templateUrl: './photo-gallery.component.html',
   styleUrl: './photo-gallery.component.scss',

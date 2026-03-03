@@ -146,6 +146,8 @@ async function init() {
         user_id INTEGER NOT NULL,
         city_id INTEGER,
         attraction_id INTEGER,
+        state_id INTEGER,
+        country_id INTEGER,
         caption TEXT,
         created_at TIMESTAMP DEFAULT NOW(),
         photo_id TEXT,
@@ -156,7 +158,9 @@ async function init() {
         disabled_date TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (city_id) REFERENCES cities(id),
-        FOREIGN KEY (attraction_id) REFERENCES attractions(id)
+        FOREIGN KEY (attraction_id) REFERENCES attractions(id),
+        FOREIGN KEY (state_id) REFERENCES states(id),
+        FOREIGN KEY (country_id) REFERENCES countries(id)
       );
     `);
 

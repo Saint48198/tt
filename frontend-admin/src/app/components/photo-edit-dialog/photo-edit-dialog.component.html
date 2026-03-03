@@ -8,7 +8,7 @@
     <div class="dialog-layout">
       <!-- Photo preview -->
       <div class="photo-preview">
-        <img [src]="photo.url" [alt]="caption || 'Photo'" class="preview-image">
+        <lib-image-loader [src]="photo.url" [alt]="caption || 'Photo'" imgClass="preview-image" borderRadius="16px"></lib-image-loader>
         <div class="source-badges">
           @if (photo.in_database) {
             <span class="badge badge-db">
@@ -46,9 +46,11 @@
             <app-entity-tab
               [(cityId)]="cityId"
               [(attractionId)]="attractionId"
+              [(stateId)]="stateId"
               [countryId]="photo.country_id"
               [initialCityName]="photo.city_name || ''"
-              [initialAttractionName]="photo.attraction_name || ''" />
+              [initialAttractionName]="photo.attraction_name || ''"
+              [initialStateName]="photo.state_name || ''" />
           </mat-tab>
 
           <!-- Location Tab -->
