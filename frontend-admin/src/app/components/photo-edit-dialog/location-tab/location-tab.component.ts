@@ -24,6 +24,8 @@ export interface ReverseGeoResult {
 export interface CitySelectedEvent {
   cityId: number;
   cityName: string;
+  stateId: number | null;
+  stateName: string | null;
 }
 
 @Component({
@@ -206,7 +208,12 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
   }
 
   assignCity(city: City): void {
-    this.citySelected.emit({ cityId: city.id, cityName: city.name });
+    this.citySelected.emit({
+      cityId: city.id,
+      cityName: city.name,
+      stateId: city.state_id ?? null,
+      stateName: city.state_name ?? null,
+    });
     this.assigned.set(true);
   }
 

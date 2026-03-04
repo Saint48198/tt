@@ -16,8 +16,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
+import { lastValueFrom } from 'rxjs';
 import { PhotosService } from '../../services/photos.service';
 import { CountriesService } from '../../services/countries.service';
+import { GeocodeService } from '../../services/geocode.service';
 import { Country } from '../../interfaces';
 import ExifReader from 'exifreader';
 
@@ -73,6 +76,7 @@ interface FilePreview {
     MatSnackBarModule,
     MatChipsModule,
     MatTooltipModule,
+    RouterModule,
   ],
   templateUrl: './bulk-upload-dialog.component.html',
   styleUrl: './bulk-upload-dialog.component.scss',
@@ -81,6 +85,7 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
   private readonly dialogRef = inject(MatDialogRef<BulkUploadDialogComponent>);
   private readonly photosService = inject(PhotosService);
   private readonly countriesService = inject(CountriesService);
+  private readonly geocodeService = inject(GeocodeService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
   readonly data: BulkUploadDialogData = inject(MAT_DIALOG_DATA, { optional: true }) ?? {};
@@ -91,6 +96,15 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
   dragOver = signal(false);
   countries = signal<Country[]>([]);
   selectedCountry = signal<string>('');
+
+  // Country detection from GPS
+  detectingCountry = signal(false);
+  /** Warning when photos are from different countries */
+  countryMismatchWarning = signal<string>('');
+  /** Warning when detected country is not in the countries list */
+  countryNotFoundWarning = signal<string>('');
+  /** The detected country name (for the "not found" warning link) */
+  detectedCountryName = signal<string>('');
 
   get showCountrySelect(): boolean {
     return this.data.showCountrySelect === true;
@@ -235,7 +249,93 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.files.set([...existing, ...previews]);
+    const allFiles = [...existing, ...previews];
+    this.files.set(allFiles);
+
+    // Detect country from GPS data when country select is shown
+    if (this.showCountrySelect && allFiles.length > 0) {
+      await this.detectCountryFromFiles(allFiles);
+    }
+  }
+
+  /**
+   * Detect the country from GPS coordinates in EXIF data.
+   * Auto-selects if all photos are from the same country and it's in the list.
+   * Shows warnings for mismatches or missing countries.
+   */
+  private async detectCountryFromFiles(allFiles: FilePreview[]): Promise<void> {
+    // Only check files that have GPS data
+    const filesWithGps = allFiles.filter(
+      (f) => f.exif?.latitude != null && f.exif?.longitude != null
+    );
+
+    if (filesWithGps.length === 0) {
+      return;
+    }
+
+    this.detectingCountry.set(true);
+    this.countryMismatchWarning.set('');
+    this.countryNotFoundWarning.set('');
+    this.detectedCountryName.set('');
+
+    try {
+      // Reverse geocode unique coordinates (deduplicate to avoid redundant calls)
+      const seen = new Set<string>();
+      const countryNames = new Set<string>();
+
+      for (const file of filesWithGps) {
+        const lat = file.exif?.latitude;
+        const lng = file.exif?.longitude;
+        if (lat == null || lng == null) continue;
+
+        const key = `${lat.toFixed(2)},${lng.toFixed(2)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        try {
+          const result = await lastValueFrom(
+            this.geocodeService.reverseGeocode(lat, lng)
+          );
+          if (result?.country) {
+            countryNames.add(result.country);
+          }
+        } catch {
+          // Skip files that fail geocoding
+        }
+      }
+
+      if (countryNames.size === 0) {
+        return;
+      }
+
+      if (countryNames.size > 1) {
+        // Multiple countries detected
+        const names = Array.from(countryNames).join(', ');
+        this.countryMismatchWarning.set(
+          `Photos are from multiple countries: ${names}. Please select the correct country manually.`
+        );
+        return;
+      }
+
+      // All photos are from the same country
+      const detectedCountry = Array.from(countryNames)[0];
+      const matchedCountry = this.countries().find(
+        (c) => c.name.toLowerCase() === detectedCountry.toLowerCase()
+      );
+
+      if (matchedCountry) {
+        // Auto-select the country
+        this.selectedCountry.set(matchedCountry.name);
+      } else {
+        // Country not in list
+        this.detectedCountryName.set(detectedCountry);
+        this.countryNotFoundWarning.set(
+          `Detected country "${detectedCountry}" is not in your countries list.`
+        );
+      }
+    } finally {
+      this.detectingCountry.set(false);
+    }
   }
 
   /**
@@ -313,6 +413,9 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
   clearAll(): void {
     this.files().forEach((f) => URL.revokeObjectURL(f.previewUrl));
     this.files.set([]);
+    this.countryMismatchWarning.set('');
+    this.countryNotFoundWarning.set('');
+    this.detectedCountryName.set('');
   }
 
   upload(): void {

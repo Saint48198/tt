@@ -609,11 +609,12 @@ class PhotoService {
     const rows = await db.all<any>(
       `SELECT p.id, p.url, p.user_id, p.city_id, p.attraction_id, p.caption, p.created_at, p.photo_id,
               p.latitude, p.longitude, p.created_date, p.updated_date, p.disabled_date, p.country_id, p.state_id,
-              c.name as city_name, a.name as attraction_name, s.name as state_name
+              c.name as city_name, a.name as attraction_name, s.name as state_name, co.name as country_name
        FROM photos p
        LEFT JOIN cities c ON p.city_id = c.id
        LEFT JOIN attractions a ON p.attraction_id = a.id
        LEFT JOIN states s ON p.state_id = s.id
+       LEFT JOIN countries co ON p.country_id = co.id
        WHERE p.disabled_date IS NULL
        ORDER BY p.created_at DESC`
     );
@@ -628,7 +629,7 @@ class PhotoService {
         city_id: row.city_id || null, city_name: row.city_name || null,
         attraction_id: row.attraction_id || null, attraction_name: row.attraction_name || null,
         state_id: row.state_id || null, state_name: row.state_name || null,
-        country_id: row.country_id || null,
+        country_id: row.country_id || null, country_name: row.country_name || null,
         entity_type: row.city_id ? 'cities' : row.attraction_id ? 'attractions' : null,
         entity_id: row.city_id || row.attraction_id || null,
         entity_name: row.city_name || row.attraction_name || null,

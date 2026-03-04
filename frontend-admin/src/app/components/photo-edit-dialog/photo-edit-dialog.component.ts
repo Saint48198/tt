@@ -144,7 +144,11 @@ export class PhotoEditDialogComponent implements OnInit {
 
   onCitySelectedFromLocation(event: CitySelectedEvent): void {
     this.cityId = event.cityId;
-    this.snackBar.open(`City set to "${event.cityName}"`, 'Close', { duration: 3000 });
+    if (event.stateId != null) {
+      this.stateId = event.stateId;
+    }
+    const stateSuffix = event.stateName ? `, state set to "${event.stateName}"` : '';
+    this.snackBar.open(`City set to "${event.cityName}"${stateSuffix}`, 'Close', { duration: 3000 });
   }
 
   cancel(): void {

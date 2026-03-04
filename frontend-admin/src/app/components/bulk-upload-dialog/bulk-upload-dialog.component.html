@@ -16,6 +16,39 @@
       </mat-select>
       <mat-hint>Photos will be stored under this country folder</mat-hint>
     </mat-form-field>
+
+    <!-- Country detection status -->
+    @if (detectingCountry()) {
+      <div class="country-detect-status">
+        <mat-spinner diameter="16"></mat-spinner>
+        <span>Detecting country from photo GPS data…</span>
+      </div>
+    }
+
+    <!-- Warning: photos from multiple countries -->
+    @if (countryMismatchWarning()) {
+      <div class="country-warning">
+        <mat-icon class="warning-icon">warning</mat-icon>
+        <span>{{ countryMismatchWarning() }}</span>
+      </div>
+    }
+
+    <!-- Warning: detected country not in list -->
+    @if (countryNotFoundWarning()) {
+      <div class="country-warning">
+        <mat-icon class="warning-icon">warning</mat-icon>
+        <span>{{ countryNotFoundWarning() }}</span>
+        <a mat-button
+           color="primary"
+           routerLink="/countries/new"
+           target="_blank"
+           (click)="cancel()"
+           class="add-country-link">
+          <mat-icon>add</mat-icon>
+          Add Country
+        </a>
+      </div>
+    }
   }
 
   <!-- Drop zone -->

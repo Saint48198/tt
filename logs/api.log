@@ -143,3 +143,495 @@ Listening on port 3001
 [EXIF] Merged metadata for zm05fc2fz9omj28wmpa8w504f.jpg {"title":"Old St Nicholas Church, a medieval Lutheran church","keywords":["ArchitecturePhotography","Church","Landmark","Lights","Night","Religious"],"latitude":50.109278333333336,"longitude":8.674855}
 [EXIF] Merged metadata for atgxw9615amh6caqvnevga79e.jpg {"title":"Römer (medieval building  and city hall to Frankfurt)","keywords":["ArchitecturePhotography","Building","Clock","GovernmentBuilding","Landmark","Night","Sky","Tower"],"latitude":50.109278333333336,"longitude":8.674855}
 [EXIF] Merged metadata for u4ojdjx7gui2rhq9nrxenoa2a.jpg {"title":"Eiserner Steg (Iron Bridge)","keywords":["ArchitecturePhotography","Bridge","Lights","Night","Road","TravelPhotography"],"latitude":50.10733,"longitude":8.682428333333334}
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/358b4c14-88c0-4cc7-89f6-518b54c264c8[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/358b4c14-88c0-4cc7-89f6-518b54c264c8[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[ [32mwatch[39m ] build succeeded, watching for changes...
+[1m[31mDebugger listening on ws://localhost:9229/cac6efed-1271-4b6b-8752-c386d99af768[39m[22m
+[1m[31mDebugger listening on ws://localhost:9229/cac6efed-1271-4b6b-8752-c386d99af768[39m[22m
+[1m[31mFor help, see: https://nodejs.org/en/docs/inspector[39m[22m
+[1m[31m[39m[22m
+Listening on port 3001
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m8[39m
+[EXIF] Merged metadata for dp096t2sdcrn6aujk6xpc2qok.jpg {"title":"Temple of Olympian Zeus, Athens","keywords":["Ancient","ArchitecturePhotography","Column","Landmark","Ruins","Stone","Temple"],"latitude":37.968916666666665,"longitude":23.73477}
+[EXIF] Merged metadata for hrmbw63n2k0frktvv69pdlbv7.jpg {"title":"Temple of Olympian Zeus, Athens","keywords":["Ancient","ArchitecturePhotography","Blue","Column","Landmark","Ruins","Stone","Temple","Yellow"],"latitude":37.968916666666665,"longitude":23.73477}
+[EXIF] Merged metadata for e9kx9klktymq717bgz1etpl8a.jpg {"title":"Hellenistic statue","keywords":["Artwork","Public","Red","Statue","White","iPhonePhotography"],"latitude":37.967621666666666,"longitude":23.72917}
+[EXIF] Merged metadata for e95h2my3bkj1614ncbnrzm5ar.jpg {"title":"Old Royal Palace","keywords":["Blue","Building","Flag","GovernmentBuilding","Palace","Sun","Yellow"],"latitude":37.97551333333333,"longitude":23.734858333333335}
+[EXIF] Merged metadata for i4tg3syeptsne2pwhf7gubzoa.jpg {"title":"Statue on column at the Academy of Athens","keywords":["Artwork","Column","Public","Statue","Yellow"],"latitude":37.98014166666667,"longitude":23.734245}
+[EXIF] Merged metadata for p1coynw77zqxhtzxul90b9xt6.jpg {"title":"Interior of the Academy of Athens","keywords":["Building","Column","GovernmentBuilding","Interior"],"latitude":37.98014166666667,"longitude":23.734245}
+[EXIF] Merged metadata for amqaq22v6uc8u3spgntclht9s.jpg {"title":"Hellenistic statue artifact (Museum of the Ancient Agora)","keywords":["Ancient","Artifact","Artwork","Museum","Statue","Stone"],"latitude":37.972921666666664,"longitude":23.725945}
+[EXIF] Merged metadata for iq357gqhy2z0vripuejxe1nq3.jpg {"title":"Marble Roman statue head (Museum of Pavlos and Alexandra Kanellopoulou)","keywords":["Ancient","Artifact","Artwork","Museum","Statue","Stone","Yellow"],"latitude":37.972921666666664,"longitude":23.725945}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m8[39m
+[EXIF] Merged metadata for ov0tih1fpy6euyj1bdtblc2zz.jpg {"title":"Mycenaean pottery (Museum of Pavlos and Alexandra Kanellopoulou)","keywords":["Ancient","Artifact","Artwork","Museum","Pottery","Yellow"],"latitude":37.972921666666664,"longitude":23.725945}
+[EXIF] Merged metadata for bx2w0ug4bug69qwbjjcztazl2.jpg {"title":"Marble Roman statue head (Museum of Pavlos and Alexandra Kanellopoulou)","keywords":["Ancient","Artifact","Artwork","Museum","Statue","Stone","Yellow"],"latitude":37.972921666666664,"longitude":23.725945}
+[EXIF] Merged metadata for j7j47v0oxh8eszotv3s5ayiio.jpg {"title":"Church of St. Nicholas Rangavas","keywords":["ArchitecturePhotography","Blue","Church","Dome","Sky","Stone"],"latitude":37.9725,"longitude":23.7291}
+[EXIF] Merged metadata for y6p0cx4k4m8klapa03z921998.jpg {"title":"Acropolis of Athens","keywords":["Ancient","ArchitecturePhotography","Column","Landmark","Ruins","Sky","Stone","Sunset","Temple","TravelPhotography","UNESCO","Yellow"],"latitude":37.971555,"longitude":23.726688333333332}
+[EXIF] Merged metadata for nff9ugutsutzs2dyzc7v9zr6k.jpg {"title":"Acropolis of Athens","keywords":["Ancient","ArchitecturePhotography","Blue","Column","Green","Landmark","Orange","Ruins","Stone","Sunset","Temple","TravelPhotography","Trees","UNESCO","Wall","Yellow"],"latitude":37.9724,"longitude":23.7232}
+[EXIF] Merged metadata for x4undcq613bypxvg4mjl8cln4.jpg {"title":"Mount Lycabettus (Athens)","keywords":["Building","City","Cityscape","Green","Hill","Landmark","Mountain","Sunset","TravelPhotography","Yellow"],"latitude":37.9724,"longitude":23.7232}
+[EXIF] Merged metadata for ygh4pdlku2hclungegedw05bt.jpg {"title":"Athens Streetview","keywords":["Cityscape","Road","Street","TravelPhotography","UrbanPhotography","iPhonePhotography"],"latitude":37.972825,"longitude":23.725955}
+[EXIF] Merged metadata for g4ztbk9rkupfhgbb1nwv12rn6.jpg {"title":"Lake Yliki","keywords":["Blue","Green","Lake","LandscapePhotography","Mountain","MountainRange","Sky","iPhonePhotography"],"latitude":38.39772833333333,"longitude":23.229008333333333}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m8[39m
+[EXIF] Merged metadata for qt777pme54ypebvho11pp2t3e.jpg {"title":"Mycenaean pottery (Museum of Pavlos and Alexandra Kanellopoulou)","keywords":["Ancient","Artifact","Artwork","Museum","Pottery","Yellow"],"latitude":37.972921666666664,"longitude":23.725945}
+[EXIF] Merged metadata for q5pps85l9hiltud9kaj9xdype.jpg {"title":"Marble Roman statue head (Museum of Pavlos and Alexandra Kanellopoulou)","keywords":["Ancient","Artifact","Artwork","Museum","Statue","Stone","Yellow"],"latitude":37.972921666666664,"longitude":23.725945}
+[EXIF] Merged metadata for hvieb51d8no368y10zi3c1i5e.jpg {"title":"Church of St. Nicholas Rangavas","keywords":["ArchitecturePhotography","Blue","Church","Dome","Sky","Stone"],"latitude":37.9725,"longitude":23.7291}
+[EXIF] Merged metadata for z09ldt4oj7sbg7gqh0xu5redl.jpg {"title":"Acropolis of Athens","keywords":["Ancient","ArchitecturePhotography","Column","Landmark","Ruins","Sky","Stone","Sunset","Temple","TravelPhotography","UNESCO","Yellow"],"latitude":37.971555,"longitude":23.726688333333332}
+[EXIF] Merged metadata for vlv0n7bsiz9rw92t666u6oinu.jpg {"title":"Acropolis of Athens","keywords":["Ancient","ArchitecturePhotography","Blue","Column","Green","Landmark","Orange","Ruins","Stone","Sunset","Temple","TravelPhotography","Trees","UNESCO","Wall","Yellow"],"latitude":37.9724,"longitude":23.7232}
+[EXIF] Merged metadata for q5oleh0tnyhicw631l5rwts8x.jpg {"title":"Mount Lycabettus (Athens)","keywords":["Building","City","Cityscape","Green","Hill","Landmark","Mountain","Sunset","TravelPhotography","Yellow"],"latitude":37.9724,"longitude":23.7232}
+[EXIF] Merged metadata for af5zjrcdbn8oad0rskg5qysxv.jpg {"title":"Athens Streetview","keywords":["Cityscape","Road","Street","TravelPhotography","UrbanPhotography","iPhonePhotography"],"latitude":37.972825,"longitude":23.725955}
+[EXIF] Merged metadata for nyi8z2m4toqnytffruk41r90h.jpg {"title":"Lake Yliki","keywords":["Blue","Green","Lake","LandscapePhotography","Mountain","MountainRange","Sky","iPhonePhotography"],"latitude":38.39772833333333,"longitude":23.229008333333333}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m8[39m
+[EXIF] Merged metadata for jqxfwqlfe11q3on60voaijfy9.jpg {"title":"Theater (Delphi)","keywords":["Ancient","ArchitecturePhotography","Column","Green","Landmark","LandscapePhotography","Mountain","MountainRange","Ruins","Sky","Stone","Temple","Theatre","TravelPhotography","UNESCO","Valley","Yellow","iPhonePhotography"],"latitude":38.482955,"longitude":22.50022166666667}
+[EXIF] Merged metadata for c0r2qssiwuo9john2gl7f4q7k.jpg {"title":"Temple of Apollo (Delphi)","keywords":["Ancient","ArchitecturePhotography","Column","Filter","Green","Landmark","LandscapePhotography","Mountain","Purple","Ruins","Sky","Stone","Temple","TravelPhotography","Trees","UNESCO","Valley","iPhonePhotography"],"latitude":38.48280333333334,"longitude":22.499836666666667}
+[EXIF] Merged metadata for vo3jegmxys42r4wpwvxb9dlgu.jpg {"title":"Stadion (Delphi)","keywords":["Ancient","Landmark","PanoramicPhotography","Ruins","Stadium","Stone","Trees","UNESCO","iPhonePhotography"],"latitude":38.482186666666664,"longitude":22.497233333333334}
+[EXIF] Merged metadata for rwzc00s5f885movorrzcxn2ac.jpg {"title":"Archaeologist at Delphi","keywords":["Ancient","Landmark","Mountain","Ruins","Stone","Temple","TravelPhotography","UNESCO","Wall"],"latitude":38.48229666666667,"longitude":22.50128}
+[EXIF] Merged metadata for qa01nqdme157vpmdv03x9m85l.jpg {"title":"Athena Pronaia Temple","keywords":["Ancient","ArchitecturePhotography","Blue","Column","Landmark","Mountain","Ruins","Stone","Temple","iPhonePhotography"],"latitude":38.4802,"longitude":22.5079}
+[EXIF] Merged metadata for m6cz7tcehcr3b11s0me9hq74p.jpg {"title":"Acropolis of Athens","keywords":["Ancient","ArchitecturePhotography","Dusk","Landmark","Lights","Night","Ruins","Temple","UNESCO","iPhonePhotography"],"latitude":37.968905,"longitude":23.731341666666665}
+[EXIF] Merged metadata for vj743jzganow93g408f6376n2.jpg {"title":"Athena Pronaia Temple","keywords":["Ancient","ArchitecturePhotography","Column","Landmark","Mountain","Ruins","Stone","Temple"],"latitude":38.48229666666667,"longitude":22.50128}
+[EXIF] Merged metadata for p5nonl5ceeq8xh6gsybq79r0n.jpg {"title":"Athena Pronaia Temple","keywords":["Ancient","ArchitecturePhotography","Column","Landmark","Mountain","Ruins","Stone","Temple","Trees"],"latitude":38.4802,"longitude":22.5079}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m3[39m
+[EXIF] Merged metadata for cxm0janaqcd289t8lxpl64dqu.jpg {"title":"Modern city of Delphi","keywords":["Blue","City","Cityscape","LandscapePhotography","Mountain","PanoramicPhotography","Trees","Valley"],"latitude":38.48229666666667,"longitude":22.50128}
+[EXIF] Merged metadata for lne5xr8j97xc0c35xwbrweo82.jpg {"title":"Temple of Aphaia","keywords":["Ancient","ArchitecturePhotography","Column","Landmark","Ruins","Stone","Temple"],"latitude":37.754355,"longitude":23.533271666666668}
+[EXIF] Merged metadata for tlwse583pcq49ahpwbu2i2cuk.jpg {"title":"Temple of Athena Sounias","keywords":["Ancient","ArchitecturePhotography","Column","Landmark","Ruins","Sky","Stone","Temple","TravelPhotography","Yellow"],"latitude":37.650191666666665,"longitude":24.024603333333335}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for j8ozueme31w05cyegyx4yli2s.jpg {"title":"Catawba Island Miller Ferry Terminal","keywords":["Blue","Island","Lake","Pier","Trees"],"latitude":41.58662,"longitude":-82.83648666666667}
+[EXIF] Merged metadata for s277ftdc8qdnfj15qckj9d5bb.jpg {"title":"Catawba Island Miller Ferry Terminal","keywords":["Blue","Lake","Pier"],"latitude":41.58748666666666,"longitude":-82.83698833333334}
+[EXIF] Merged metadata for w119rgdruychjchjpcn6ekigv.jpg {"title":"South Bass Island","keywords":["Boats","Building","Island","Lake","Trees"],"latitude":41.61197833333333,"longitude":-82.83834666666667}
+[EXIF] Merged metadata for frtx7rbciyc6difbqf0xqp1ov.jpg {"title":"South Bass Island and the Coastline of Northwestern Ohio","keywords":["Blue","Boats","Green","Lake","LandscapePhotography","Sky","Stone","Trees"],"latitude":41.61197833333333,"longitude":-82.83834666666667}
+[EXIF] Merged metadata for iijxz5m60izha042x23rz883c.jpg {"title":"Statue on South Bass Island","keywords":["Artwork","Metal","People","Public","Statue"],"latitude":41.63012833333333,"longitude":-82.83724166666667}
+[EXIF] Merged metadata for lztki1vfz61dofxkn5f25s8yp.jpg {"title":"Perry's Victory & International Peace Memorial","keywords":["Column","Landmark","Memorial","Tower","Trees"],"latitude":41.65316333333333,"longitude":-82.81200333333334}
+[EXIF] Merged metadata for if5iah6b5top8fl3i8h5gogzh.jpg {"title":"Coast of South Bass Island","keywords":["Beach","Blue","Coastline","Island","Lake","Skyline","Trees"],"latitude":41.66363,"longitude":-82.798575}
+[EXIF] Merged metadata for jmkagjluzpoytdvb41ygwtcbv.jpg {"title":"Coast of South Bass Island","keywords":["Coastline","Island","Lake","Skyline","Trees"],"latitude":41.66186166666667,"longitude":-82.80535}
+[EXIF] Merged metadata for vi3hntnoej5rwge8hxb5ibaxe.jpg {"title":"Sailboat on Lake Erie","keywords":["Boats","Coastline","Island","Lake","Skyline","Trees"],"latitude":41.66321666666666,"longitude":-82.80661166666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for eglfr4i3crg0sye0rdasqk099.jpg {"title":"Middle Bass Island","keywords":["Boats","Building","Flag","Island","Lake","Skyline","Trees"],"latitude":41.654491666666665,"longitude":-82.825645}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m4[39m
+[EXIF] Merged metadata for koc1hn2tpd4cmfpnj11hy1rkh.jpg {"title":"CN Tower","keywords":["ArchitecturePhotography","Building","Highrise","Landmark","Tower","Trees"],"latitude":43.64248666666667,"longitude":-79.386995}
+[EXIF] Merged metadata for m0lbo9svrnv7g1ljf8bdjrwgh.jpg {"title":"Blue Jay Statue","keywords":["Artwork","Bird","Highrise","Public","Statue","White"],"latitude":43.64248666666667,"longitude":-79.386995}
+[EXIF] Merged metadata for zz82vcjc55msmpsvo24xpzuov.jpg {"title":"View of Toronto from CN Tower","keywords":["Black","BnW","Building","City","Cityscape","Coastline","Highrise","Skyline"],"latitude":43.64248666666667,"longitude":-79.386995}
+[EXIF] Merged metadata for dn7q5uhhr3b50nm2z7q9kdsop.jpg {"title":"Bobbie Rosenfeld Park","keywords":["Artwork","Park","Public","River","Statue"],"latitude":43.64248666666667,"longitude":-79.386995}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for k4aatxhlh49ub2gllkdnvkou3.jpg {"title":"Lake Mead","keywords":["Desert","Lake","Landmark","LandscapePhotography","PanoramicPhotography","iPhonePhotography"],"latitude":36.017345,"longitude":-114.762025}
+[EXIF] Merged metadata for xk4ii2zsr1ezjb1rpcpqaucxv.jpg {"title":"View from the road in Nevada","keywords":["Blue","Desert","LandscapePhotography","Mountain","MountainRange","PanoramicPhotography","Road","Sky","Yellow","iPhonePhotography"],"latitude":36.11915333333334,"longitude":-114.87873}
+[EXIF] Merged metadata for uobxy6d8njwx43e45xfjautza.jpg {"title":"Bowl of Fire mountain range","keywords":["Blue","Desert","LandscapePhotography","Mountain","MountainRange","Orange","PanoramicPhotography","Red","Road","Sky","Yellow","iPhonePhotography"],"latitude":36.213225,"longitude":-114.64351666666667}
+[EXIF] Merged metadata for bm00cut3h32e93b2rocq2avo7.jpg {"title":"Hover Dam","keywords":["Dam","Landmark","River","Yellow"],"latitude":36.013055,"longitude":-114.74222166666667}
+[EXIF] Merged metadata for jp0ua0ctv3y041vkz2wgixe0q.jpg {"title":"View from the road in Nevada","keywords":["Blue","Desert","LandscapePhotography","Mountain","MountainRange","Sky"],"latitude":36.119166666666665,"longitude":-114.87861166666667}
+[EXIF] Merged metadata for hku8u7za04c71pfnqw81h0ch0.jpg {"title":"Moutain range in Nevada","keywords":["Blue","Desert","LandscapePhotography","Mountain","MountainRange","Orange","Road","Sky","Yellow"],"latitude":36.119166666666665,"longitude":-114.87861166666667}
+[EXIF] Merged metadata for wnsfdbkckr4nrmfqg50yjqrgy.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Desert","Park","Red","Sky","Stone"],"latitude":36.2425,"longitude":-114.51611166666666}
+[EXIF] Merged metadata for w274x3zq6a62w5mhar8gi1huv.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Orange","Park","Red","Sky","Stone"],"latitude":36.2425,"longitude":-114.51611166666666}
+[EXIF] Merged metadata for eeq662vodxpe46ef04o4kubxu.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Desert","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky"],"latitude":36.2425,"longitude":-114.51611166666666}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for tj84ftwesr4hiyy71rblashfg.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Desert","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Stone"],"latitude":36.2425,"longitude":-114.51611166666666}
+[EXIF] Merged metadata for d9686cbes692o1fi5ecdb0gz1.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Desert","Orange","Park","Red","Sky","Stone"],"latitude":36.2425,"longitude":-114.51611166666666}
+[EXIF] Merged metadata for ous60u1ex7pfi11bp45f0nizn.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Desert","Mountain","MountainRange","Orange","Park","Red","Sky","Stone"],"latitude":36.2425,"longitude":-114.51611166666666}
+[EXIF] Merged metadata for npr6grr2ljj12ugxinm0wv9e8.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Park","Red","Sky","Stone"],"latitude":36.2425,"longitude":-114.51611166666666}
+[EXIF] Merged metadata for g9q7zkfwxaywbm7vagep8p1o9.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Desert","Mountain","Orange","Park","Red","Sky","Stone"],"latitude":36.2425,"longitude":-114.51611166666666}
+[EXIF] Merged metadata for yoffye7egkp2qnjhvqnkqm0uo.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Bokeh","Desert","Green","Orange","Park","Red","Sky"],"latitude":36.2425,"longitude":-114.51611166666666}
+[EXIF] Merged metadata for ql61mmudjc4z3mvultdl5nn5o.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Desert","Orange","Park","Red","Sky","Stone"],"latitude":36.2425,"longitude":-114.51611166666666}
+[EXIF] Merged metadata for cy8yini4lry8ucutmhiezqg96.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Desert","Orange","Park","Red","Sky","Stone"],"latitude":36.2425,"longitude":-114.51611166666666}
+[EXIF] Merged metadata for eu27cyfaun97wfoghsiiu0crl.jpg {"title":"Redstone Dune Trail","keywords":["Blue","Brown","Desert","LandscapePhotography","Mountain","MountainRange","Park","Red","Sky"],"latitude":36.242445,"longitude":-114.5159}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for xiztppk3smvtlp58sfwbhar8n.jpg {"title":"View from the road in Nevada","keywords":["Blue","Desert","LandscapePhotography","Mountain","MountainRange","Sky","Yellow","iPhonePhotography"],"latitude":36.119166666666665,"longitude":-114.87861166666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for oey8cgys2ulmtr4yoiwimpvz2.jpg {"title":"Observation Point - Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Trees","Valley"],"latitude":37.280788333333334,"longitude":-112.93943166666666}
+[EXIF] Merged metadata for uf8x1kviunftr3fgaviptfe7l.jpg {"title":"Observation Point - Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Valley"],"latitude":37.280833333333334,"longitude":-112.939445}
+[EXIF] Merged metadata for p43ue2fczikv83xh60gmw7qii.jpg {"title":"Great White Throne mountain range in Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","MountainRange","Orange","Park","Sky","White"],"latitude":37.27111166666667,"longitude":-112.94583333333334}
+[EXIF] Merged metadata for dnux7ctcxbk6hex8zf5ihixff.jpg {"title":"Great White Throne - Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","Orange","Park","Sky"],"latitude":37.27111166666667,"longitude":-112.94583333333334}
+[EXIF] Merged metadata for zcsb84u7xdbp5kimv6dl8f59b.jpg {"title":"Court of the Patriarchs - Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Sunrise","Yellow"],"latitude":37.20972166666667,"longitude":-112.980555}
+[EXIF] Merged metadata for w9ai03gf1s1wy4lm7szele2om.jpg {"title":"Observation Point - Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Valley","Yellow","iPhonePhotography"],"latitude":37.270583333333335,"longitude":-112.93408333333333}
+[EXIF] Merged metadata for d19gn70sd1nsy0xe8br73vknl.jpg {"title":"Mountain range within Zion National Park","keywords":["Blue","Mountain","MountainRange","Orange","Park","Pink","Red","Sky","Trees","White","iPhonePhotography"],"latitude":37.27111166666667,"longitude":-112.94583333333334}
+[EXIF] Merged metadata for z6qmxo8q5p5otrm5xo47rxixb.jpg {"title":"Court of the Patriarchs - Zion National Park","latitude":37.209511666666664,"longitude":-112.98055333333333}
+[EXIF] Merged metadata for us9vcl0op4rasdwgzrw5idhej.jpg {"title":"Court of the Patriarchs - Zion National Park","keywords":["Blue","Landmark","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Sunrise","iPhonePhotography"],"latitude":37.20972166666667,"longitude":-112.980555}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for jvp2mij4gb7qskfhiyi87h4wi.jpg {"title":"Mountain range within Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Sunset","Trees","Yellow","iPhonePhotography"],"latitude":37.21293333333333,"longitude":-112.977775}
+[EXIF] Merged metadata for w7lwddam5x94sdu5orheh53oy.jpg {"title":"East Rim Trail in Zion National Park","keywords":["Blue","Green","LandscapePhotography","Mountain","MountainRange","Park","Sky","Trees"],"latitude":37.251945,"longitude":-112.87722166666667}
+[EXIF] Merged metadata for t7z9qgyx188pmt2g7me7o83tq.jpg {"title":"East Rim Trail in Zion National Park","keywords":["Blue","Bokeh","Green","Park","Trees","White"],"latitude":37.266666666666666,"longitude":-112.9075}
+[EXIF] Merged metadata for asliguun77mda7yvb77xuuxtf.jpg {"title":"East Rim Trail in Zion","keywords":["Blue","Park","Sky","Snow","Trees","White","Winter","Yellow"],"latitude":37.266666666666666,"longitude":-112.9075}
+[EXIF] Merged metadata for sjl1f29m8t7nquer2szk4g1he.jpg {"title":"Mountain Range with Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","MountainRange","Orange","Park","Sky","Trees","White","Winter"],"latitude":37.266666666666666,"longitude":-112.9075}
+[EXIF] Merged metadata for ig40lgsyygo7x76mqhzfy3b3k.jpg {"title":"East Rim Trail in Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Snow","Trees","Yellow"],"latitude":37.27406666666667,"longitude":-112.927155}
+[EXIF] Merged metadata for mcit041bf55h37bqcrs1np20o.jpg {"title":"Scenic Drive in Zion National Park","keywords":["LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Road","Sky","Sunset","iPhonePhotography"],"latitude":37.214286666666666,"longitude":-112.97698833333334}
+[EXIF] Merged metadata for msv7t6lbrvdiwpe7wbgv60ga2.jpg {"title":"East Rim Trail in Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","Orange","Park","Red","Sky","Trees","White"],"latitude":37.276111666666665,"longitude":-112.92416666666666}
+[EXIF] Merged metadata for bfnk41y8yj6skcyozzcfaspbo.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","LandscapePhotography","Mountain","MountainRange","Park","Red","Sky","Sunrise"],"latitude":37.435278333333336,"longitude":-113.20138833333333}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for mi848uhsk1hizpkr3mbtk7wd6.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","Landmark","LandscapePhotography","Mountain","MountainRange","Park","Pink","Red","Sky","Snow","Sunrise","Trees","White","Winter"],"latitude":37.43519666666667,"longitude":-113.20131666666667}
+[EXIF] Merged metadata for jhf68cu3ldww59give4jl1gba.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","Landmark","LandscapePhotography","Mountain","MountainRange","Park","Pink","Red","Sky","Snow","Sunrise","Trees","White","Winter"],"latitude":37.435278333333336,"longitude":-113.20138833333333}
+[EXIF] Merged metadata for kf76qytj6harsb3ll4hgtnlgj.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","Landmark","LandscapePhotography","Mountain","MountainRange","Park","Pink","Red","Sky","Snow","Sunrise","Trees","White","Winter"],"latitude":37.43519666666667,"longitude":-113.20131666666667}
+[EXIF] Merged metadata for iuycu189t4l12htj5r67iyvzc.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","Landmark","LandscapePhotography","Mountain","MountainRange","Park","Pink","Red","Sky","Snow","Sunrise","Trees","White","Winter"],"latitude":37.435278333333336,"longitude":-113.20138833333333}
+[EXIF] Merged metadata for st6pexkysvz817rgd3xxmhnyb.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","Landmark","LandscapePhotography","Mountain","MountainRange","Pink","Red","Sky","Sunrise"],"latitude":37.435278333333336,"longitude":-113.20166666666667}
+[EXIF] Merged metadata for y06e64auaheijzathlltoxe9t.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","Landmark","LandscapePhotography","Mountain","MountainRange","Pink","Red","Sky","Sunrise"],"latitude":37.43530333333333,"longitude":-113.20169833333334}
+[EXIF] Merged metadata for jzotftnakrf81z856xpklx3he.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","Landmark","LandscapePhotography","Mountain","MountainRange","Pink","Red","Sky","Sunrise"],"latitude":37.435305,"longitude":-113.20170166666666}
+[EXIF] Merged metadata for elrg39s0745znzvq8ampfvkia.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","LandscapePhotography","Mountain","Park","Red","Sky","Snow","Sunrise","Trees","Winter","Yellow"],"latitude":37.435305,"longitude":-113.20170333333333}
+[EXIF] Merged metadata for nfg9xzjbuuuq7xgdm9dq2hyxj.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","LandscapePhotography","Mountain","Park","Red","Sky","Snow","Sunrise","Trees","Winter","Yellow"],"latitude":37.43530666666667,"longitude":-113.20171}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for e7ivvr52eruyo52wfshg3r3tl.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","LandscapePhotography","Mountain","Park","Red","Sky","Snow","Sunrise","Trees","Winter","Yellow"],"latitude":37.435311666666664,"longitude":-113.20172666666667}
+[EXIF] Merged metadata for vw1pi95mgpeg6nnjyc5fggmw3.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","LandscapePhotography","Mountain","Park","Red","Sky","Snow","Sunrise","Trees","Winter","Yellow"],"latitude":37.43532,"longitude":-113.20175333333333}
+[EXIF] Merged metadata for vallq87jm46flnl87mxcrhpoz.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Blue","Cloud","LandscapePhotography","Mountain","MountainRange","Park","Pink","Red","Snow","Sunrise","Trees","White","Winter"],"latitude":37.43532,"longitude":-113.201755}
+[EXIF] Merged metadata for tha6nq4pb1vn2e7l6yc1s0hij.jpg {"title":"Kolob Canyon sun rise","keywords":["Blue","Cloud","LandscapePhotography","Mountain","MountainRange","Park","Pink","Red","Snow","Sunrise","Trees","White","Winter"],"latitude":37.43532166666667,"longitude":-113.20175833333333}
+[EXIF] Merged metadata for kf768d7hn2rt6n4u1bn5j47ml.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Cloud","LandscapePhotography","Mountain","MountainRange","Park","Sky","Snow","Trees","White"],"latitude":37.439155,"longitude":-113.19626166666667}
+[EXIF] Merged metadata for qajt1dhqewjxbpgwrny12yitg.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Cloud","LandscapePhotography","Mountain","MountainRange","Park","Sky","Snow","Trees","White"],"latitude":37.43998333333333,"longitude":-113.19569666666666}
+[EXIF] Merged metadata for c160a9vv9bh75uhy75apizc2b.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Cloud","LandscapePhotography","Mountain","MountainRange","Park","Sky","Snow","Trees","White"],"latitude":37.44457666666667,"longitude":-113.19337166666666}
+[EXIF] Merged metadata for xcfky3s0i2ntfh5d0rf5zy8kw.jpg {"title":"Sand Hollow State Park (Utah)","keywords":["Blue","Lake","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Yellow"],"latitude":37.122218333333336,"longitude":-113.38258333333333}
+[EXIF] Merged metadata for fz7rcfbcs4atzfrbqzw45a82h.jpg {"title":"Sand Hollow State Park (Utah)","keywords":["Blue","Lake","LandscapePhotography","Mountain","MountainRange","Park","Red","Reflection","Sky","White"],"latitude":37.12225,"longitude":-113.38201166666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for aa28wmz7nqhypln403zbegneg.jpg {"title":"Sand Hollow State Park (Utah)","keywords":["Blue","Lake","LandscapePhotography","Mountain","MountainRange","Park","Red","Reflection","Sky","White"],"latitude":37.12045333333333,"longitude":-113.38266}
+[EXIF] Merged metadata for d6aflddpfm9byfo3awinlgmm4.jpg {"title":"Sand Hollow State Park (Utah)","keywords":["Blue","Cloud","Lake","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","White"],"latitude":37.12045333333333,"longitude":-113.38266}
+[EXIF] Merged metadata for i2q15yowewqgxm12545una35h.jpg {"title":"Kolob Canyon - Zion National Park","keywords":["Cloud","LandscapePhotography","Mountain","MountainRange","Park","Sky","Snow","Valley","White","Winter","iPhonePhotography"],"latitude":37.45511166666667,"longitude":-113.185355}
+[EXIF] Merged metadata for akijx59d7j74aqimbyr6s6dm0.jpg {"title":"Sun Rise Point in Bryce Canyon","keywords":["Blue","Cloud","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Snow","Sunrise","Valley","Winter"],"latitude":37.62809166666667,"longitude":-112.16276833333333}
+[EXIF] Merged metadata for uhfbgad4wzs80ybbnszrkk72i.jpg {"title":"Sun Rise Point in Bryce Canyon","keywords":["Blue","Cloud","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Sunrise","Valley","Winter"],"latitude":37.628168333333335,"longitude":-112.16285166666667}
+[EXIF] Merged metadata for spvncf04kn8jkr7fyrsap6o8b.jpg {"title":"Sun Rise Point in Bryce Canyon","keywords":["Blue","Cloud","LandscapePhotography","Mountain","Orange","Park","Sky","Snow","Sunrise","Trees","Valley","Winter"],"latitude":37.628548333333335,"longitude":-112.16325}
+[EXIF] Merged metadata for xqw7xa9txyabz6v6f5jn3rrdm.jpg {"title":"Sun Rise Point in Bryce Canyon","keywords":["Blue","Cloud","LandscapePhotography","Mountain","MountainRange","Orange","Park","Sky","Snow","Sunrise","Trees","Valley","Winter"],"latitude":37.629085,"longitude":-112.163095}
+[EXIF] Merged metadata for ry634b0lbpdr1qvrniyazu466.jpg {"title":"Hoodoos at Bryce Canyon","latitude":37.62257833333334,"longitude":-112.16575166666667}
+[EXIF] Merged metadata for lpposv6eer03cxul54gsr3w0g.jpg {"title":"Hoodoos at Bryce Canyon","keywords":["Blue","Cloud","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Snow","Trees","Valley","Winter"],"latitude":37.62253,"longitude":-112.16556666666666}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for vlhb4v92c3ew1xj9nv3er4y8k.jpg {"title":"Navajo Loop in Bryce Canyon","keywords":["Blue","Orange","Park","Pathway","Red","Sky","Stone","Valley"],"latitude":37.621871666666664,"longitude":-112.16375666666667}
+[EXIF] Merged metadata for w7vl3r5imvd5vq25td6fh40ey.jpg {"title":"Navajo Loop in Bryce Canyon","keywords":["Blue","LandscapePhotography","Mountain","Orange","Park","Red","Sky","Snow","Stone","Trees","Valley","Winter"],"latitude":37.61996,"longitude":-112.16295166666667}
+[EXIF] Merged metadata for qyonkbq9kq9futq0dz5n3tjtg.jpg {"title":"Navajo Loop in Bryce Canyon","keywords":["Blue","Cloud","LandscapePhotography","Mountain","MountainRange","Orange","Park","Sky","Trees","White"],"latitude":37.617985,"longitude":-112.16357166666667}
+[EXIF] Merged metadata for urjecd3jxgcbv2e5an9gddiei.jpg {"title":"Navajo Loop in Bryce Canyon","keywords":["Blue","LandscapePhotography","Mountain","Orange","Park","Pathway","Trees"],"latitude":37.618853333333334,"longitude":-112.16471666666666}
+[EXIF] Merged metadata for ul9ky55qtlji8cazlxd2oxjki.jpg {"title":"Navajo Loop in Bryce Canyon","keywords":["Blue","LandscapePhotography","Mountain","Orange","Park","Pathway","Sky","Trees"],"latitude":37.61966,"longitude":-112.16537}
+[EXIF] Merged metadata for x2jjds1v7jlmmoiyppe1i3krj.jpg {"title":"Navajo Loop in Bryce Canyon","keywords":["Blue","LandscapePhotography","Mountain","Orange","Park","Snow","Trees"],"latitude":37.62000666666667,"longitude":-112.16564166666667}
+[EXIF] Merged metadata for rtr1qgtqq6qo4hhv14xq1d8jv.jpg {"title":"Navajo Loop in Bryce Canyon","keywords":["Mountain","Orange","Park","Pathway","Pink"],"latitude":37.62116,"longitude":-112.16593833333333}
+[EXIF] Merged metadata for uz84xkveu9n9cygmpw6lhgd85.jpg {"title":"Fairyland Loop in Bryce Canyon","keywords":["Blue","Cloud","LandscapePhotography","Mountain","Orange","Park","Sky","Trees"],"latitude":37.62258833333333,"longitude":-112.16622833333334}
+[EXIF] Merged metadata for jz0lt2a604egb4ykyimmr3ib2.jpg {"title":"Hoodoo (Fairyland Loop) in Bryce Canyon","keywords":["Blue","Cloud","LandscapePhotography","Mountain","MountainRange","Orange","Park","Sky","Trees"],"latitude":37.64946,"longitude":-112.14491}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m7[39m
+[EXIF] Merged metadata for du6edyviz7o1vwemmrh2bu40t.jpg {"title":"Hoodoo (Fairyland Loop) in Bryce Canyon","keywords":["Blue","Green","LandscapePhotography","Mountain","Orange","Park","Trees"],"latitude":37.644803333333336,"longitude":-112.137795}
+[EXIF] Merged metadata for hj2qlm2nyun1s725dmm60fiwj.jpg {"title":"Hoodoo (Fairyland Loop) in Bryce Canyon","keywords":["Blue","LandscapePhotography","Mountain","Orange","Park","Pink","Sky","Trees"],"latitude":37.64299,"longitude":-112.13524166666667}
+[EXIF] Merged metadata for sf442vfr4mpjy3v7sfogllmve.jpg {"title":"Hoodoo (Fairyland Loop) in Bryce Canyon","keywords":["Blue","Green","LandscapePhotography","Mountain","Orange","Park","Pink","Trees"],"latitude":37.641665,"longitude":-112.13509}
+[EXIF] Merged metadata for e4khjrxto4jrrvjf2eg0ainp1.jpg {"title":"Fairyland Loop in Bryce Canyon","keywords":["Blue","Cloud","Green","LandscapePhotography","Mountain","MountainRange","Orange","Park","Sky","Trees"],"latitude":37.64239833333333,"longitude":-112.134795}
+[EXIF] Merged metadata for c1u4w39orrax2e4dmpea7efe8.jpg {"title":"Hoodoo (Fairyland Loop) in Bryce Canyon","keywords":["Blue","Green","LandscapePhotography","Mountain","MountainRange","Orange","Park","Sky","Trees","White"],"latitude":37.64281666666667,"longitude":-112.13549666666667}
+[EXIF] Merged metadata for elcqyk337nar5j705aazh2fuf.jpg {"title":"Sun Rise Point in Bryce Canyon","keywords":["Blue","Cloud","LandscapePhotography","Mountain","MountainRange","Orange","Park","Red","Sky","Snow","Sunrise","Trees","Valley","Winter","Yellow","iPhonePhotography"],"latitude":37.62824666666667,"longitude":-112.16290333333333}
+[EXIF] Merged metadata for j6iq539meoyxf3fe186jftvgb.jpg {"title":"Bryce Canyon","keywords":["Cloud","LandscapePhotography","Mountain","MountainRange","Orange","Park","Sky","Snow","Sun","Trees","iPhonePhotography"],"latitude":37.64919166666667,"longitude":-112.14728666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for qx9wuatu8pppnz7uae3tq5z3v.jpg {"title":"Depot Town Alley","keywords":["Alley","Fountain","UrbanPhotography"],"latitude":42.245963333333336,"longitude":-83.609955}
+[EXIF] Merged metadata for fvg42afz3bjmdzjh8ub5xswyo.jpg {"title":"Depot Town Street Clock","keywords":["Clock"],"latitude":42.245963333333336,"longitude":-83.609955}
+[EXIF] Merged metadata for a90v0ndtbxgo3av8ymigvs5du.jpg {"title":"Emmanuel Lutheran Church","keywords":["ArchitecturePhotography","Church","Tower"],"latitude":42.24601333333333,"longitude":-83.60913833333333}
+[EXIF] Merged metadata for qz0rowuk5ewn647a69pn2m63q.jpg {"title":"Emmanuel Lutheran Church","keywords":["ArchitecturePhotography","Church","Glass","Tower"],"latitude":42.243141666666666,"longitude":-83.60867166666667}
+[EXIF] Merged metadata for pl4bha2l1c1omgbecb70k0zdw.jpg {"title":"Ypsilanti Barn","keywords":["Barn","Building","Red"],"latitude":42.243141666666666,"longitude":-83.60867166666667}
+[EXIF] Merged metadata for cisute2mcithpl3kdxnfmuii5.jpg {"title":"Riverside Park","keywords":["LandscapePhotography","Park","River","Trees"],"latitude":42.24543333333333,"longitude":-83.61212833333333}
+[EXIF] Merged metadata for mq7ewjpl9xws7hhtkjq3r06fe.jpg {"title":"Riverside Park","keywords":["LandscapePhotography","Park","River","Trees"],"latitude":42.24543333333333,"longitude":-83.61212833333333}
+[EXIF] Merged metadata for i37c462gje8wb8nyo76gbknm5.jpg {"title":"Riverside Park","keywords":["LandscapePhotography","Park","River","Trees"],"latitude":42.24633333333333,"longitude":-83.611725}
+[EXIF] Merged metadata for ll8xco5rbvjhj1s5b2fybgoi7.jpg {"title":"Ypsilanti Water Tower","keywords":["ArchitecturePhotography","Landmark","Stone","Tower"],"latitude":42.24571666666667,"longitude":-83.61699666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for d34ove9r0om3lppsop5hr584w.jpg {"title":"Nichols Arboretum","keywords":["Fog","Green","LongExposure","Park","River","Trees"],"latitude":42.28053833333333,"longitude":-83.72241166666667}
+[EXIF] Merged metadata for ufwn58v8nzawm92rfl6qtq1xe.jpg {"title":"Flower in Nichols Arboretum","keywords":["Flower","Green","Leaves","Log","Park","Red"],"latitude":42.28295,"longitude":-83.72028333333333}
+[EXIF] Merged metadata for trh6p99f8h4qvihgnkl23tbyt.jpg {"title":"Flower in Matthaei Botanical Gardens","keywords":["Bokeh","Flower","Green","Park","Yellow"],"latitude":42.29889166666667,"longitude":-83.66113833333333}
+[EXIF] Merged metadata for vmqrhtuj4z9gxa7lex31yur88.jpg {"title":"Flowers in Matthaei Botanical Gardens","keywords":["Bokeh","Flower","Green","Leaves","Park","Pink"],"latitude":42.29889166666667,"longitude":-83.66113833333333}
+[EXIF] Merged metadata for bvj5077luiv6pib41bxw1nh69.jpg {"title":"Flower in Matthaei Botanical Gardens","keywords":["Bokeh","Flower","Green","Park","Purple"],"latitude":42.29889166666667,"longitude":-83.66113833333333}
+[EXIF] Merged metadata for trz9fcwbwsnj2zltexlv6q2lf.jpg {"title":"Matthaei Botanical Gardens","keywords":["Bird","Park","Pond","Reflection","WildlifePhotography"],"latitude":42.30197833333333,"longitude":-83.66174166666667}
+[EXIF] Merged metadata for kmixzrohhz2suvkmdp7jia07z.jpg {"title":"Downtown Detroit","keywords":["Cityscape","River","Skyline","Sunset"],"latitude":42.33356333333333,"longitude":-83.00458666666667}
+[EXIF] Merged metadata for xdmnf4exc9875qhg7g7ik0sp6.jpg {"title":"Detroit Skyline","keywords":["Cityscape","PanoramicPhotography","River","Skyline","Sunset"],"latitude":42.33356333333333,"longitude":-83.00458666666667}
+[EXIF] Merged metadata for g5de8fkho7lxqzmoav3ax01gs.jpg {"title":"Detroit Skyline","keywords":["ArchitecturePhotography","Blue","Building","City","Cityscape","Highrise","River","Sunset","Yellow"],"latitude":42.33356333333333,"longitude":-83.00458666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for tv2nwnc2t8z3na5yzc15nk8ry.jpg {"title":"Detroit Skyline","keywords":["ArchitecturePhotography","Blue","Building","City","Cityscape","Highrise","River","Sunset","Yellow"],"latitude":42.33356333333333,"longitude":-83.00458666666667}
+[EXIF] Merged metadata for rkdenhdbra5n8jjccni70p6rf.jpg {"title":"Detroit Skyline at Night","keywords":["ArchitecturePhotography","Blue","Building","City","Cityscape","Highrise","Lights","LongExposure","Night","Reflection","River"],"latitude":42.333038333333334,"longitude":-83.00476666666667}
+[EXIF] Merged metadata for t92wdp8b936t5cwjs0c2eor4t.jpg {"title":"Detroit City at Night","keywords":["ArchitecturePhotography","Blue","City","Cityscape","Lights","LongExposure","Night","Reflection","River","Yellow"],"latitude":42.333038333333334,"longitude":-83.00476666666667}
+[EXIF] Merged metadata for ei77pi19mx3p5htgxjqgbmktu.jpg {"title":"Detroit City at Night","keywords":["ArchitecturePhotography","Blue","Bridge","City","Cityscape","Lights","LongExposure","Night","PanoramicPhotography","Reflection","River","Sky","Yellow"],"latitude":42.333038333333334,"longitude":-83.00476666666667}
+[EXIF] Merged metadata for ab0gioa50a22hl8jwbqbpm8i5.jpg {"title":"University of Michigan Law School","keywords":["ArchitecturePhotography","Building","Tower"],"latitude":42.2738,"longitude":-83.739}
+[EXIF] Merged metadata for ua0znfgz0q65nq3o9otrhk3la.jpg {"title":"Garden pathway at Fair Lane, Home of Clara and Henry Ford","keywords":["Garden","Pathway","Trees"],"latitude":42.313583333333334,"longitude":-83.231255}
+[EXIF] Merged metadata for dtjve15qy3z7dlw9zx56bk7o8.jpg {"title":"Garden pathway at Fair Lane, Home of Clara and Henry Ford","keywords":["Garden","Pathway","Trees"],"latitude":42.313583333333334,"longitude":-83.231255}
+[EXIF] Merged metadata for ygixkagz1gnq6u319ec7p5qe7.jpg {"title":"Fair Lane, Home of Clara and Henry Ford","keywords":["ArchitecturePhotography","Garden","Pathway","Trees"],"latitude":42.31375,"longitude":-83.23227}
+[EXIF] Merged metadata for fwhq1e1axxxp8vd5xs0ivplmj.jpg {"title":"Fair Lane, Home of Clara and Henry Ford","keywords":["ArchitecturePhotography","Building"],"latitude":42.31375,"longitude":-83.23227}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for nk267f0sceofva69usg0oouhd.jpg {"title":"Garden at Fair Lane, Home of Clara and Henry Ford","keywords":["Flower","Garden","Pathway","Steps","Trees"],"latitude":42.31375,"longitude":-83.23227}
+[EXIF] Merged metadata for pilb58x330qahoish9912sipt.jpg {"title":"Garden at Fair Lane, Home of Clara and Henry Ford","keywords":["Garden","LandscapePhotography","Pathway","Trees"],"latitude":42.31375,"longitude":-83.23227}
+[EXIF] Merged metadata for fl14r33ox3jabbt46rw1au805.jpg {"title":"Kelsey Museum of Archaeology","keywords":["ArchitecturePhotography","Building","Museum"],"latitude":42.278245,"longitude":-83.74041166666666}
+[EXIF] Merged metadata for hhfx3jm9orrnp57qstk0t5d45.jpg {"title":"Unversity of Michigan","keywords":["Arch","ArchitecturePhotography","Pathway"],"latitude":42.27578666666667,"longitude":-83.74025833333333}
+[EXIF] Merged metadata for btlnp2e3l9gtccfruocye4tt8.jpg {"title":"University of Michigan Law Library","keywords":["ArchitecturePhotography","Chandelier","Gold","Interior","Library","Lights","Orange","Window","Yellow"],"latitude":42.27377,"longitude":-83.73821333333333}
+[EXIF] Merged metadata for kvg3yy643jek6og0pd29xozpu.jpg {"title":"University of Michigan Law Library","keywords":["ArchitecturePhotography","Building","Tower"],"latitude":42.27377,"longitude":-83.73821333333333}
+[EXIF] Merged metadata for ugvcrgqm1cso2w5qq8tk636r9.jpg {"title":"North Hydro Park","keywords":["Fall","LandscapePhotography","Orange","Park","Red","River","Trees","WildlifePhotography","Yellow"],"latitude":42.20833833333333,"longitude":-83.55453666666666}
+[EXIF] Merged metadata for roiyolgodismoyoail2ztq7y3.jpg {"title":"North Hydro Park","keywords":["ArchitecturePhotography","Dam","Fall","LandscapePhotography","Orange","Park","River","Tower","Trees"],"latitude":42.20701666666667,"longitude":-83.55477833333333}
+[EXIF] Merged metadata for dhytygai42be1b1m3sq6jlr2w.jpg {"title":"North Hydro Park","keywords":["LandscapePhotography","Park","River","Trees"],"latitude":42.207838333333335,"longitude":-83.55426666666666}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for vqkx6g8cvubbdxk7r6ez9z0hr.jpg {"title":"North Hydro Park","keywords":["Fall","LandscapePhotography","Orange","Park","River","Trees"],"latitude":42.21046666666667,"longitude":-83.55568666666667}
+[EXIF] Merged metadata for t1h8nuo34rtrar67exn4a2vhk.jpg {"title":"North Hydro Park","keywords":["ArchitecturePhotography","Dam","LandscapePhotography","Park","River","Tower"],"latitude":42.20701666666667,"longitude":-83.55477833333333}
+[EXIF] Merged metadata for ivo2ljsbhtb2qi3vjmkpj362d.jpg {"title":"State Wayne Theater","keywords":["Lights","LongExposure","Night","Sign","Theatre"],"latitude":42.2829,"longitude":-83.3866}
+[EXIF] Merged metadata for qulgz1qsyg1dmgt7u2adbag5v.jpg {"title":"State Wayne Theater","keywords":["Lights","LongExposure","Night","Sign","Theatre"],"latitude":42.2829,"longitude":-83.3866}
+[EXIF] Merged metadata for qj6wjbihskm86xaem85feq8du.jpg {"title":"Lake Reflection","keywords":["Blue","Bridge","Dusk","Lake","LandscapePhotography","Park","Purple","Reflection","Sky","Trees"],"latitude":42.22826166666667,"longitude":-83.610305}
+[EXIF] Merged metadata for ugnf2k8x4yz7drar69pv2g5xi.jpg {"title":"North Bay Park","keywords":["Blue","Bridge","Dusk","Lake","LandscapePhotography","Park","Purple","Reflection","Trees"],"latitude":42.22826166666667,"longitude":-83.610305}
+[EXIF] Merged metadata for ylwt0iu6dwklzc1vx4crwnhwa.jpg {"title":"North Bay Park","keywords":["Blue","Bridge","Dusk","Lake","LandscapePhotography","Park","Purple","Reflection","Trees"],"latitude":42.22826166666667,"longitude":-83.610305}
+[EXIF] Merged metadata for p09ee41heb1pn9ahllsi5s79c.jpg {"title":"North Bay Park","keywords":["Bridge","Lake","LandscapePhotography","Park","Trees"],"latitude":42.22740833333334,"longitude":-83.60953666666667}
+[EXIF] Merged metadata for gqxw1oc7ay4rq844l2za6v22t.jpg {"title":"North Bay Park","keywords":["Boardwalk","Fall","Lake","LandscapePhotography","Park","Trees"],"latitude":42.22551166666667,"longitude":-83.60499666666666}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m9[39m
+[EXIF] Merged metadata for rwb3g9p1legljq1gmi8rogfc4.jpg {"title":"North Bay Park","keywords":["Boardwalk","Lake","LandscapePhotography","Park","Trees"],"latitude":42.22551166666667,"longitude":-83.60499666666666}
+[EXIF] Merged metadata for cdfy5jsmop8dzuqq0ph3rve5p.jpg {"title":"North Bay Park","keywords":["Boardwalk","Fall","Lake","LandscapePhotography","Park","Reflection","Trees"],"latitude":42.22551166666667,"longitude":-83.60499666666666}
+[EXIF] Merged metadata for bmkpuwy9ubgpm71a85ii4v139.jpg {"title":"North Bay Park","keywords":["Lake","LandscapePhotography","Park","Reflection","Trees"],"latitude":42.22551166666667,"longitude":-83.60499666666666}
+[EXIF] Merged metadata for csg7ln5pq6htxd88anybigcg4.jpg {"title":"North Bay Park","keywords":["Lake","LandscapePhotography","Park","Reflection","Trees"],"latitude":42.22551166666667,"longitude":-83.60499666666666}
+[EXIF] Merged metadata for u70bzfs4o2oi9i540hxtfiwfx.jpg {"title":"North Bay Park","keywords":["Bridge","Lake","LandscapePhotography","Park","Trees"],"latitude":42.228175,"longitude":-83.60511166666667}
+[EXIF] Merged metadata for eke9i1n5t88i49dklh96ewwf0.jpg {"title":"North Bay Park","keywords":["Bridge","Lake","LandscapePhotography","Park","Trees"],"latitude":42.22945833333333,"longitude":-83.60688}
+[EXIF] Merged metadata for n1lu7m5xwvv4xf0lch83741pv.jpg {"title":"North Bay Park","keywords":["Fog","Lake","LandscapePhotography","Leaves","Park","Reflection","Trees"],"latitude":42.22669166666667,"longitude":-83.60115}
+[EXIF] Merged metadata for kig2xshnhkcylhotqqe03fdaa.jpg {"title":"North Bay Park","keywords":["Fog","Lake","LandscapePhotography","Park","Reflection","Trees"],"latitude":42.22276333333333,"longitude":-83.599275}
+[EXIF] Merged metadata for dj10x7wfprsgn6q5xy00baxwv.jpg {"title":"North Bay Park","keywords":["Bridge","Fall","Lake","LandscapePhotography","Orange","Park","Red","Reflection","Trees"],"latitude":42.231561666666664,"longitude":-83.60022}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m5[39m
+[EXIF] Merged metadata for nzsg204ddtvya1t9j2mjlhmgc.jpg {"title":"North Bay Park","keywords":["Bridge","Fall","Lake","LandscapePhotography","Orange","Park","Red","Reflection","Trees"],"latitude":42.230291666666666,"longitude":-83.601875}
+[EXIF] Merged metadata for yb468egci5h8p4wjb59sm7wv3.jpg {"title":"Bird Hills Nature Area","keywords":["Brown","LandscapePhotography","Leaves","Park","Pathway","Trees","White","Winter"],"latitude":42.3,"longitude":-83.765555}
+[EXIF] Merged metadata for pfxz3emjdir8vb690ok0pbr9w.jpg {"title":"Bird Hills Nature Area","keywords":["LandscapePhotography","Park","Trees","White","Winter"],"latitude":42.3,"longitude":-83.765555}
+[EXIF] Merged metadata for ceykk5wozxp3m4r8zmwofa35j.jpg {"title":"Bird Hills Nature Area","keywords":["Brown","Green","LandscapePhotography","Leaves","Park","Pathway","Trees","White","Winter"],"latitude":42.3,"longitude":-83.765555}
+[EXIF] Merged metadata for s0frmftmmeph8pb2shmhioe1a.jpg {"title":"Peninsular Park","keywords":["ArchitecturePhotography","Dam","Graffiti","LongExposure","Park","River","Ruins","Sign","Trees"],"latitude":42.255833333333335,"longitude":-83.62361166666666}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for ohti8yenejwkyhj4chhxjrjdm.jpg {"title":"Interior of Sant'Andrea della Valle","keywords":["Artwork","Church","Interior","Religious","iPhonePhotography"],"latitude":41.8964,"longitude":12.474221666666667}
+[EXIF] Merged metadata for sz06w6lrn7i9vjl1z8ibp84n0.jpg {"title":"Interior of Parrocchia Santa Maria in Vallicella","keywords":["Artwork","Church","Event","Interior","People","Religious","iPhonePhotography"],"latitude":41.89785,"longitude":12.468921666666667}
+[EXIF] Merged metadata for ctu6cktnjyvl2aisxblempp1h.jpg {"title":"Ponte Sant'Angelo","keywords":["ArchitecturePhotography","Bridge","River","iPhonePhotography"],"latitude":41.90242833333333,"longitude":12.465708333333334}
+[EXIF] Merged metadata for qmfyzt2m3uksz3lcsr95h6uy2.jpg {"title":"St. Peter's Basilica from the top of Residenza Paolo VI Hotel","keywords":["ArchitecturePhotography","Church","Clock","Dome"],"latitude":41.90110333333333,"longitude":12.45673}
+[EXIF] Merged metadata for m4b8sjes6giz2th8dzi3zknpc.jpg {"title":"Ponte Vittorio Emanuele II","keywords":["ArchitecturePhotography","Bridge","Cityscape","River","Trees"],"latitude":41.90251166666667,"longitude":12.464778333333333}
+[EXIF] Merged metadata for peujybtk72rasca0pjajdz8b3.jpg {"title":"Castel Sant'Angelo","keywords":["ArchitecturePhotography","Castle","Landmark"],"latitude":41.90250833333333,"longitude":12.465753333333334}
+[EXIF] Merged metadata for mp4nj9io0pr2ke0w87hcshxkr.jpg {"title":"Santa Maria della Pace","keywords":["Church","Column","Religious","Street"],"latitude":41.898916666666665,"longitude":12.47092}
+[EXIF] Merged metadata for rbbqqa6f79n4u1t3gcatihwiu.jpg {"title":"Ceiling of Santa Maria della Pace","keywords":["Artwork","Ceiling","Church","Dome","Interior"],"latitude":41.898916666666665,"longitude":12.47092}
+[EXIF] Merged metadata for mmldmfor3gms2u0rao9idhjw3.jpg {"title":"Castel Sant'Angelo","keywords":["ArchitecturePhotography","Castle","Landmark"],"latitude":41.90083666666666,"longitude":12.46507}
+[EXIF] Merged metadata for gdvgjm961mp08wj7ktdhdf26m.jpg {"title":"Museo di Arte Sacra San Giovanni de' Fiorentini","keywords":["ArchitecturePhotography","Bridge","Building","Church","Dome","Museum","River","Trees"],"latitude":41.90171333333333,"longitude":12.463386666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for l02x02t9vyewsfh1zgq812sfv.jpg {"title":"Torre Argentina","keywords":["Ancient","Ruins","Stone","Trees"],"latitude":41.89579666666667,"longitude":12.476291666666667}
+[EXIF] Merged metadata for b36ruusqmu96vszuw3cftdxdw.jpg {"title":"Interior of Sant'Andrea della Valle","keywords":["Artwork","Ceiling","Church","Interior","Religious"],"latitude":41.8964,"longitude":12.474538333333333}
+[EXIF] Merged metadata for l7rnm9b1x5v9ngm0wi4mxtt8o.jpg {"title":"Portico of Octavia","keywords":["Ancient","Building","Column","Ruins"],"latitude":41.89259666666667,"longitude":12.478403333333333}
+[EXIF] Merged metadata for qiy763rw2z565sirk64039xi9.jpg {"title":"Portico of Octavia","keywords":["Ancient","Building","Column","Ruins"],"latitude":41.89259666666667,"longitude":12.478403333333333}
+[EXIF] Merged metadata for guei0nf6083b6bkqyzuh3oqjh.jpg {"title":"Foro di Cesare - Viaggio nei Fori","keywords":["Ancient","ArchitecturePhotography","Building","Church","Column","Dome","Landmark","Lights","Night","Ruins","Yellow"],"latitude":41.89501666666666,"longitude":12.484391666666667}
+[EXIF] Merged metadata for eind58d66w3q4ph69ylwuogmj.jpg {"title":"Foro di Cesare - Viaggio nei Fori","keywords":["Ancient","ArchitecturePhotography","Building","Church","Column","Dome","Landmark","Lights","Night","Ruins","Yellow"],"latitude":41.89501666666666,"longitude":12.484391666666667}
+[EXIF] Merged metadata for ekv0q2mqmp6cm7za7l1u5iem6.jpg {"title":"Foro di Cesare - Viaggio nei Fori","keywords":["Ancient","ArchitecturePhotography","Column","Lights","Night","Ruins"],"latitude":41.89501666666666,"longitude":12.484391666666667}
+[EXIF] Merged metadata for ydx3c296ira7jjdlo7r9zw20b.jpg {"title":"Foro di Cesare - Viaggio nei Fori","keywords":["ArchitecturePhotography","Blue","Church","Column","Dome","Landmark","Night","Yellow"],"latitude":41.89563,"longitude":12.48412}
+[EXIF] Merged metadata for a8hyiiz0lamu9lgngokjolejb.jpg {"title":"Foro di Cesare - Viaggio nei Fori","keywords":["ArchitecturePhotography","Blue","Column","Lights","Night","Ruins"],"latitude":41.89563,"longitude":12.48412}
+[EXIF] Merged metadata for vd4e9n0o7qk9tds1p4pf00474.jpg {"title":"Foro di Cesare - Viaggio nei Fori","keywords":["ArchitecturePhotography","Church","Column","Dome","Landmark","Lights","Night","Yellow"],"latitude":41.89563,"longitude":12.48412}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for p7u3ohad7mkii8kjzfhxy2efu.jpg {"title":"Foro di Cesare - Viaggio nei Fori","keywords":["Ancient","ArchitecturePhotography","Building","Lights","Night","Ruins","Tower"],"latitude":41.89563,"longitude":12.48412}
+[EXIF] Merged metadata for yqt4amxxpbnxpe4x7moojtoi8.jpg {"title":"Light show at Foro di Cesare - Viaggio nei Fori","keywords":["Ancient","Building","Event","Lights","Night","Ruins"],"latitude":41.89421333333333,"longitude":12.484836666666666}
+[EXIF] Merged metadata for ut8tx6sly8jmhdcwwran4lns7.jpg {"title":"Castel Sant'Angelo","keywords":["ArchitecturePhotography","Castle","Landmark","Lights","Night","Yellow"],"latitude":41.90061166666667,"longitude":12.46485}
+[EXIF] Merged metadata for h98b4hmpdniqbryp2fswrz9d4.jpg {"title":"Ceiling of Santa Maria della Pace","keywords":["ArchitecturePhotography","Artwork","Ceiling","Church","Dome","Interior","iPhonePhotography"],"latitude":41.899771666666666,"longitude":12.47152}
+[EXIF] Merged metadata for ok92vaqvw2f6hsszfoob31g27.jpg {"title":"Interior of Sant'Andrea della Valle","keywords":["Artwork","Church","Interior","Religious","iPhonePhotography"],"latitude":41.89640833333333,"longitude":12.4742}
+[EXIF] Merged metadata for j0gakm0g35wo5ifgnu5sror98.jpg {"title":"Ceiling inside Castel Sant'Angelo","keywords":["Artwork","Castle","Ceiling","Landmark","iPhonePhotography"],"latitude":41.90287,"longitude":12.4662}
+[EXIF] Merged metadata for isschqw24oaqdva5ouus02kui.jpg {"title":"Colosseum","keywords":["Ancient","ArchitecturePhotography","Landmark","Ruins","Stadium","Stone","iPhonePhotography"],"latitude":41.89113666666667,"longitude":12.492066666666666}
+[EXIF] Merged metadata for gd0qq4bahs0pocc83272qxrwt.jpg {"title":"Campo Martius","keywords":["ArchitecturePhotography","Column","iPhonePhotography"],"latitude":41.894128333333335,"longitude":12.486971666666667}
+[EXIF] Merged metadata for evx30vvvptmajraeww7eyqsha.jpg {"title":"Me at the Colosseum","keywords":["Ancient","ArchitecturePhotography","Landmark","People","Ruins","Stadium","Stone","iPhonePhotography"],"latitude":41.89073666666667,"longitude":12.490811666666666}
+[EXIF] Merged metadata for y1mmv5tvrkphs9whsv5y25ut3.jpg {"title":"Colosseum","keywords":["Ancient","ArchitecturePhotography","Landmark","Ruins","Stadium","Stone","iPhonePhotography"],"latitude":41.89082833333333,"longitude":12.490875}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for mo6djdx2wohpxb6poc726vfrh.jpg {"title":"Foro di Cesare","keywords":["Ancient","Building","Column","Ruins"],"latitude":41.893438333333336,"longitude":12.485855}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for rp05mzst3tl7hnsfbgstv1x5u.jpg {"title":"St. Peter's Square","keywords":["ArchitecturePhotography","Church","Column","Dusk","Fountain","Landmark","Lights","Purple","Square","Yellow"],"latitude":41.90141666666667,"longitude":12.457236666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for w9qwekexfpsy1yv5n3hnsd3e1.jpg {"title":"St. Peter's Square","keywords":["ArchitecturePhotography","Church","Column","Dusk","Fountain","Landmark","Lights","Purple","Square","Yellow"],"latitude":41.90141666666667,"longitude":12.457236666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for f0b5aip4kvd7xerq8zjrpss85.jpg {"title":"St. Peter's Square","keywords":["ArchitecturePhotography","Church","Column","Dome","Dusk","Landmark","Lights","Religious","Square"],"latitude":41.90168333333333,"longitude":12.457255}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for jed8hiu4engqbbgo4o8u90r76.jpg {"title":"St. Peter's Square","keywords":["ArchitecturePhotography","Church","Dome","Dusk","Landmark","Lights","Purple","Religious","Sky","Square"],"latitude":41.90233833333333,"longitude":12.458075000000001}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for nec5ifo72vi88ou18sqpfrw9v.jpg {"title":"Ponte Vittorio Emanuele II","keywords":["Blue","Building","Column","Dusk","Road","Sky","Statue","Street"],"latitude":41.90167,"longitude":12.463475}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m4[39m
+[EXIF] Merged metadata for sbc8297ttufbed2odklqfu047.jpg {"title":"Castel Sant'Angelo","keywords":["ArchitecturePhotography","Bridge","Castle","Landmark","River"],"latitude":41.90145833333333,"longitude":12.46402}
+[EXIF] Merged metadata for fagoq1htjdq3vpsqijsvm1k48.jpg {"title":"Sant'Andrea della Valle","keywords":["ArchitecturePhotography","Building","Church","Dome","Street"],"latitude":41.89635,"longitude":12.47583}
+[EXIF] Merged metadata for t52m6r209h0sz3vbqsxcggzc2.jpg {"title":"View of Chisea SS Nome di Maria, Le Domus Romane di Palazzo Valentini and Trajan's Column","keywords":["ArchitecturePhotography","Church","Column","Dome","Street"],"latitude":41.894999999999996,"longitude":12.480891666666666}
+[EXIF] Merged metadata for q0ijv90h6qrrwk3py0eakpk94.jpg {"title":"Chiesa SS Nome di María and Trajan's Column","keywords":["ArchitecturePhotography","Church","Column","Dome"],"latitude":41.894886666666665,"longitude":12.484261666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for j9vr5y5o4svkiatl7llczbud0.jpg {"title":"Foro di Cesare","keywords":["ArchitecturePhotography","Building","Church","Dome"],"latitude":41.8937,"longitude":12.485425}
+[EXIF] Merged metadata for zd7l6a3n6ak0wdj9ewir5gd3r.jpg {"title":"Altare della Patria","keywords":["ArchitecturePhotography","Column","GovernmentBuilding","Orange","Statue","Trees","Yellow"],"latitude":41.8937,"longitude":12.485425}
+[EXIF] Merged metadata for ytrtx33m1oqm55dtm1uoonjju.jpg {"title":"Foro di Cesare","keywords":["Ancient","ArchitecturePhotography","Church","Column","Ruins"],"latitude":41.8937,"longitude":12.485425}
+[EXIF] Merged metadata for j0lrzbayheqb1s6n5sj4wjhtr.jpg {"title":"Foro di Cesare","keywords":["Ancient","Church","Dome","Orange","Ruins","Stone","Sunrise"],"latitude":41.8937,"longitude":12.485425}
+[EXIF] Merged metadata for lpn013pq3ct5osb1cv0yx0n39.jpg {"title":"Colosseum","keywords":["Ancient","ArchitecturePhotography","Landmark","Ruins","Stadium","Stone","Street","Wall"],"latitude":41.892203333333335,"longitude":12.489016666666666}
+[EXIF] Merged metadata for hnswr9x06ypmfd1j6ryc29ao0.jpg {"title":"Arch of Constantine","keywords":["Ancient","Arch","ArchitecturePhotography","Landmark","Ruins","Stone"],"latitude":41.89123333333333,"longitude":12.49045}
+[EXIF] Merged metadata for wvxqrkto94gd5qsznzrbvutdd.jpg {"title":"Domus Aurea","keywords":["Ancient","Church","Ruins","Stone","Tower"],"latitude":41.890836666666665,"longitude":12.490911666666667}
+[EXIF] Merged metadata for ajbe3cpgd24j1xjvrsaibdhkz.jpg {"title":"Arch of Constantine","keywords":["Ancient","Arch","ArchitecturePhotography","Landmark","Ruins","Stone"],"latitude":41.890836666666665,"longitude":12.490911666666667}
+[EXIF] Merged metadata for aikzbjud24h7fvnjvvh9guqof.jpg {"title":"Colosseum","keywords":["Ancient","ArchitecturePhotography","Landmark","Ruins","Stadium","Stone"],"latitude":41.890836666666665,"longitude":12.490911666666667}
+[EXIF] Merged metadata for mlz1nei51blf46z0kgbq52xgj.jpg {"title":"Arch of Constantine and the Colosseum","keywords":["Ancient","Arch","ArchitecturePhotography","Landmark","PanoramicPhotography","Ruins","Stadium","Stone"],"latitude":41.890836666666665,"longitude":12.490911666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for vspdnu8gzaa5cc98h8sthwqc0.jpg {"title":"Colosseum","keywords":["Ancient","Arch","ArchitecturePhotography","Landmark","Ruins","Stadium","Stone","TravelPhotography","Trees","UNESCO","Yellow"],"latitude":41.891238333333334,"longitude":12.49218}
+[EXIF] Merged metadata for o6bu9p0213j9h65nkrgdohad8.jpg {"title":"Colosseum","keywords":["Ancient","ArchitecturePhotography","Landmark","Road","Ruins","Stadium","Stone"],"latitude":41.891555,"longitude":12.491688333333334}
+[EXIF] Merged metadata for xeuiyz25kghbabyrrbq0znec9.jpg {"title":"Roman streetview","keywords":["ArchitecturePhotography","Building","Church","Street","Tower","TravelPhotography","UrbanPhotography"],"latitude":41.891605,"longitude":12.493105}
+[EXIF] Merged metadata for q41m2wwx1vdvqsfissgye7sy1.jpg {"title":"Colosseum","keywords":["Ancient","ArchitecturePhotography","Building","Cityscape","Landmark","Ruins","Stadium","Stone"],"latitude":41.891605,"longitude":12.493105}
+[EXIF] Merged metadata for rm34nh8zfx2rf49zv4sif3oa7.jpg {"title":"Interior of the Colosseum","keywords":["Ancient","Interior","Landmark","PanoramicPhotography","Ruins","Stadium","Stone"],"latitude":41.890675,"longitude":12.492336666666667}
+[EXIF] Merged metadata for gly3p7hsxmij2tzxiwtuxwv5z.jpg {"title":"Inside the Colosseum","keywords":["Ancient","ArchitecturePhotography","Interior","Landmark","Ruins","Stadium","Stone"],"latitude":41.890675,"longitude":12.492336666666667}
+[EXIF] Merged metadata for q0s6e71mcjjv3wrdckmgaxs2t.jpg {"title":"Inside the Colosseum","keywords":["Ancient","ArchitecturePhotography","Landmark","Ruins","Stadium","Stone"],"latitude":41.890388333333334,"longitude":12.493433333333334}
+[EXIF] Merged metadata for xry20qd9lmb5gl9hvnazrhm70.jpg {"title":"Inside the Colosseum","keywords":["Ancient","ArchitecturePhotography","Landmark","Ruins","Stadium","Stone"],"latitude":41.890388333333334,"longitude":12.493433333333334}
+[EXIF] Merged metadata for f53l1mfp52d84vmavby8g0lpp.jpg {"title":"Domus Aurea","keywords":["Ancient","ArchitecturePhotography","Church","Ruins","Stone","Tower"],"latitude":41.890816666666666,"longitude":12.492166666666666}
+[EXIF] Merged metadata for mmaasqqdksrnuyn70ax74lhoa.jpg {"title":"Arch of Constantine","keywords":["Ancient","Arch","ArchitecturePhotography","Landmark","Ruins","Stone"],"latitude":41.89045,"longitude":12.489433333333332}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for k0mh4ugzk6aqgq55qr44c6m20.jpg {"title":"Domus Flavia. Aula Regia on Palatine Hill","keywords":["Ancient","Landmark","Ruins","Stone","Trees"],"latitude":41.8895,"longitude":12.487595}
+[EXIF] Merged metadata for tw6c957wykgte3bvvvxip5c77.jpg {"title":"Domus Flavia. Aula Regia on Palatine Hill","keywords":["Ancient","Landmark","Ruins","Stone","Trees"],"latitude":41.8895,"longitude":12.487595}
+[EXIF] Merged metadata for iww6qik53pm446g6fi1tar6fi.jpg {"title":"House of the Vestals","keywords":["Ancient","Arch","ArchitecturePhotography","Building","Church","Cityscape","PanoramicPhotography","Ruins","Temple","Tower"],"latitude":41.89096333333333,"longitude":12.486463333333333}
+[EXIF] Merged metadata for vazz469noehjers67q5819rdh.jpg {"title":"Basilica di Santa Francesca Romana","keywords":["Ancient","ArchitecturePhotography","Building","Church","City","Tower"],"latitude":41.89096333333333,"longitude":12.486463333333333}
+[EXIF] Merged metadata for tcyi4dvhdhkex0l5yoq8un1ri.jpg {"title":"Roman cityview","keywords":["ArchitecturePhotography","Building","Church","Cityscape","GovernmentBuilding","Landmark"],"latitude":41.89096333333333,"longitude":12.486463333333333}
+[EXIF] Merged metadata for si2coczud7e6ca7oqiox2wmnl.jpg {"title":"Medieval Porch","keywords":["ArchitecturePhotography","Church","Column","Ruins","Stone"],"latitude":41.89165833333333,"longitude":12.487475}
+[EXIF] Merged metadata for x2uc25l5g99yxksx5gl5dwkyr.jpg {"title":"Rome city view from Castel Sant'Angelo","keywords":["ArchitecturePhotography","Bridge","Church","Cityscape","Dome","PanoramicPhotography","River"],"latitude":41.90282166666667,"longitude":12.466921666666666}
+[EXIF] Merged metadata for ea9pw49fmbg9axijytgxjydv7.jpg {"title":"Rome city view from Castel Sant'Angelo","keywords":["ArchitecturePhotography","Church","Cityscape","Dome","PanoramicPhotography"],"latitude":41.90246666666667,"longitude":12.465508333333334}
+[EXIF] Merged metadata for n9wzne5kyhiab6nnwk7cb5w2x.jpg {"title":"Rome city view from Castel Sant'Angelo","keywords":["ArchitecturePhotography","Building","Church","Cityscape","Dome"],"latitude":41.90246666666667,"longitude":12.465508333333334}
+[EXIF] Merged metadata for p9s2poj765rdbs8fbwy7aoem5.jpg {"title":"Rome city view  from Castel Sant'Angelo","keywords":["ArchitecturePhotography","Church","Cityscape","Dome","Skyline","Trees"],"latitude":41.90325833333333,"longitude":12.466255}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for d9j9egvc2kw1hvtoiko4n5hya.jpg {"title":"Rome city view from Castel Sant'Angelo","keywords":["ArchitecturePhotography","Church","Cityscape","Dome","Roof","Skyline"],"latitude":41.90325833333333,"longitude":12.466255}
+[EXIF] Merged metadata for r6trhl2mfrax7g8cxybg74nlz.jpg {"title":"St. Peter's Basilica from Castel Sant'Angelo","keywords":["ArchitecturePhotography","Church","Cityscape","Dome","Orange"],"latitude":41.90325833333333,"longitude":12.466255}
+[EXIF] Merged metadata for l1lzjsgn1a3br27yxn37yaw90.jpg {"title":"St. Peter's Basilica from Castel Sant'Angelo","keywords":["ArchitecturePhotography","Church","Cityscape","Dome","Skyline"],"latitude":41.90325833333333,"longitude":12.466255}
+[EXIF] Merged metadata for gb38hxh7x2eq0zu6l25aff2pr.jpg {"title":"Statue on Castel Sant'Angelo","keywords":["Artwork","Castle","Landmark","Metal","Religious","Statue","Stone"],"latitude":41.90325833333333,"longitude":12.466255}
+[EXIF] Merged metadata for ohlbvdw3vz7s4zqo41rre1ke3.jpg {"title":"Inside the Colosseum","keywords":["Ancient","ArchitecturePhotography","Interior","Landmark","Ruins","Stadium","Stone","iPhonePhotography"],"latitude":41.890683333333335,"longitude":12.492261666666666}
+[EXIF] Merged metadata for p09eky9ci39yaho0mhteg9skw.jpg {"title":"Castel Sant'Angelo","keywords":["ArchitecturePhotography","Building","Castle","Flag","Landmark","iPhonePhotography"],"latitude":41.902728333333336,"longitude":12.465413333333334}
+[EXIF] Merged metadata for egvvl14410tz4wc2ag8773l6w.jpg {"title":"Giardino di Palazzo Venezia","keywords":["Gate","Park","Pathway","Plaza","Trees","iPhonePhotography"],"latitude":41.896071666666664,"longitude":12.480778333333333}
+[EXIF] Merged metadata for g6gb16mvr7u9885m0wadl7d1n.jpg {"title":"Roman streetview","keywords":["Building","City","Cityscape","Road","TravelPhotography","iPhonePhotography"],"latitude":41.892116666666666,"longitude":12.491886666666666}
+[EXIF] Merged metadata for crkwusl0hc7nk8cis7m6cpr16.jpg {"title":"Me at the Colosseum","keywords":["Ancient","Arch","ArchitecturePhotography","Column","Landmark","Ruins","Stadium","TravelPhotography","iPhonePhotography"],"latitude":41.89073,"longitude":12.490821666666667}
+[EXIF] Merged metadata for xmeeu787jh3zvh9orjn9khzyn.jpg {"title":"Amalfi Coast","keywords":["Boats","Coastline","LandscapePhotography","Mountain","Sea","Sky","iPhonePhotography"],"latitude":40.618705,"longitude":14.462441666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for ov6mdc608iyh1pm9rbwtpbbug.jpg {"title":"Me in Pompeii","keywords":["Ancient","Column","Landmark","Mountain","Ruins","UNESCO","iPhonePhotography"],"latitude":40.74928666666667,"longitude":14.484921666666667}
+[EXIF] Merged metadata for un322ui0oium8ywwsf7nlm8bv.jpg {"title":"Coast off of Positano","keywords":["Beach","Blue","Boats","Coastline","Island","LandscapePhotography","Mountain","Skyline","Tower","TravelPhotography","iPhonePhotography"],"latitude":40.62587833333333,"longitude":14.482913333333332}
+[EXIF] Merged metadata for ajuebxds52dkmwm26rhugd0mb.jpg {"title":"City of Positano on the Amalfi Coast","keywords":["City","Green","Mountain","iPhonePhotography"],"latitude":40.629441666666665,"longitude":14.47805}
+[EXIF] Merged metadata for l7g4avz0ratfek0q0c5csctcr.jpg {"title":"Amalfi Coast","keywords":["Blue","Coastline","LandscapePhotography","Mountain","MountainRange","Sea","Sky","Skyline"],"latitude":40.620605,"longitude":14.459375}
+[EXIF] Merged metadata for owx7bvyokno23icb4j3sa19th.jpg {"title":"Amalfi Coast","keywords":["Blue","Coastline","LandscapePhotography","MountainRange","Sea","Sky","Skyline"],"latitude":40.620605,"longitude":14.459375}
+[EXIF] Merged metadata for vcz1wyslwwkpgz7m2o6j61u82.jpg {"title":"Street in Positano","keywords":["Flower","Market","People","Street","TravelPhotography","UrbanPhotography"],"latitude":40.630028333333335,"longitude":14.48613}
+[EXIF] Merged metadata for okr1r34spr1on1qlvzi9rp3tl.jpg {"title":"City of Positano","keywords":["Beach","Boats","Building","City","Coastline"],"latitude":40.62760333333333,"longitude":14.487196666666666}
+[EXIF] Merged metadata for wu31facv68ipn6dvnt9suvvcj.jpg {"title":"City of Positano","keywords":["Beach","Blue","Boats","City","Cityscape","Cloud","Coastline","Mountain","Pier","Sky"],"latitude":40.62760333333333,"longitude":14.487196666666666}
+[EXIF] Merged metadata for eg91x6er00dms52arxu19nfiq.jpg {"title":"Church in Positano","keywords":["Church","City","Dome","Mountain"],"latitude":40.627811666666666,"longitude":14.488605}
+[EXIF] Merged metadata for pjxa7s9lm47uty5uhxomaejd6.jpg {"title":"City of Positano","keywords":["Building","Church","City","MountainRange"],"latitude":40.627811666666666,"longitude":14.488605}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for y1ybywb50lex4m59v96e3ezhw.jpg {"title":"City of Positano","keywords":["Building","Church","City","Cityscape","Dome","Mountain"],"latitude":40.62771166666667,"longitude":14.486263333333333}
+[EXIF] Merged metadata for ewkisxrz3eunbysg5fpq7b3bc.jpg {"title":"Coast off of Positano","keywords":["Boats","Cloud","Coastline","Mountain","Skyline","Tower"],"latitude":40.62771166666667,"longitude":14.486263333333333}
+[EXIF] Merged metadata for p72e9sld9lwsr3txlb9w4ldnf.jpg {"title":"Coast off of Positano","keywords":["Boats","Coastline","Mountain","Sea","Skyline","Tower"],"latitude":40.62771166666667,"longitude":14.486263333333333}
+[EXIF] Merged metadata for le2p6rr63zs6x6qkh4f32ct43.jpg {"title":"Street in Positano","keywords":["Flower","Pathway","Trees"],"latitude":40.627275,"longitude":14.485241666666667}
+[EXIF] Merged metadata for cvzbt5rxzpgcz920ivhbsgjaq.jpg {"title":"Coast off of Positano","keywords":["Blue","Boats","Coastline","Island","Mountain","Sea","Sky","Skyline","Tower"],"latitude":40.627135,"longitude":14.487781666666667}
+[EXIF] Merged metadata for je1qmmql3nd284l7ri5fsi1aa.jpg {"title":"Coast off of Positano","keywords":["Blue","Boats","Coastline","Island","LandscapePhotography","Mountain","PanoramicPhotography","Sea","Sky","Skyline","Tower"],"latitude":40.62642,"longitude":14.483166666666667}
+[EXIF] Merged metadata for qaafqed46r0t1fev73bzjw1kc.jpg {"title":"Coast off of Positano","keywords":["Blue","Boats","Coastline","Island","LandscapePhotography","Mountain","Sea","Sky","Skyline","Tower"],"latitude":40.62642,"longitude":14.483166666666667}
+[EXIF] Merged metadata for zqsb7k0i5df2v57czlq2igvx5.jpg {"title":"Coast off of Positano","keywords":["Blue","Boats","Coastline","Island","LandscapePhotography","Mountain","PanoramicPhotography","Sea","Sky","Skyline","Tower"],"latitude":40.62708833333333,"longitude":14.484763333333333}
+[EXIF] Merged metadata for y75fg3y00pbxiz598x1zs5x6u.jpg {"title":"Teatro Grande in Pompeii","keywords":["Ancient","City","Landmark","PanoramicPhotography","Ruins","Theatre","UNESCO"],"latitude":40.7481,"longitude":14.489488333333334}
+[EXIF] Merged metadata for mnyy5r86y16nnkyt7rwmq6e3z.jpg {"title":"Street in Pompeii","keywords":["Ancient","Building","Landmark","Ruins","Stone","Street","UNESCO"],"latitude":40.748925,"longitude":14.488936666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for a9n6ae6cno31dxfglmjow3n10.jpg {"title":"Ruins of Pompeii","keywords":["Ancient","Column","Landmark","Mountain","Ruins","UNESCO"],"latitude":40.749278333333336,"longitude":14.485086666666668}
+[EXIF] Merged metadata for rlgxycopybzolaxh4zb7dji6v.jpg {"title":"Remains of inhabitant of Pompeii","keywords":["Ancient","Artifact","Landmark","Pottery","Ruins","Stone","UNESCO"],"latitude":40.749278333333336,"longitude":14.485086666666668}
+[EXIF] Merged metadata for h1ml0avssa07anc8xn02cejbx.jpg {"title":"Ruins of Pompeii","keywords":["Ancient","Column","Landmark","Mountain","Ruins","Stone","UNESCO"],"latitude":40.749278333333336,"longitude":14.485086666666668}
+[EXIF] Merged metadata for ybnlpmotaolumwl0muyvtht0j.jpg {"title":"Modern statue in Pompeii","keywords":["Ancient","Artwork","Column","Landmark","Ruins","Statue","Stone","UNESCO"],"latitude":40.74857,"longitude":14.483633333333334}
+[EXIF] Merged metadata for thj3pd1j8xbp81besa19vbjxq.jpg {"title":"Modern statue in Pompeii","keywords":["ArchitecturePhotography","Artwork","Column","Statue","Stone","TravelPhotography","UNESCO"],"latitude":40.74857,"longitude":14.483633333333334}
+[EXIF] Merged metadata for fxuezlgvtrvlnup69pmhof0qg.jpg {"title":"Pompeii ruins","keywords":["Ancient","Artwork","Landmark","Ruins","Statue","Stone","Trees","UNESCO"],"latitude":40.74787166666667,"longitude":14.48373}
+[EXIF] Merged metadata for t1at59tn2xpikt70dvdsh7g38.jpg {"title":"Amalfi Coast","keywords":["Boats","Coastline","Green","LandscapePhotography","Mountain","MountainRange","Sea","Sky","Skyline","iPhonePhotography"],"latitude":40.62018333333333,"longitude":14.459303333333333}
+[EXIF] Merged metadata for fp01xddav8bqcymcemzchr78y.jpg {"title":"Amalfi Coast","keywords":["Bridge","Green","LandscapePhotography","Mountain","Trees","iPhonePhotography"],"latitude":40.621916666666664,"longitude":14.452753333333334}
+[EXIF] Merged metadata for w7ws6h0ukh0u1uk7yetbtu6ls.jpg {"title":"Me at the Amalfi Coast","keywords":["Coastline","LandscapePhotography","MountainRange","Sky","Skyline","TravelPhotography","iPhonePhotography"],"latitude":40.61989166666667,"longitude":14.459241666666667}
+[EXIF] Merged metadata for mepjabm7gdk85wi8qrd1rjcfh.jpg {"title":"Colosseum at night","keywords":["Ancient","ArchitecturePhotography","Landmark","Lights","Night","PanoramicPhotography","Ruins","iPhonePhotography"],"latitude":41.889428333333335,"longitude":12.4919}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m3[39m
+[EXIF] Merged metadata for np24yj59ucgywh8dnt6i667nt.jpg {"title":"Fontana del Moro","keywords":["Artwork","Fountain","Landmark","Statue","Stone"],"latitude":41.897895,"longitude":12.473003333333333}
+[EXIF] Merged metadata for zp3nyzug3shht2s0y0ajmsalj.jpg {"title":"Statues on a wall outside the entrance to the Vatican","keywords":["Artwork","Religious","Statue","Stone","Wall"],"latitude":41.906975,"longitude":12.453711666666667}
+[EXIF] Merged metadata for r1a68jm1hxwyn03lbc6vt4asx.jpg {"title":"Ceiling inside the Vatican Museums","keywords":["Artwork","Ceiling","Column","Museum","Religious"],"latitude":41.906975,"longitude":12.453711666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m2[39m
+[EXIF] Merged metadata for on7dhojzxop09fbpyjyfd1s2e.jpg {"title":"Hallway inside Vatican Museums","keywords":["Artwork","Ceiling","Interior","Museum","Religious"],"latitude":41.906975,"longitude":12.453711666666667}
+[EXIF] Merged metadata for b8vsu7vdaybf4jcd0tqywrv7j.jpg {"title":"Hallway inside Vatican Museums","keywords":["Artwork","Ceiling","Interior","Museum","Religious","Statue"],"latitude":41.906975,"longitude":12.453711666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m2[39m
+[EXIF] Merged metadata for zi23lik1kpd90kvvb42bb0tib.jpg {"title":"Ceiling of the Vatican Museums","keywords":["Artwork","Ceiling","Interior","Museum","Religious"],"latitude":41.903108333333336,"longitude":12.454163333333334}
+[EXIF] Merged metadata for bgqw98jjjm5q6jzkkv2w83e20.jpg {"title":"Classical Statue inside the Vatican Museums","keywords":["Artwork","Museum","Statue","Stone","White"],"latitude":41.906063333333336,"longitude":12.454633333333334}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m3[39m
+[EXIF] Merged metadata for hn3tqdtvgx8nvqx6letwacmq4.jpg {"title":"Classical statues inside the Vatican Museums","keywords":["Artwork","Museum","Statue","Stone"],"latitude":41.906063333333336,"longitude":12.454633333333334}
+[EXIF] Merged metadata for zruwkl0kzom74ipoclssrqugb.jpg {"title":"Large classical pot inside the Vatican Museums","keywords":["Artifact","Artwork","Museum","Pottery"],"latitude":41.906063333333336,"longitude":12.454633333333334}
+[EXIF] Merged metadata for jjkqeqigakam9ytuhpr26pjht.jpg {"title":"Classical statuses inside the Vatican Museums","keywords":["Artwork","Museum","Statue","Stone"],"latitude":41.906063333333336,"longitude":12.454633333333334}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m2[39m
+[EXIF] Merged metadata for wdv2xmeoulmsk7o12ucvnxd4l.jpg {"title":"Michelangelo's Pietà","keywords":["Artwork","Religious","Statue","Stone"],"latitude":41.90215333333333,"longitude":12.455233333333334}
+[EXIF] Merged metadata for e5j2tfqcrbmz21piuc5sxxsl6.jpg {"title":"Interior of St. Peter's Basilica","keywords":["Artwork","Church","Interior","Religious"],"latitude":41.90215333333333,"longitude":12.455233333333334}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m1[39m
+[EXIF] Merged metadata for x7lsq4k6gpa92ewkh7mc4hlys.jpg {"title":"Deposition by Peter Paul Rubens (Borghese gallery)","keywords":["Artwork","Museum","Religious"],"latitude":41.914366666666666,"longitude":12.492288333333333}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m4[39m
+[EXIF] Merged metadata for q6bcx1fz7o9mcqhk2bfnietef.jpg {"title":"Truth Unveiled by Time by Bernini (Borghese gallery)","keywords":["Artwork","Interior","Museum","Statue"],"latitude":41.914366666666666,"longitude":12.492288333333333}
+[EXIF] Merged metadata for qgjdge2ong0cw51lhcwr8jyk6.jpg {"title":"Madonna, Child and Serpent by Caravaggio (Borghese gallery)","keywords":["Artwork","Interior","Museum","Religious"],"latitude":41.914366666666666,"longitude":12.492288333333333}
+[EXIF] Merged metadata for dd7k84cynl5bjofffs1rv92ct.jpg {"title":"Saint Jerome Writing by Caravaggio (Borghese gallery)","keywords":["Artwork","Interior","Museum","Religious"],"latitude":41.914366666666666,"longitude":12.492288333333333}
+[EXIF] Merged metadata for zbu3y1rxea3ni9bzchil0bj50.jpg {"title":"David with the Head of Goliath by Caravaggio (Borghese gallery)","keywords":["Artwork","Interior","Museum","Religious"],"latitude":41.914366666666666,"longitude":12.492288333333333}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m3[39m
+[EXIF] Merged metadata for zxnvtzipoanrmfar51kfyl1uu.jpg {"title":"Classical status at Borghese gallery","keywords":["Artwork","Museum","Statue","Stone"],"latitude":41.914366666666666,"longitude":12.492288333333333}
+[EXIF] Merged metadata for t91kbrcm6iw48fd2dsf3yf6ks.jpg {"title":"Apollo and Daphne sculpture by Gian Lorenzo Bernini at Borghese gallery","keywords":["Artwork","Interior","Museum","Statue","Stone"],"latitude":41.914366666666666,"longitude":12.492288333333333}
+[EXIF] Merged metadata for watrho7lorxnqmf075e357tap.jpg {"title":"Apollo and Daphne sculpture by Gian Lorenzo Bernini at Borghese gallery","keywords":["Artwork","Interior","Museum","Statue","Stone"],"latitude":41.914366666666666,"longitude":12.492288333333333}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m5[39m
+[EXIF] Merged metadata for ahld4ik4g32ydhrzgrax9ifhp.jpg {"title":"David by Bernini (Borghese gallery)","keywords":["Artwork","Interior","Museum","Statue","Stone"],"latitude":41.914366666666666,"longitude":12.492288333333333}
+[EXIF] Merged metadata for wnxdypxif4xfaubjdxwjjczuw.jpg {"title":"The Rape of Proserpina sculpture by Gian Lorenzo Bernini at Borghese gallery","keywords":["Artwork","Interior","Museum","Statue","Stone"],"latitude":41.914366666666666,"longitude":12.492288333333333}
+[EXIF] Merged metadata for vy2vdzmbmnhwnu9gh2cydsoso.jpg {"title":"Trajan's Column","keywords":["ArchitecturePhotography","Church","Column","Dome","Landmark"],"latitude":41.895345,"longitude":12.482796666666667}
+[EXIF] Merged metadata for uuf3uffb9wvpu5xe8qenwv51u.jpg {"title":"Fontane dei Leoni Egizi","keywords":["Artwork","Fountain","Statue","Stone"],"latitude":41.89425833333333,"longitude":12.481678333333333}
+[EXIF] Merged metadata for gzbflzof44kxmkd6a8rl6oix5.jpg {"title":"Steps to a basilica","keywords":["Church","Pathway","Steps"],"latitude":41.89425833333333,"longitude":12.481678333333333}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m5[39m
+[EXIF] Merged metadata for nzs55d62jiw4i30y806v1pzp3.jpg {"title":"Marcello Theater","keywords":["Building","Dusk","Lights","Street","UrbanPhotography","Wet"],"latitude":41.89425833333333,"longitude":12.481678333333333}
+[EXIF] Merged metadata for z89ddkk7pembi3goc28p30ec2.jpg {"title":"Michelangelo's Capitoline Steps","keywords":["ArchitecturePhotography","Artwork","Clock","Dusk","Landmark","Statue","Steps","Stone","Tower","Wet","Yellow"],"latitude":41.893766666666664,"longitude":12.481963333333333}
+[EXIF] Merged metadata for thdqtz3920nmik9clgspr1j1a.jpg {"title":"Michelangelo's Capitoline Steps","keywords":["ArchitecturePhotography","Clock","Column","Dusk","Landmark","Statue","Steps","Stone","Tower","TravelPhotography","Wet","Yellow"],"latitude":41.893766666666664,"longitude":12.481963333333333}
+[EXIF] Merged metadata for arv97zqqydhu02sfapc6leji3.jpg {"title":"Capitoline Hill","keywords":["ArchitecturePhotography","Artwork","Dusk","GovernmentBuilding","Lamp","Landmark","Plaza","Public","Statue","Wet"],"latitude":41.893345,"longitude":12.482841666666667}
+[EXIF] Merged metadata for g8a3mbynrivzkb3nuffrom7di.jpg {"title":"Capitoline Hill","keywords":["ArchitecturePhotography","Clock","Dusk","GovernmentBuilding","Lamp","Landmark","Plaza","Public","Statue","Tower","Wet"],"latitude":41.893345,"longitude":12.482841666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for noghqc5wgprepcpz83xaifyf2.jpg {"title":"Michelangelo's Capitoline Steps","keywords":["Car","Dusk","Lamp","Lights","Pathway","Road","Street","UrbanPhotography","Wet"],"latitude":41.893345,"longitude":12.482841666666667}
+[EXIF] Merged metadata for bh97lyp840wqszqjqzqll0oxc.jpg {"title":"View from the Roman Forum","keywords":["Ancient","ArchitecturePhotography","Church","Column","Dome","Dusk","Landmark","Lights","Ruins"],"latitude":41.89246333333333,"longitude":12.483613333333333}
+[EXIF] Merged metadata for iz7zdp1szsa25dhdzuh3cr8g0.jpg {"title":"Roman Forum","keywords":["Ancient","Cityscape","Column","Landmark","Lights","Night","Ruins"],"latitude":41.89246333333333,"longitude":12.483613333333333}
+[EXIF] Merged metadata for r8aq1a2pnqlu3fx4a1yehh9te.jpg {"title":"Roman Forum","keywords":["Ancient","ArchitecturePhotography","Church","Cityscape","Column","Dome","Landmark","Lights","Night","PanoramicPhotography","Ruins","Stone","Yellow"],"latitude":41.89246333333333,"longitude":12.483613333333333}
+[EXIF] Merged metadata for z36cywb6gfwo40p6cte7hqnfg.jpg {"title":"Roman Forum","keywords":["Ancient","ArchitecturePhotography","Church","Column","Dome","Landmark","Lights","Night","PanoramicPhotography","Ruins","Stone","Yellow"],"latitude":41.89246333333333,"longitude":12.483613333333333}
+[EXIF] Merged metadata for ucl9h51rdwj42x51b9zx6nvdh.jpg {"title":"Roman Forum","keywords":["Ancient","ArchitecturePhotography","Church","Column","Dome","Landmark","Lights","Night","Ruins","Stone","Yellow"],"latitude":41.89246333333333,"longitude":12.483613333333333}
+[EXIF] Merged metadata for blqf7fj1h6k95miijiqtpisdl.jpg {"title":"Roman street at night","keywords":["ArchitecturePhotography","Lights","Night","Street","UrbanPhotography"],"latitude":41.89246333333333,"longitude":12.483613333333333}
+[EXIF] Merged metadata for o5tnnzagk8jiilr70tb6yxcn5.jpg {"title":"Roman Forum","keywords":["Ancient","ArchitecturePhotography","Landmark","Lights","Night","Ruins"],"latitude":41.89350833333334,"longitude":12.483488333333334}
+[EXIF] Merged metadata for cs540sdmc76ddgqfhau50907q.jpg {"title":"Interior of the Colosseum","keywords":["Ancient","ArchitecturePhotography","Interior","Landmark","Lights","Night","Ruins","Stadium"],"latitude":41.890366666666665,"longitude":12.492166666666666}
+[EXIF] Merged metadata for g0hnkyi2d05b5eirwk9rx6ypl.jpg {"title":"Arch of Constantine at night","keywords":["Ancient","Arch","ArchitecturePhotography","Landmark","Lights","Night","Ruins"],"latitude":41.890233333333335,"longitude":12.491546666666666}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for tzldsalqpxymrfqvr9zxvijl5.jpg {"title":"Arch of Constantine at night","keywords":["Ancient","Arch","ArchitecturePhotography","Landmark","Lights","Night","Ruins"],"latitude":41.890233333333335,"longitude":12.491546666666666}
+[EXIF] Merged metadata for j9ls7583dht3n2z8vcyp1x8pv.jpg {"title":"Fiumi Fountain","keywords":["Artwork","Fountain","Statue","Stone","iPhonePhotography"],"latitude":41.89888833333333,"longitude":12.4731}
+[EXIF] Merged metadata for eb0szwo47cgsr4xhadbwhnzko.jpg {"title":"Drinking fountain in Rome","keywords":["ArchitecturePhotography","Artwork","Column","Fountain","Statue","iPhonePhotography"],"latitude":41.913655,"longitude":12.49168}
+[EXIF] Merged metadata for qlaam0v7cfco21xmem6pams02.jpg {"title":"Chiesa dei Gesuiti","keywords":["Tower","Wall","iPhonePhotography"],"latitude":45.444046666666665,"longitude":12.339663333333334}
+[EXIF] Merged metadata for encuqhurdh73xi8dpxanjm4sx.jpg {"title":"View of San Michele","keywords":["ArchitecturePhotography","Church","Cityscape","Island","Sky","Skyline","Tower"],"latitude":45.448905,"longitude":12.338925}
+[EXIF] Merged metadata for x7k7cpjewlberl9zp5mb399ve.jpg {"title":"Chiesa dei Gesuiti","keywords":["Cityscape","Cloud","Sky","Tower","iPhonePhotography"],"latitude":45.43418666666667,"longitude":12.3432}
+[EXIF] Merged metadata for k4k5as84u2fc0oips1ygrk1cy.jpg {"title":"Park of the Aqueducts","keywords":["Ancient","ArchitecturePhotography","Park","Ruins","iPhonePhotography"],"latitude":41.844105,"longitude":12.559275}
+[EXIF] Merged metadata for ejsx8uzwnq7y2fv126by6wpx2.jpg {"title":"San Michele in Isola","keywords":["ArchitecturePhotography","Church","Cityscape","Dome","Island","Sky","Skyline","Tower"],"latitude":45.45283666666667,"longitude":12.341628333333333}
+[EXIF] Merged metadata for u4vowp6imtw4tib2kxt5pyau3.jpg {"title":"Mattei Palace","keywords":["Arch","ArchitecturePhotography","Artwork","Statue","Stone","iPhonePhotography"],"latitude":41.89413,"longitude":12.478161666666667}
+[EXIF] Merged metadata for laxkqogkdpx9c0xqq1yid9g4a.jpg {"title":"View of Tempio Maggiore di Roma from Marcello Theater","keywords":["ArchitecturePhotography","Building","Pathway","Religious","Synagogue","Temple"],"latitude":41.89218666666667,"longitude":12.478521666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for tben0f9wx90faa23oninzvddp.jpg {"title":"Section of Marcello Theater","keywords":["Ancient","ArchitecturePhotography","Column","Ruins","Stone","Theatre"],"latitude":41.89212833333333,"longitude":12.480378333333334}
+[EXIF] Merged metadata for hvif90wpv3qq0czb5nimsinbv.jpg {"title":"Mausoleo di Cecilia Metella","keywords":["Ancient","Mausoleum","Ruins"],"latitude":41.851803333333336,"longitude":12.520921666666666}
+[EXIF] Merged metadata for vcvy7k1i1sq4tdrw5a9qt9vmp.jpg {"title":"Section of the Appian Way","keywords":["Ancient","Road","Ruins","Stone","Trees"],"latitude":41.85120333333333,"longitude":12.521688333333334}
+[EXIF] Merged metadata for wvniy6bpsaj6qb6jtp4jubtmv.jpg {"title":"Park of the Aqueducts","keywords":["Ancient","Arch","ArchitecturePhotography","Landmark","Park","Pathway","Ruins"],"latitude":41.84567166666667,"longitude":12.560621666666666}
+[EXIF] Merged metadata for sb8eeylursslh3woi53u3sni0.jpg {"title":"Park of the Aqueducts","keywords":["Ancient","Arch","ArchitecturePhotography","Landmark","Park","Pathway","Ruins"],"latitude":41.84567166666667,"longitude":12.560621666666666}
+[EXIF] Merged metadata for d8lt3pmror1ynjcd1bm5wv501.jpg {"title":"Park of the Aqueducts","keywords":["Ancient","Arch","ArchitecturePhotography","Landmark","Park","Pathway","Ruins"],"latitude":41.84567166666667,"longitude":12.560621666666666}
+[EXIF] Merged metadata for hsw599japtiaxu8gho67kdnx5.jpg {"title":"Field in the Park of the Aqueducts","keywords":["Ancient","Flower","Landmark","Park","Pathway","Ruins"],"latitude":41.84567166666667,"longitude":12.560621666666666}
+[EXIF] Merged metadata for wa8oibo6w4cx5tm7wrj90uumv.jpg {"title":"Field in the Park of the Aqueducts","keywords":["Ancient","Flower","Landmark","Park","Pathway","Ruins"],"latitude":41.84567166666667,"longitude":12.560621666666666}
+[EXIF] Merged metadata for r6m5e00fmxr6se5xkbilhrnpf.jpg {"title":"Field in the Park of the Aqueducts","keywords":["Ancient","Flower","Landmark","Park","Pathway","Ruins"],"latitude":41.84567166666667,"longitude":12.560621666666666}
+[EXIF] Merged metadata for i7qn87m5rzebxqu8wh5ldmo5a.jpg {"title":"View of Rome from the Janiculum Terrace","keywords":["Cityscape","LandscapePhotography","Skyline"],"latitude":41.891466666666666,"longitude":12.460971666666667}
+[Upload] Files keys: [ [32m'files'[39m ]
+[Upload] fileField type: object isArray: [33mtrue[39m length: [33m10[39m
+[EXIF] Merged metadata for oodfn4gw0wpwzmzdxmv7pp09q.jpg {"title":"Fontana dell'Acqua Paola","keywords":["ArchitecturePhotography","Column","Fountain","Stone"],"latitude":41.88861333333333,"longitude":12.464408333333333}
+[EXIF] Merged metadata for ptrycaqx52m0htfwdlhc6wqrp.jpg {"title":"Church of San Giorgio Maggiore","keywords":["ArchitecturePhotography","Blue","Boats","Canal","Church","Cityscape","Pier","Tower"],"latitude":45.43415,"longitude":12.342763333333334}
+[EXIF] Merged metadata for wlgdg0eg1k5ryjdxlh0mvwue4.jpg {"title":"Church of San Giorgio Maggiore","keywords":["ArchitecturePhotography","Blue","Boats","Building","Canal","Church","City","Cityscape","Pier","River","Tower","TravelPhotography"],"latitude":45.433863333333335,"longitude":12.343295}
+[EXIF] Merged metadata for shezyhqdd2sv1od883a74y71c.jpg {"title":"Church of San Giorgio Maggiore","keywords":["ArchitecturePhotography","Blue","Boats","Building","Canal","Church","City","Cityscape","Pier","River","Tower","TravelPhotography"],"latitude":45.433863333333335,"longitude":12.343295}
+[EXIF] Merged metadata for zmph5vh21ww5pu553yv6ap664.jpg {"title":"Chiesa San Giorgio dei Greci","keywords":["ArchitecturePhotography","Building","Canal","Cityscape","Dusk","Tower"],"latitude":45.43403333333333,"longitude":12.344008333333333}
+[EXIF] Merged metadata for k061gs7rbk2t4jtucfk16loai.jpg {"title":"Boat in Venice","keywords":["Boats","Building","Canal","TravelPhotography"],"latitude":45.434686666666664,"longitude":12.345196666666666}
+[EXIF] Merged metadata for ohc77lpbahkq95yd9qc0gbel2.jpg {"title":"Saint Mark's Basilica","keywords":["ArchitecturePhotography","Church","Cityscape","Dome","Lights","Night"],"latitude":45.43393666666667,"longitude":12.345078333333333}
+[EXIF] Merged metadata for mq4y0lmr58u3xcggws4kj9sbk.jpg {"title":"Interior of Santa Maria in Campitelli","keywords":["ArchitecturePhotography","Church","Column","Interior","Religious","iPhonePhotography"],"latitude":41.89277,"longitude":12.479413333333333}
+[EXIF] Merged metadata for hzxadh6r0wnrhjwrkr2u84dww.jpg {"title":"View of San Michele","keywords":["Boats","Church","Cityscape","Island","Pier","Sky","Skyline","Tower"],"latitude":45.446461666666664,"longitude":12.337388333333333}
+[EXIF] Merged metadata for we32bn630miozlwcxa46ghkrm.jpg {"title":"Chiesa dei Gesuiti","keywords":["Cityscape","Cloud","Sky","Tower","iPhonePhotography"],"latitude":45.434261666666664,"longitude":12.343045}

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal, computed, model, OnInit, input } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal, computed, model, OnInit, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -77,6 +77,48 @@ export class EntityTabComponent implements OnInit {
     const all = this.allAttractions();
     return q ? all.filter((a) => a.name.toLowerCase().includes(q)) : all;
   });
+
+  constructor() {
+    let lastReloadedForCityId: number | null = null;
+    // Sync city input display when cityId is set externally (e.g. from location tab)
+    effect(() => {
+      const id = this.cityId();
+      const cities = this.allCities();
+      if (id != null && cities.length > 0) {
+        const match = cities.find((c) => c.id === id);
+        if (match) {
+          if (this.cityInputValue() !== match.name) {
+            this.cityInputValue.set(match.name);
+          }
+          lastReloadedForCityId = null;
+        } else if (lastReloadedForCityId !== id) {
+          // City not in loaded list (newly created) — reload once
+          lastReloadedForCityId = id;
+          this.loadCities();
+        }
+      }
+    });
+
+    let lastReloadedForStateId: number | null = null;
+    // Sync state input display when stateId is set externally (e.g. from location tab)
+    effect(() => {
+      const id = this.stateId();
+      const states = this.allStates();
+      if (id != null && states.length > 0) {
+        const match = states.find((s) => s.id === id);
+        if (match) {
+          if (this.stateInputValue() !== match.name) {
+            this.stateInputValue.set(match.name);
+          }
+          lastReloadedForStateId = null;
+        } else if (lastReloadedForStateId !== id) {
+          // State not in loaded list (newly created) — reload once
+          lastReloadedForStateId = id;
+          this.loadStates();
+        }
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.cityInputValue.set(this.initialCityName() || '');

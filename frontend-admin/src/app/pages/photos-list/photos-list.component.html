@@ -81,9 +81,6 @@
 
             <!-- Source badges -->
             <div class="source-badges">
-              @if (photo.in_database) {
-                <span class="badge db-badge">DB</span>
-              }
               @if (photo.in_cloudinary) {
                 <span class="badge cloud-badge">Cloud</span>
               }
@@ -133,6 +130,20 @@
               </div>
             }
 
+            @if (photo.country_name || photo.state_name) {
+              <div class="photo-location">
+                <mat-icon class="entity-icon">public</mat-icon>
+                <span class="location-text">
+                  @if (photo.state_name && photo.country_name) {
+                    {{ photo.state_name }}, {{ photo.country_name }}
+                  } @else if (photo.state_name) {
+                    {{ photo.state_name }}
+                  } @else {
+                    {{ photo.country_name }}
+                  }
+                </span>
+              </div>
+            }
 
             <span class="photo-date">{{ photo.created_at | date:'mediumDate' }}</span>
           </div>
@@ -168,9 +179,6 @@
               <div class="list-item-header">
                 <span class="list-item-caption">{{ photo.caption || 'Untitled' }}</span>
                 <div class="list-item-badges">
-                  @if (photo.in_database) {
-                    <span class="badge db-badge">DB</span>
-                  }
                   @if (photo.in_cloudinary) {
                     <span class="badge cloud-badge">Cloud</span>
                   }
@@ -189,6 +197,20 @@
                     <mat-icon class="entity-icon">attractions</mat-icon>
                     <span class="entity-name">{{ photo.attraction_name }}</span>
                     <mat-chip class="entity-type-chip attraction-chip">Attraction</mat-chip>
+                  </div>
+                }
+                @if (photo.country_name || photo.state_name) {
+                  <div class="photo-entity">
+                    <mat-icon class="entity-icon">public</mat-icon>
+                    <span class="entity-name">
+                      @if (photo.state_name && photo.country_name) {
+                        {{ photo.state_name }}, {{ photo.country_name }}
+                      } @else if (photo.state_name) {
+                        {{ photo.state_name }}
+                      } @else {
+                        {{ photo.country_name }}
+                      }
+                    </span>
                   </div>
                 }
                 @if (photo.tags && photo.tags.length > 0) {

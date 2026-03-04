@@ -32,6 +32,7 @@ export interface AdminPhoto {
   state_id: number | null;
   state_name: string | null;
   country_id: number | null;
+  country_name: string | null;
   /** @deprecated Use city_id / attraction_id instead */
   entity_type?: 'cities' | 'attractions' | null;
   /** @deprecated Use city_id / attraction_id instead */
