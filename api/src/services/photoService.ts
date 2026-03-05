@@ -641,12 +641,24 @@ class PhotoService {
   }
 
   public async getAllPhotosMerged(params: {
-    page?: number; limit?: number; source?: string; search?: string; noTags?: boolean;
+    page?: number; limit?: number; search?: string; noTags?: boolean; entityType?: string; entityId?: number;
   }): Promise<{ photos: any[]; total: number }> {
-    const { page = 1, limit = 25, search, noTags } = params;
+    const { page = 1, limit = 25, search, noTags, entityType, entityId } = params;
 
     // All photos are now in the database — S3 is just storage, DB is the source of truth
     let photos = await this.getAllDbPhotos();
+
+    if (entityType === 'country') {
+      photos = photos.filter((p) => entityId ? p.country_id === entityId : p.country_id != null);
+    } else if (entityType === 'state') {
+      photos = photos.filter((p) => entityId ? p.state_id === entityId : p.state_id != null);
+    } else if (entityType === 'city') {
+      photos = photos.filter((p) => entityId ? p.city_id === entityId : p.city_id != null);
+    } else if (entityType === 'attraction') {
+      photos = photos.filter((p) => entityId ? p.attraction_id === entityId : p.attraction_id != null);
+    } else if (entityType === 'unassigned') {
+      photos = photos.filter((p) => p.city_id == null && p.attraction_id == null && p.country_id == null && p.state_id == null);
+    }
 
     if (noTags) {
       photos = photos.filter((p) => !p.tags || p.tags.length === 0);

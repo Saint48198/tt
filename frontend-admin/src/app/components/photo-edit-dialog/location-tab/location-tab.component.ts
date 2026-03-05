@@ -90,13 +90,14 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
     const geo = this.reverseGeo();
     const country = this.resolvedCountry();
     if (!geo?.state || geo.state === 'Unknown State' || !country) return false;
+    const stateName = geo.state;
     const name = country.name.toLowerCase();
     const isUsOrCanada = name.includes('united states') || name === 'usa' || name === 'us'
       || name.includes('canada');
     if (!isUsOrCanada) return false;
     // Check if state already exists
     const match = this.allStates().find(
-      (s) => s.name.toLowerCase() === geo.state!.toLowerCase() && s.country_id === country.id,
+      (s) => s.name.toLowerCase() === stateName.toLowerCase() && s.country_id === country.id,
     );
     return !match && !this.stateCreated();
   });
@@ -235,8 +236,9 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
           if (match) {
             const geo = this.reverseGeo();
             if (geo?.state && geo.state !== 'Unknown State') {
+              const geoStateName = geo.state;
               const stateMatch = states.states.find(
-                (s) => s.name.toLowerCase() === geo.state!.toLowerCase() && s.country_id === match.id,
+                (s) => s.name.toLowerCase() === geoStateName.toLowerCase() && s.country_id === match.id,
               );
               this.resolvedState.set(stateMatch || null);
             }
@@ -249,9 +251,10 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
     const geo = this.reverseGeo();
     const country = this.resolvedCountry();
     if (!geo?.state || !country) return;
+    const geoStateName = geo.state;
 
     this.creatingState.set(true);
-    this.statesService.createState({ name: geo.state, country_id: country.id })
+    this.statesService.createState({ name: geoStateName, country_id: country.id })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -260,7 +263,7 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
           if (res.id) {
             const newState: State = {
               id: res.id,
-              name: geo.state!,
+              name: geoStateName,
               country_id: country.id,
               country_name: country.name,
             };

@@ -16,14 +16,16 @@ export class PhotosService {
   getAllPhotos(params: {
     page?: number;
     limit?: number;
-    source?: string;
     search?: string;
     noTags?: boolean;
+    entityType?: string;
+    entityId?: number;
   } = {}): Observable<AllPhotosResponse> {
     const queryParams: Record<string, string> = {};
     if (params.page) queryParams['page'] = String(params.page);
     if (params.limit) queryParams['limit'] = String(params.limit);
-    if (params.source) queryParams['source'] = params.source;
+    if (params.entityType) queryParams['entityType'] = params.entityType;
+    if (params.entityId) queryParams['entityId'] = String(params.entityId);
     if (params.search) queryParams['search'] = params.search;
     if (params.noTags === true) queryParams['noTags'] = 'true';
     return this.http.get<AllPhotosResponse>(`${this.apiUrl}/all`, { params: queryParams });

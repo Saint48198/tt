@@ -24,38 +24,80 @@
 
   <div class="filters-bar">
     <div class="filters-row">
-      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
-        <mat-label>Search photos</mat-label>
-        <input matInput [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Search by caption, URL, entity name, or tag...">
-        @if (searchQuery) {
-          <button matSuffix mat-icon-button (click)="clearSearch()" matTooltip="Clear search">
-            <mat-icon>close</mat-icon>
-          </button>
+      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+        <mat-label>Country</mat-label>
+        <mat-select [value]="countryFilter()" (selectionChange)="onCountryChange($event.value)" [disabled]="unassignedFilter()">
+          <mat-option [value]="null">All</mat-option>
+          @for (country of countryOptions(); track country.id) {
+            <mat-option [value]="country.id">{{ country.name }}</mat-option>
+          }
+        </mat-select>
+        @if (loadingCountries()) {
+          <mat-spinner matSuffix diameter="18"></mat-spinner>
         }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
-        <mat-label>Source</mat-label>
-        <mat-select [(ngModel)]="sourceFilter" (selectionChange)="onFilterChange()">
-          <mat-option value="">All Sources</mat-option>
-          <mat-option value="database">Database Only</mat-option>
-          <mat-option value="cloudinary">Cloudinary Only</mat-option>
+        <mat-label>State</mat-label>
+        <mat-select [value]="stateFilter()" (selectionChange)="onStateChange($event.value)" [disabled]="unassignedFilter()">
+          <mat-option [value]="null">All</mat-option>
+          @for (state of stateOptions(); track state.id) {
+            <mat-option [value]="state.id">{{ state.name }}</mat-option>
+          }
         </mat-select>
+        @if (loadingStates()) {
+          <mat-spinner matSuffix diameter="18"></mat-spinner>
+        }
       </mat-form-field>
 
-      <button mat-raised-button color="primary" class="search-btn" (click)="onSearch()">
-        <mat-icon>search</mat-icon>
-        Search
-      </button>
+      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+        <mat-label>City</mat-label>
+        <mat-select [value]="cityFilter()" (selectionChange)="onCityChange($event.value)" [disabled]="unassignedFilter()">
+          <mat-option [value]="null">All</mat-option>
+          @for (city of cityOptions(); track city.id) {
+            <mat-option [value]="city.id">{{ city.name }}</mat-option>
+          }
+        </mat-select>
+        @if (loadingCities()) {
+          <mat-spinner matSuffix diameter="18"></mat-spinner>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+        <mat-label>Attraction</mat-label>
+        <mat-select [value]="attractionFilter()" (selectionChange)="onAttractionChange($event.value)" [disabled]="unassignedFilter()">
+          <mat-option [value]="null">All</mat-option>
+          @for (attraction of attractionOptions(); track attraction.id) {
+            <mat-option [value]="attraction.id">{{ attraction.name }}</mat-option>
+          }
+        </mat-select>
+        @if (loadingAttractions()) {
+          <mat-spinner matSuffix diameter="18"></mat-spinner>
+        }
+      </mat-form-field>
     </div>
 
     <div class="filters-row-secondary">
+      <mat-slide-toggle
+        [checked]="unassignedFilter()"
+        (change)="onUnassignedChange($event.checked)"
+        matTooltip="Show only unassigned photos">
+        Unassigned
+      </mat-slide-toggle>
+
       <mat-slide-toggle
         [checked]="tagsFilter()"
         (change)="tagsFilter.set($event.checked); onFilterChange()"
         matTooltip="Show only photos without tags">
         No Tags
       </mat-slide-toggle>
+
+      @if (hasActiveFilters()) {
+        <button mat-stroked-button (click)="clearFilters()" matTooltip="Clear all filters">
+          <mat-icon>filter_list_off</mat-icon>
+          Clear Filters
+        </button>
+      }
     </div>
   </div>
 
@@ -118,7 +160,6 @@
               <div class="photo-entity">
                 <mat-icon class="entity-icon">location_city</mat-icon>
                 <span class="entity-name">{{ photo.city_name }}</span>
-                <mat-chip class="entity-type-chip city-chip">City</mat-chip>
               </div>
             }
 
@@ -126,7 +167,6 @@
               <div class="photo-entity">
                 <mat-icon class="entity-icon">attractions</mat-icon>
                 <span class="entity-name">{{ photo.attraction_name }}</span>
-                <mat-chip class="entity-type-chip attraction-chip">Attraction</mat-chip>
               </div>
             }
 
@@ -189,14 +229,12 @@
                   <div class="photo-entity">
                     <mat-icon class="entity-icon">location_city</mat-icon>
                     <span class="entity-name">{{ photo.city_name }}</span>
-                    <mat-chip class="entity-type-chip city-chip">City</mat-chip>
                   </div>
                 }
                 @if (photo.attraction_name) {
                   <div class="photo-entity">
                     <mat-icon class="entity-icon">attractions</mat-icon>
                     <span class="entity-name">{{ photo.attraction_name }}</span>
-                    <mat-chip class="entity-type-chip attraction-chip">Attraction</mat-chip>
                   </div>
                 }
                 @if (photo.country_name || photo.state_name) {

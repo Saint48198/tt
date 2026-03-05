@@ -51,6 +51,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() height = '500px';
   @Input() width = '100%';
   @Input() enableZoom = true;
+  @Input() enableScrollZoom: boolean | null = null; // null = follow enableZoom
   @Input() enableDrag = true;
   @Input() fitBounds = false; // Auto-fit to markers/overlays
   @Input() showAttribution = true;
@@ -106,7 +107,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       zoom: this.zoom,
       zoomControl: this.enableZoom,
       dragging: this.enableDrag,
-      scrollWheelZoom: this.enableZoom,
+      scrollWheelZoom: this.enableScrollZoom ?? this.enableZoom,
       doubleClickZoom: this.enableZoom,
       touchZoom: this.enableZoom,
       attributionControl: this.showAttribution,

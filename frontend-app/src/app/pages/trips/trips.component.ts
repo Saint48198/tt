@@ -103,12 +103,17 @@ export class TripsComponent implements OnInit {
     }));
   }
 
+  /** Normalize a date string so date-only values aren't parsed as UTC midnight */
+  private parseDate(d: string): Date {
+    return new Date(d.includes('T') ? d : d + 'T12:00:00');
+  }
+
   /** Get a formatted date range string */
   getDateRange(trip: Trip): string {
     const start = this.getStartDate(trip);
     const end = this.getEndDate(trip);
     if (!start && !end) return 'No dates set';
-    const fmt = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const fmt = (d: string) => this.parseDate(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     if (start && end) return `${fmt(start)} — ${fmt(end)}`;
     if (start) return `From ${fmt(start)}`;
     return `Until ${fmt(end as string)}`;

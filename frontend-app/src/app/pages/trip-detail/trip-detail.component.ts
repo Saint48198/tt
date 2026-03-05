@@ -24,8 +24,8 @@ export class TripDetailComponent implements OnInit {
     const t = this.trip();
     if (!t?.plan?.length) return [];
     return [...t.plan].sort((a, b) => {
-      const da = a.startDate ? new Date(a.startDate).getTime() : Infinity;
-      const db = b.startDate ? new Date(b.startDate).getTime() : Infinity;
+      const da = a.startDate ? this.parseDate(a.startDate).getTime() : Infinity;
+      const db = b.startDate ? this.parseDate(b.startDate).getTime() : Infinity;
       return da - db;
     });
   });
@@ -36,7 +36,7 @@ export class TripDetailComponent implements OnInit {
     const groups = new Map<string, PlanItem[]>();
     for (const item of items) {
       const key = item.startDate
-        ? new Date(item.startDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+        ? this.parseDate(item.startDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
         : 'No date';
       if (!groups.has(key)) groups.set(key, []);
       const group = groups.get(key);
@@ -54,7 +54,7 @@ export class TripDetailComponent implements OnInit {
     const start = dates[0];
     const end = endDates[endDates.length - 1];
     if (!start && !end) return '';
-    const fmt = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const fmt = (d: string) => this.parseDate(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     if (start && end) return `${fmt(start)} — ${fmt(end)}`;
     if (start) return `From ${fmt(start)}`;
     return `Until ${fmt(end as string)}`;  });
@@ -122,14 +122,14 @@ export class TripDetailComponent implements OnInit {
 
   getItemDateRange(item: PlanItem): string {
     const fmt = (d: string) =>
-      new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      this.parseDate(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     if (item.startDate && item.endDate) {
       const sameDay = item.startDate.slice(0, 10) === item.endDate.slice(0, 10);
       if (sameDay) {
         return `${fmt(item.startDate)} – ${fmt(item.endDate)}`;
       }
       const fmtDate = (d: string) =>
-        new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        this.parseDate(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       return `${fmtDate(item.startDate)} – ${fmtDate(item.endDate)}`;
     }
     return '';
@@ -150,6 +150,11 @@ export class TripDetailComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  /** Normalize a date string so date-only values aren't parsed as UTC midnight */
+  private parseDate(d: string): Date {
+    return new Date(d.includes('T') ? d : d + 'T12:00:00');
   }
 
   private parsePlan(plan: unknown): PlanItem[] {
