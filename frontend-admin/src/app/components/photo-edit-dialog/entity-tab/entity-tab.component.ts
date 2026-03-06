@@ -20,6 +20,11 @@ export interface EntityOption {
   name: string;
 }
 
+interface CityOption extends EntityOption {
+  state_id?: number;
+  state_name?: string;
+}
+
 @Component({
   selector: 'app-entity-tab',
   imports: [
@@ -46,7 +51,7 @@ export class EntityTabComponent implements OnInit {
 
   // City combobox
   cityInputValue = signal('');
-  private allCities = signal<EntityOption[]>([]);
+  private allCities = signal<CityOption[]>([]);
   loadingCities = signal(false);
   filteredCities = computed(() => {
     const q = this.cityInputValue().toLowerCase();
@@ -131,7 +136,7 @@ export class EntityTabComponent implements OnInit {
       : { page: 1, limit: 500 };
     this.citiesService.getCities(params).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
-        this.allCities.set(res.cities.map((c) => ({ id: c.id, name: c.name })));
+        this.allCities.set(res.cities.map((c) => ({ id: c.id, name: c.name, state_id: c.state_id, state_name: c.state_name })));
         this.loadingCities.set(false);
       },
       error: () => {
@@ -185,9 +190,14 @@ export class EntityTabComponent implements OnInit {
     }
   }
 
-  onCitySelected(option: EntityOption): void {
+  onCitySelected(option: CityOption): void {
     this.state.cityId.set(option.id);
     this.cityInputValue.set(option.name);
+    // Auto-populate state if the city has one
+    if (option.state_id) {
+      this.state.stateId.set(option.state_id);
+      this.stateInputValue.set(option.state_name || '');
+    }
   }
 
   clearCity(): void {
