@@ -156,36 +156,38 @@
               <p class="photo-caption">{{ photo.caption }}</p>
             }
 
-            @if (photo.city_name) {
-              <div class="photo-entity">
-                <mat-icon class="entity-icon">location_city</mat-icon>
-                <span class="entity-name">{{ photo.city_name }}</span>
+            @if (photo.city_name || photo.attraction_name || photo.country_name || photo.state_name) {
+              <div class="photo-entities-row">
+                @if (photo.city_name) {
+                  <div class="photo-entity">
+                    <mat-icon class="entity-icon">location_city</mat-icon>
+                    <span class="entity-name">{{ photo.city_name }}</span>
+                  </div>
+                }
+                @if (photo.attraction_name) {
+                  <div class="photo-entity">
+                    <mat-icon class="entity-icon">attractions</mat-icon>
+                    <span class="entity-name">{{ photo.attraction_name }}</span>
+                  </div>
+                }
+                @if (photo.country_name || photo.state_name) {
+                  <div class="photo-location">
+                    <mat-icon class="entity-icon">public</mat-icon>
+                    <span class="location-text">
+                      @if (photo.state_name && photo.country_name) {
+                        {{ photo.state_name }}, {{ photo.country_name }}
+                      } @else if (photo.state_name) {
+                        {{ photo.state_name }}
+                      } @else {
+                        {{ photo.country_name }}
+                      }
+                    </span>
+                  </div>
+                }
               </div>
             }
 
-            @if (photo.attraction_name) {
-              <div class="photo-entity">
-                <mat-icon class="entity-icon">attractions</mat-icon>
-                <span class="entity-name">{{ photo.attraction_name }}</span>
-              </div>
-            }
-
-            @if (photo.country_name || photo.state_name) {
-              <div class="photo-location">
-                <mat-icon class="entity-icon">public</mat-icon>
-                <span class="location-text">
-                  @if (photo.state_name && photo.country_name) {
-                    {{ photo.state_name }}, {{ photo.country_name }}
-                  } @else if (photo.state_name) {
-                    {{ photo.state_name }}
-                  } @else {
-                    {{ photo.country_name }}
-                  }
-                </span>
-              </div>
-            }
-
-            <span class="photo-date">{{ photo.created_at | date:'mediumDate' }}</span>
+            <span class="photo-date">{{ photo.created_date | date:'mediumDate' }}</span>
           </div>
         </div>
       }
@@ -259,7 +261,7 @@
                   </div>
                 }
               </div>
-              <span class="photo-date">{{ photo.created_at | date:'mediumDate' }}</span>
+              <span class="photo-date">{{ photo.created_date | date:'mediumDate' }}</span>
             </div>
             <div class="list-item-actions" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="-1">
               <button mat-icon-button [matMenuTriggerFor]="listPhotoMenu" matTooltip="Actions">

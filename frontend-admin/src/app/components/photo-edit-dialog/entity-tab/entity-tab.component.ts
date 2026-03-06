@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, inject, signal, computed, model, OnInit, input } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal, computed, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,9 +8,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CitiesService } from '../../../services/cities.service';
 import { AttractionsService } from '../../../services/attractions.service';
 import { StatesService } from '../../../services/states.service';
+import { PhotoEditStateService } from '../photo-edit-state.service';
+import { ChangeCountryDialogComponent, ChangeCountryDialogResult } from './change-country-dialog.component';
 
 export interface EntityOption {
   id: number;
@@ -28,6 +31,7 @@ export interface EntityOption {
     MatAutocompleteModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatDialogModule,
   ],
   templateUrl: './entity-tab.component.html',
   styleUrl: './entity-tab.component.scss',
@@ -36,16 +40,9 @@ export class EntityTabComponent implements OnInit {
   private readonly citiesService = inject(CitiesService);
   private readonly attractionsService = inject(AttractionsService);
   private readonly statesService = inject(StatesService);
+  private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
-
-  countryId = input<number | null>(null);
-  initialCityName = input<string>('');
-  initialAttractionName = input<string>('');
-  initialStateName = input<string>('');
-
-  cityId = model.required<number | null>();
-  attractionId = model.required<number | null>();
-  stateId = model.required<number | null>();
+  readonly state = inject(PhotoEditStateService);
 
   // City combobox
   cityInputValue = signal('');
@@ -80,9 +77,8 @@ export class EntityTabComponent implements OnInit {
 
   constructor() {
     let lastReloadedForCityId: number | null = null;
-    // Sync city input display when cityId is set externally (e.g. from location tab)
     effect(() => {
-      const id = this.cityId();
+      const id = this.state.cityId();
       const cities = this.allCities();
       if (id != null && cities.length > 0) {
         const match = cities.find((c) => c.id === id);
@@ -92,7 +88,6 @@ export class EntityTabComponent implements OnInit {
           }
           lastReloadedForCityId = null;
         } else if (lastReloadedForCityId !== id) {
-          // City not in loaded list (newly created) — reload once
           lastReloadedForCityId = id;
           this.loadCities();
         }
@@ -100,9 +95,8 @@ export class EntityTabComponent implements OnInit {
     });
 
     let lastReloadedForStateId: number | null = null;
-    // Sync state input display when stateId is set externally (e.g. from location tab)
     effect(() => {
-      const id = this.stateId();
+      const id = this.state.stateId();
       const states = this.allStates();
       if (id != null && states.length > 0) {
         const match = states.find((s) => s.id === id);
@@ -112,7 +106,6 @@ export class EntityTabComponent implements OnInit {
           }
           lastReloadedForStateId = null;
         } else if (lastReloadedForStateId !== id) {
-          // State not in loaded list (newly created) — reload once
           lastReloadedForStateId = id;
           this.loadStates();
         }
@@ -121,9 +114,10 @@ export class EntityTabComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cityInputValue.set(this.initialCityName() || '');
-    this.attractionInputValue.set(this.initialAttractionName() || '');
-    this.stateInputValue.set(this.initialStateName() || '');
+    const photo = this.state.photo();
+    this.cityInputValue.set(photo.city_name || '');
+    this.attractionInputValue.set(photo.attraction_name || '');
+    this.stateInputValue.set(photo.state_name || '');
     this.loadCities();
     this.loadAttractions();
     this.loadStates();
@@ -131,7 +125,7 @@ export class EntityTabComponent implements OnInit {
 
   private loadCities(): void {
     this.loadingCities.set(true);
-    const countryId = this.countryId();
+    const countryId = this.state.countryId();
     const params = countryId
       ? { country_id: countryId, page: 1, limit: 500 }
       : { page: 1, limit: 500 };
@@ -149,7 +143,7 @@ export class EntityTabComponent implements OnInit {
 
   private loadAttractions(): void {
     this.loadingAttractions.set(true);
-    const countryId = this.countryId();
+    const countryId = this.state.countryId();
     const params = countryId
       ? { country_id: countryId, page: 1, limit: 500 }
       : { page: 1, limit: 500 };
@@ -169,7 +163,7 @@ export class EntityTabComponent implements OnInit {
     this.loadingStates.set(true);
     this.statesService.getAllStates('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
-        const cid = this.countryId();
+        const cid = this.state.countryId();
         const states = cid
           ? res.states.filter((s) => Number(s.country_id) === Number(cid))
           : res.states;
@@ -187,17 +181,17 @@ export class EntityTabComponent implements OnInit {
   onCityInput(value: string): void {
     this.cityInputValue.set(value);
     if (!value) {
-      this.cityId.set(null);
+      this.state.cityId.set(null);
     }
   }
 
   onCitySelected(option: EntityOption): void {
-    this.cityId.set(option.id);
+    this.state.cityId.set(option.id);
     this.cityInputValue.set(option.name);
   }
 
   clearCity(): void {
-    this.cityId.set(null);
+    this.state.cityId.set(null);
     this.cityInputValue.set('');
   }
 
@@ -207,17 +201,17 @@ export class EntityTabComponent implements OnInit {
   onStateInput(value: string): void {
     this.stateInputValue.set(value);
     if (!value) {
-      this.stateId.set(null);
+      this.state.stateId.set(null);
     }
   }
 
   onStateSelected(option: EntityOption): void {
-    this.stateId.set(option.id);
+    this.state.stateId.set(option.id);
     this.stateInputValue.set(option.name);
   }
 
   clearState(): void {
-    this.stateId.set(null);
+    this.state.stateId.set(null);
     this.stateInputValue.set('');
   }
 
@@ -227,21 +221,46 @@ export class EntityTabComponent implements OnInit {
   onAttractionInput(value: string): void {
     this.attractionInputValue.set(value);
     if (!value) {
-      this.attractionId.set(null);
+      this.state.attractionId.set(null);
     }
   }
 
   onAttractionSelected(option: EntityOption): void {
-    this.attractionId.set(option.id);
+    this.state.attractionId.set(option.id);
     this.attractionInputValue.set(option.name);
   }
 
   clearAttraction(): void {
-    this.attractionId.set(null);
+    this.state.attractionId.set(null);
     this.attractionInputValue.set('');
   }
 
   displayAttractionFn = (option: EntityOption): string => option?.name ?? '';
-}
 
+  // ── Change Country ──
+  openChangeCountry(): void {
+    this.dialog.open(ChangeCountryDialogComponent, {
+      width: '400px',
+      maxHeight: '80vh',
+    }).afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result: ChangeCountryDialogResult | undefined) => {
+        if (result?.changed && result.countryId != null && result.countryName) {
+          this.state.countryId.set(result.countryId);
+          this.state.countryName.set(result.countryName);
+          // Clear dependent entity selections since country changed
+          this.state.cityId.set(null);
+          this.state.stateId.set(null);
+          this.state.attractionId.set(null);
+          this.cityInputValue.set('');
+          this.stateInputValue.set('');
+          this.attractionInputValue.set('');
+          // Reload entity lists for the new country
+          this.loadCities();
+          this.loadAttractions();
+          this.loadStates();
+        }
+      });
+  }
+}
 

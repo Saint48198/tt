@@ -16,12 +16,12 @@
       <div class="coord-item">
         <mat-icon class="coord-icon">north</mat-icon>
         <span class="coord-label">Latitude</span>
-        <span class="coord-value">{{ latitude()?.toFixed(6) }}</span>
+        <span class="coord-value">{{ state.latitude()?.toFixed(6) }}</span>
       </div>
       <div class="coord-item">
         <mat-icon class="coord-icon">east</mat-icon>
         <span class="coord-label">Longitude</span>
-        <span class="coord-value">{{ longitude()?.toFixed(6) }}</span>
+        <span class="coord-value">{{ state.longitude()?.toFixed(6) }}</span>
       </div>
     </div>
 
@@ -72,13 +72,13 @@
               <button
                 mat-stroked-button
                 class="city-match-btn"
-                [class.current]="city.id === currentCityId()"
+                [class.current]="city.id === state.cityId()"
                 (click)="assignCity(city)"
-                [disabled]="city.id === currentCityId()"
-                [matTooltip]="city.id === currentCityId() ? 'Already assigned' : 'Assign this city to the photo'">
+                [disabled]="city.id === state.cityId()"
+                [matTooltip]="city.id === state.cityId() ? 'Already assigned' : 'Assign this city to the photo'">
                 <mat-icon>location_city</mat-icon>
                 <span class="city-name">{{ city.name }}@if (city.state_name) {, {{ city.state_name }}}@if (city.country_name) {, {{ city.country_name }}}</span>
-                @if (city.id === currentCityId()) {
+                @if (city.id === state.cityId()) {
                   <mat-icon class="current-icon">check</mat-icon>
                 }
               </button>

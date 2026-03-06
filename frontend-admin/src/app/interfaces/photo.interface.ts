@@ -48,6 +48,7 @@ export interface AdminPhoto {
   created_date?: string;
   updated_date?: string;
   disabled_date?: string;
+  original_filename?: string | null;
 }
 
 export interface AllPhotosResponse {

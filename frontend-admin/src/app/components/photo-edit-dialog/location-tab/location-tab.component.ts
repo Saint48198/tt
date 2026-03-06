@@ -1,6 +1,6 @@
 import {
   AfterViewInit, Component, computed, DestroyRef, ElementRef,
-  inject, input, OnDestroy, output, signal, ViewChild,
+  inject, OnDestroy, signal, ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
@@ -8,12 +8,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MapComponent, MapMarker } from '@shared/components';
 import { CitiesService } from '../../../services/cities.service';
 import { CountriesService } from '../../../services/countries.service';
 import { StatesService } from '../../../services/states.service';
 import { City, Country, State } from '../../../interfaces';
 import { switchMap, of, forkJoin } from 'rxjs';
+import { PhotoEditStateService } from '../photo-edit-state.service';
 
 export interface ReverseGeoResult {
   city: string | null;
@@ -43,19 +45,14 @@ export interface CitySelectedEvent {
 export class LocationTabComponent implements AfterViewInit, OnDestroy {
   @ViewChild(MapComponent) private mapComponent?: MapComponent;
 
-  latitude = input<number | null>(null);
-  longitude = input<number | null>(null);
-  caption = input<string>('');
-  currentCityId = input<number | null>(null);
-
-  citySelected = output<CitySelectedEvent>();
-
   private readonly el = inject(ElementRef);
   private readonly http = inject(HttpClient);
   private readonly citiesService = inject(CitiesService);
   private readonly countriesService = inject(CountriesService);
   private readonly statesService = inject(StatesService);
+  private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
+  readonly state = inject(PhotoEditStateService);
 
   private observer?: IntersectionObserver;
 
@@ -75,7 +72,6 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
   creatingState = signal(false);
   stateCreated = signal(false);
 
-  /** True when the geocoded city name is valid (not "Unknown City") */
   canAddCity = computed(() => {
     const geo = this.reverseGeo();
     return geo?.city != null
@@ -85,7 +81,6 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
       && this.resolvedCountry() != null;
   });
 
-  /** True when the geocoded country is US or Canada and state is present but not in the DB */
   canAddState = computed(() => {
     const geo = this.reverseGeo();
     const country = this.resolvedCountry();
@@ -95,20 +90,19 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
     const isUsOrCanada = name.includes('united states') || name === 'usa' || name === 'us'
       || name.includes('canada');
     if (!isUsOrCanada) return false;
-    // Check if state already exists
     const match = this.allStates().find(
       (s) => s.name.toLowerCase() === stateName.toLowerCase() && s.country_id === country.id,
     );
     return !match && !this.stateCreated();
   });
 
-  hasLocation = computed(() => this.latitude() != null && this.longitude() != null);
+  hasLocation = computed(() => this.state.latitude() != null && this.state.longitude() != null);
 
   mapMarkers = computed<MapMarker[]>(() => {
-    const lat = this.latitude();
-    const lng = this.longitude();
+    const lat = this.state.latitude();
+    const lng = this.state.longitude();
     if (lat != null && lng != null) {
-      const cap = this.caption() || 'Photo';
+      const cap = this.state.caption() || 'Photo';
       return [{
         lat,
         lng,
@@ -120,8 +114,8 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
   });
 
   mapCenter = computed<[number, number]>(() => {
-    const lat = this.latitude();
-    const lng = this.longitude();
+    const lat = this.state.latitude();
+    const lng = this.state.longitude();
     if (lat != null && lng != null) {
       return [lat, lng];
     }
@@ -133,7 +127,6 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
       (entries) => {
         if (entries[0]?.isIntersecting) {
           setTimeout(() => this.mapComponent?.invalidateSize(), 50);
-          // Auto-lookup on first visibility if we have coordinates
           if (this.hasLocation() && !this.reverseGeo() && !this.reverseGeoLoading()) {
             this.lookupLocation();
           }
@@ -149,8 +142,8 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
   }
 
   lookupLocation(): void {
-    const lat = this.latitude();
-    const lng = this.longitude();
+    const lat = this.state.latitude();
+    const lng = this.state.longitude();
     if (lat == null || lng == null) return;
 
     this.reverseGeoLoading.set(true);
@@ -180,7 +173,6 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
             this.findMatchingCities(res.city);
           }
 
-          // Resolve country and states for potential city/state creation
           if (res.country && res.country !== 'Unknown Country') {
             this.resolveCountryAndStates(res.country);
           }
@@ -209,13 +201,13 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
   }
 
   assignCity(city: City): void {
-    this.citySelected.emit({
-      cityId: city.id,
-      cityName: city.name,
-      stateId: city.state_id ?? null,
-      stateName: city.state_name ?? null,
-    });
+    this.state.cityId.set(city.id);
+    if (city.state_id != null) {
+      this.state.stateId.set(city.state_id);
+    }
     this.assigned.set(true);
+    const stateSuffix = city.state_name ? `, state set to "${city.state_name}"` : '';
+    this.snackBar.open(`City set to "${city.name}"${stateSuffix}`, 'Close', { duration: 3000 });
   }
 
   private resolveCountryAndStates(countryName: string): void {
@@ -232,7 +224,6 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
           this.resolvedCountry.set(match || null);
           this.allStates.set(states.states);
 
-          // Also resolve the state if one matches
           if (match) {
             const geo = this.reverseGeo();
             if (geo?.state && geo.state !== 'Unknown State') {
@@ -280,18 +271,18 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
   addCity(): void {
     const geo = this.reverseGeo();
     const country = this.resolvedCountry();
-    const lat = this.latitude();
-    const lng = this.longitude();
+    const lat = this.state.latitude();
+    const lng = this.state.longitude();
     if (!geo?.city || !country || lat == null || lng == null) return;
 
     this.creatingCity.set(true);
-    const state = this.resolvedState();
+    const resolvedState = this.resolvedState();
     this.citiesService.createCity({
       name: geo.city,
       lat,
       lng,
       country_id: country.id,
-      state_id: state?.id,
+      state_id: resolvedState?.id,
     })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
@@ -316,5 +307,4 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
       });
   }
 }
-
 

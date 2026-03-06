@@ -8,21 +8,7 @@
     <div class="dialog-layout">
       <!-- Photo preview -->
       <div class="photo-preview">
-        <lib-image-loader [src]="photo.url" [alt]="caption || 'Photo'" imgClass="preview-image" borderRadius="16px"></lib-image-loader>
-        <div class="source-badges">
-          @if (photo.in_database) {
-            <span class="badge badge-db">
-              <mat-icon class="badge-icon">storage</mat-icon>
-              Database
-            </span>
-          }
-          @if (photo.in_cloudinary) {
-            <span class="badge badge-cloud">
-              <mat-icon class="badge-icon">cloud</mat-icon>
-              Cloudinary
-            </span>
-          }
-        </div>
+        <lib-image-loader [src]="photo.url" [alt]="state.caption() || 'Photo'" imgClass="preview-image" borderRadius="16px"></lib-image-loader>
       </div>
 
       <!-- Edit form -->
@@ -34,7 +20,7 @@
               <mat-icon class="tab-icon">info</mat-icon>
               Details
             </ng-template>
-            <app-details-tab [(caption)]="caption" [(tags)]="tags" [photoUrl]="photo.url" />
+            <app-details-tab />
           </mat-tab>
 
           <!-- Entity Tab -->
@@ -43,14 +29,7 @@
               <mat-icon class="tab-icon">link</mat-icon>
               Entity
             </ng-template>
-            <app-entity-tab
-              [(cityId)]="cityId"
-              [(attractionId)]="attractionId"
-              [(stateId)]="stateId"
-              [countryId]="photo.country_id"
-              [initialCityName]="photo.city_name || ''"
-              [initialAttractionName]="photo.attraction_name || ''"
-              [initialStateName]="photo.state_name || ''" />
+            <app-entity-tab />
           </mat-tab>
 
           <!-- Location Tab -->
@@ -59,12 +38,7 @@
               <mat-icon class="tab-icon">location_on</mat-icon>
               Location
             </ng-template>
-            <app-location-tab
-              [latitude]="latitude"
-              [longitude]="longitude"
-              [caption]="caption"
-              [currentCityId]="cityId"
-              (citySelected)="onCitySelectedFromLocation($event)" />
+            <app-location-tab />
           </mat-tab>
 
           <!-- Info Tab -->
@@ -73,7 +47,7 @@
               <mat-icon class="tab-icon">info_outline</mat-icon>
               Info
             </ng-template>
-            <app-info-tab [photo]="photo" />
+            <app-info-tab />
           </mat-tab>
         </mat-tab-group>
       </div>
@@ -82,8 +56,8 @@
 
   <mat-dialog-actions align="end">
     <button mat-button mat-dialog-close>Cancel</button>
-    <button mat-flat-button color="primary" (click)="save()" [disabled]="saving()">
-      @if (saving()) {
+    <button mat-flat-button color="primary" (click)="save()" [disabled]="state.saving()">
+      @if (state.saving()) {
         <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
       } @else {
         <span class="btn-content">

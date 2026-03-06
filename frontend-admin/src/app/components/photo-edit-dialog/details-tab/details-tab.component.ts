@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, model, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { PhotoEditStateService } from '../photo-edit-state.service';
 
 @Component({
   selector: 'app-details-tab',
@@ -28,10 +29,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 export class DetailsTabComponent {
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
-
-  caption = model.required<string>();
-  tags = model.required<string[]>();
-  photoUrl = input<string>('');
+  readonly state = inject(PhotoEditStateService);
 
   tagsInput = '';
 
@@ -41,7 +39,7 @@ export class DetailsTabComponent {
   suggestError = signal<string | null>(null);
 
   suggestTags(): void {
-    const url = this.photoUrl();
+    const url = this.state.photo().url;
     if (!url) return;
 
     this.suggestingTags.set(true);
@@ -52,7 +50,7 @@ export class DetailsTabComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          const current = this.tags();
+          const current = this.state.tags();
           const filtered = (res.tags || []).filter((t) => !current.includes(t));
           this.suggestedTags.set(filtered);
           this.suggestingTags.set(false);
@@ -66,32 +64,31 @@ export class DetailsTabComponent {
   }
 
   addSuggestedTag(tag: string): void {
-    const current = this.tags();
+    const current = this.state.tags();
     if (!current.includes(tag)) {
-      this.tags.set([...current, tag]);
+      this.state.tags.set([...current, tag]);
     }
     this.suggestedTags.update((list) => list.filter((t) => t !== tag));
   }
-
 
   addTag(): void {
     const parts = this.tagsInput
       .split(',')
       .map((t) => t.trim())
       .filter(Boolean);
-    const current = this.tags();
+    const current = this.state.tags();
     const updated = [...current];
     for (const tag of parts) {
       if (!updated.includes(tag)) {
         updated.push(tag);
       }
     }
-    this.tags.set(updated);
+    this.state.tags.set(updated);
     this.tagsInput = '';
   }
 
   removeTag(tag: string): void {
-    this.tags.set(this.tags().filter((t) => t !== tag));
+    this.state.tags.set(this.state.tags().filter((t) => t !== tag));
   }
 
   onTagKeydown(event: KeyboardEvent): void {
@@ -101,5 +98,3 @@ export class DetailsTabComponent {
     }
   }
 }
-
-

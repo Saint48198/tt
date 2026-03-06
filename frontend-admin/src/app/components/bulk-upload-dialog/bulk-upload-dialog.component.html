@@ -149,10 +149,17 @@
   <button mat-flat-button
           color="primary"
           (click)="upload()"
-          [disabled]="files().length === 0 || uploading()">
+          [disabled]="files().length === 0 || uploading() || detectingCountry()">
     @if (uploading()) {
-      <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
-      Uploading...
+      <span class="btn-content">
+        <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+        Uploading...
+      </span>
+    } @else if (detectingCountry()) {
+      <span class="btn-content">
+        <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+        Detecting Country...
+      </span>
     } @else {
       <span class="btn-content">
         <mat-icon>cloud_upload</mat-icon>

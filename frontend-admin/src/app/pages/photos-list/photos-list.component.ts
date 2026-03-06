@@ -410,13 +410,26 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
             latitude: img.exif?.latitude ?? null,
             longitude: img.exif?.longitude ?? null,
             country_id: countryId,
-          }).pipe(catchError(() => of(null)))
+            created_date: img.exif?.created_date || null,
+            original_filename: img.original_filename || null,
+          }).pipe(catchError((err) => of({ duplicate: true, filename: img.original_filename, error: err?.error?.error })))
         );
         return forkJoin(saveRequests);
       }),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
-      next: () => this.loadPhotos(),
+      next: (results) => {
+        const duplicates = results.filter((r): r is { duplicate: boolean; filename: string; error: string } => r !== null && typeof r === 'object' && 'duplicate' in r);
+        if (duplicates.length > 0) {
+          const names = duplicates.map(d => d.filename).filter(Boolean).join(', ');
+          this.snackBar.open(
+            `${duplicates.length} duplicate${duplicates.length > 1 ? 's' : ''} skipped${names ? ': ' + names : ''}`,
+            'Close',
+            { duration: 6000 }
+          );
+        }
+        this.loadPhotos();
+      },
       error: () => this.loadPhotos(),
     });
   }

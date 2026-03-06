@@ -37,11 +37,13 @@ export interface BulkUploadDialogResult {
     public_id: string;
     secure_url: string;
     url: string;
+    original_filename?: string;
     exif?: {
       title?: string;
       keywords?: string[];
       latitude?: number;
       longitude?: number;
+      created_date?: string;
     };
   }>;
 }
@@ -51,6 +53,7 @@ interface ExifData {
   keywords?: string[];
   latitude?: number;
   longitude?: number;
+  created_date?: string;
 }
 
 interface FilePreview {
@@ -218,6 +221,18 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
       if (gps?.Latitude !== undefined && gps?.Longitude !== undefined) {
         exif.latitude = gps.Latitude;
         exif.longitude = gps.Longitude;
+      }
+
+      // Extract original date taken from DateTimeOriginal
+      const dateOriginal: string | undefined =
+        tags.exif?.DateTimeOriginal?.description;
+      if (dateOriginal) {
+        // Append 'Z' to treat as UTC so the date doesn't shift due to local timezone
+        const isoDate = dateOriginal.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
+        const parsed = new Date(isoDate + 'Z');
+        if (!isNaN(parsed.getTime())) {
+          exif.created_date = parsed.toISOString();
+        }
       }
     } catch {
       // EXIF extraction is best-effort
@@ -458,11 +473,13 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
               public_id: img.public_id,
               secure_url: img.secure_url,
               url: img.url,
+              original_filename: fileList[idx]?.name || (img['original_filename'] as string) || undefined,
               exif: {
                 title: serverExif.title || clientExif.title || undefined,
                 keywords: serverExif.keywords?.length ? serverExif.keywords : clientExif.keywords || undefined,
                 latitude: serverExif.latitude ?? clientExif.latitude ?? undefined,
                 longitude: serverExif.longitude ?? clientExif.longitude ?? undefined,
+                created_date: (img['created_date'] as string) || clientExif.created_date || undefined,
               },
             };
           }),

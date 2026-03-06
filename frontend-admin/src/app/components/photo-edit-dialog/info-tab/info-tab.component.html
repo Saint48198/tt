@@ -4,7 +4,7 @@
       <mat-icon class="meta-icon">fingerprint</mat-icon>
       <div class="meta-content">
         <span class="meta-label">Photo ID</span>
-        <span class="meta-value">{{ photo().photo_id }}</span>
+        <span class="meta-value">{{ state.photo().photo_id }}</span>
       </div>
     </div>
 
@@ -14,18 +14,30 @@
       <mat-icon class="meta-icon">calendar_today</mat-icon>
       <div class="meta-content">
         <span class="meta-label">Created</span>
-        <span class="meta-value">{{ photo().created_at | date:'medium' }}</span>
+        <span class="meta-value">{{ state.photo().created_date | date:'medium' }}</span>
       </div>
     </div>
 
-    @if (photo().id !== null && photo().id !== undefined) {
+    @if (state.photo().id !== null && state.photo().id !== undefined) {
       <mat-divider></mat-divider>
 
       <div class="metadata-item">
         <mat-icon class="meta-icon">dns</mat-icon>
         <div class="meta-content">
           <span class="meta-label">Database ID</span>
-          <span class="meta-value">{{ photo().id }}</span>
+          <span class="meta-value">{{ state.photo().id }}</span>
+        </div>
+      </div>
+    }
+
+    @if (state.photo().original_filename) {
+      <mat-divider></mat-divider>
+
+      <div class="metadata-item">
+        <mat-icon class="meta-icon">insert_drive_file</mat-icon>
+        <div class="meta-content">
+          <span class="meta-label">Original Filename</span>
+          <span class="meta-value">{{ state.photo().original_filename }}</span>
         </div>
       </div>
     }
@@ -37,10 +49,10 @@
       <div class="meta-content">
         <span class="meta-label">Source</span>
         <span class="meta-value source-value">
-          @if (photo().in_database) {
+          @if (state.photo().in_database) {
             <span class="source-tag source-db">Database</span>
           }
-          @if (photo().in_cloudinary) {
+          @if (state.photo().in_cloudinary) {
             <span class="source-tag source-cloud">Cloudinary</span>
           }
         </span>

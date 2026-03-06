@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,9 +11,10 @@ import { PhotosService } from '../../services/photos.service';
 import { AuthService, UserPayload } from '@shared/services';
 import { DetailsTabComponent } from './details-tab/details-tab.component';
 import { EntityTabComponent } from './entity-tab/entity-tab.component';
-import { LocationTabComponent, CitySelectedEvent } from './location-tab/location-tab.component';
+import { LocationTabComponent } from './location-tab/location-tab.component';
 import { InfoTabComponent } from './info-tab/info-tab.component';
 import { ImageLoaderComponent } from '@shared/components';
+import { PhotoEditStateService } from './photo-edit-state.service';
 
 export interface PhotoEditDialogData {
   photo: AdminPhoto;
@@ -25,6 +26,7 @@ export interface PhotoEditDialogResult {
 
 @Component({
   selector: 'app-photo-edit-dialog',
+  providers: [PhotoEditStateService],
   imports: [
     MatDialogModule,
     MatButtonModule,
@@ -48,107 +50,94 @@ export class PhotoEditDialogComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
-
-  photo = this.data.photo;
-
-  caption = '';
-  tags: string[] = [];
-  latitude: number | null = null;
-  longitude: number | null = null;
-
-  cityId: number | null = null;
-  attractionId: number | null = null;
-  stateId: number | null = null;
-
-  saving = signal(false);
+  readonly state = inject(PhotoEditStateService);
 
   private currentUser: UserPayload | null = null;
 
+  get photo(): AdminPhoto {
+    return this.state.photo();
+  }
+
   ngOnInit(): void {
+    this.state.init(this.data.photo);
+
     this.authService.currentUser$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((u) => (this.currentUser = u));
-
-    this.caption = this.photo.caption || '';
-    this.tags = [...(this.photo.tags || [])];
-    this.latitude = this.photo.latitude ?? null;
-    this.longitude = this.photo.longitude ?? null;
-    this.cityId = this.photo.city_id;
-    this.attractionId = this.photo.attraction_id;
-    this.stateId = this.photo.state_id ?? null;
   }
 
   // ── Save ──
   save(): void {
-    if (!this.photo.in_database || this.photo.id == null) {
+    const photo = this.state.photo();
+    const caption = this.state.caption();
+    const tags = this.state.tags();
+    const latitude = this.state.latitude();
+    const longitude = this.state.longitude();
+    const cityId = this.state.cityId();
+    const attractionId = this.state.attractionId();
+    const stateId = this.state.stateId();
+
+    if (!photo.in_database || photo.id == null) {
       // Photo only in Cloudinary — needs at least one entity to add to DB
-      if (!this.cityId && !this.attractionId) {
+      if (!cityId && !attractionId) {
         this.snackBar.open('Select at least a city or attraction to add this photo to the database', 'Close', {
           duration: 5000,
         });
         return;
       }
 
-      this.saving.set(true);
+      this.state.saving.set(true);
       this.photosService
         .addPhotoToDb({
-          photo_id: this.photo.photo_id,
-          url: this.photo.url,
-          caption: this.caption || null,
-          city_id: this.cityId,
-          attraction_id: this.attractionId,
-          state_id: this.stateId,
+          photo_id: photo.photo_id,
+          url: photo.url,
+          caption: caption || null,
+          city_id: cityId,
+          attraction_id: attractionId,
+          state_id: stateId,
           user_id: this.currentUser?.id,
-          latitude: this.latitude,
-          longitude: this.longitude,
-          tags: this.tags,
+          latitude,
+          longitude,
+          tags,
         })
         .subscribe({
           next: () => {
             this.snackBar.open('Photo added to database', 'Close', { duration: 3000 });
-            this.saving.set(false);
+            this.state.saving.set(false);
             this.dialogRef.close({ updated: true });
           },
           error: (err) => {
             this.snackBar.open(err?.error?.error || 'Failed to save', 'Close', { duration: 5000 });
-            this.saving.set(false);
+            this.state.saving.set(false);
           },
         });
       return;
     }
 
     // Photo exists in DB — update
-    this.saving.set(true);
+    this.state.saving.set(true);
     this.photosService
-      .updatePhoto(this.photo.id, {
-        caption: this.caption || null,
-        tags: this.tags,
-        city_id: this.cityId,
-        attraction_id: this.attractionId,
-        state_id: this.stateId,
-        latitude: this.latitude,
-        longitude: this.longitude,
+      .updatePhoto(photo.id, {
+        caption: caption || null,
+        tags,
+        city_id: cityId,
+        attraction_id: attractionId,
+        state_id: stateId,
+        country_id: this.state.countryId(),
+        latitude,
+        longitude,
       })
       .subscribe({
         next: () => {
           this.snackBar.open('Photo updated successfully', 'Close', { duration: 3000 });
-          this.saving.set(false);
+          this.state.saving.set(false);
           this.dialogRef.close({ updated: true });
         },
         error: (err) => {
           this.snackBar.open(err?.error?.error || 'Failed to update photo', 'Close', { duration: 5000 });
-          this.saving.set(false);
+          this.state.saving.set(false);
         },
       });
-  }
-
-  onCitySelectedFromLocation(event: CitySelectedEvent): void {
-    this.cityId = event.cityId;
-    if (event.stateId != null) {
-      this.stateId = event.stateId;
-    }
-    const stateSuffix = event.stateName ? `, state set to "${event.stateName}"` : '';
-    this.snackBar.open(`City set to "${event.cityName}"${stateSuffix}`, 'Close', { duration: 3000 });
   }
 
   cancel(): void {

@@ -153,6 +153,7 @@ async function init() {
         photo_id TEXT,
         latitude DOUBLE PRECISION,
         longitude DOUBLE PRECISION,
+        original_filename TEXT,
         created_date TIMESTAMP DEFAULT NOW(),
         updated_date TIMESTAMP DEFAULT NOW(),
         disabled_date TIMESTAMP,

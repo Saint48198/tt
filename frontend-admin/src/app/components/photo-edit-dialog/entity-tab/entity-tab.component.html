@@ -1,4 +1,14 @@
 <div class="tab-content">
+  <!-- Country (read-only with change link) -->
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Country</mat-label>
+    <input matInput [value]="state.countryName() || 'No country assigned'" disabled>
+    <mat-icon matPrefix>public</mat-icon>
+    <mat-hint align="end">
+      <button type="button" class="change-country-link" (click)="openChangeCountry()">Change country</button>
+    </mat-hint>
+  </mat-form-field>
+
   <!-- City Combobox -->
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>City</mat-label>
@@ -9,7 +19,7 @@
            [matAutocomplete]="cityAuto"
            placeholder="Type to search cities...">
     <mat-icon matPrefix>location_city</mat-icon>
-    @if (cityId()) {
+    @if (state.cityId()) {
       <button matSuffix mat-icon-button (click)="clearCity()" matTooltip="Clear city">
         <mat-icon>close</mat-icon>
       </button>
@@ -39,7 +49,7 @@
   </mat-form-field>
 
   <!-- State / Province Combobox -->
-  @if (allStatesCount() > 0 || stateId()) {
+  @if (allStatesCount() > 0 || state.stateId()) {
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>State / Province</mat-label>
       <input matInput
@@ -49,7 +59,7 @@
              [matAutocomplete]="stateAuto"
              placeholder="Type to search states...">
       <mat-icon matPrefix>map</mat-icon>
-      @if (stateId()) {
+      @if (state.stateId()) {
         <button matSuffix mat-icon-button (click)="clearState()" matTooltip="Clear state">
           <mat-icon>close</mat-icon>
         </button>
@@ -89,7 +99,7 @@
            [matAutocomplete]="attractionAuto"
            placeholder="Type to search attractions...">
     <mat-icon matPrefix>attractions</mat-icon>
-    @if (attractionId()) {
+    @if (state.attractionId()) {
       <button matSuffix mat-icon-button (click)="clearAttraction()" matTooltip="Clear attraction">
         <mat-icon>close</mat-icon>
       </button>

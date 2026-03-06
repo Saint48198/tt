@@ -3,7 +3,8 @@
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Caption</mat-label>
     <textarea matInput
-              [(ngModel)]="caption"
+              [ngModel]="state.caption()"
+              (ngModelChange)="state.caption.set($event)"
               placeholder="Enter a caption..."
               rows="3"
               cdkTextareaAutosize
@@ -32,7 +33,7 @@
     </mat-form-field>
 
     <mat-chip-set class="tags-chip-set">
-      @for (tag of tags(); track tag) {
+      @for (tag of state.tags(); track tag) {
         <mat-chip (removed)="removeTag(tag)" color="primary" highlighted>
           <mat-icon matChipAvatar>sell</mat-icon>
           {{ tag }}
@@ -42,7 +43,7 @@
         </mat-chip>
       }
     </mat-chip-set>
-    @if (tags().length === 0) {
+    @if (state.tags().length === 0) {
       <p class="no-tags-hint">
         <mat-icon class="hint-icon">info_outline</mat-icon>
         No tags yet — add some to organize your photos
@@ -50,7 +51,7 @@
     }
 
     <!-- Suggest Tags -->
-    @if (photoUrl()) {
+    @if (state.photo().url) {
       <div class="suggest-tags-section">
         @if (suggestingTags()) {
           <button mat-stroked-button disabled class="suggest-btn">

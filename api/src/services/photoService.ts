@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, CopyObjectCommand } from '@aws-sdk/client-s3';
 import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
@@ -12,8 +12,8 @@ interface Photo { id: string; url: string; created_at: string; format: string; }
 interface SearchPhotoResult { photo_id: string; url: string; title: string; caption: string; created_at: string; format: string; }
 interface SearchPhotosRequest { folder?: string; tag?: string; max_results?: number; next_cursor?: string; }
 interface SearchPhotosResponse { photos: SearchPhotoResult[]; next_cursor: string | null; }
-interface UploadFile { filepath: string; newFilename: string; }
-interface UploadPhotosRequest { files: UploadFile[]; visibility?: string; tags?: string; title?: string; description?: string; country?: string; clientExifData?: Array<{ title?: string; keywords?: string[]; latitude?: number; longitude?: number }>; }
+interface UploadFile { filepath: string; newFilename: string; originalFilename?: string; }
+interface UploadPhotosRequest { files: UploadFile[]; visibility?: string; tags?: string; title?: string; description?: string; country?: string; clientExifData?: Array<{ title?: string; keywords?: string[]; latitude?: number; longitude?: number; created_date?: string }>; }
 interface UploadedPhoto { public_id: string; secure_url: string; url: string; exif?: ExifMetadata; [key: string]: any; }
 interface ExifMetadata { title?: string; keywords?: string[]; latitude?: number; longitude?: number; }
 interface RemovePhotoRequest { entityType: string; entityId: string | number; photoId: string | number; }
@@ -57,6 +57,7 @@ class PhotoService {
         UNIQUE(photo_id, tag_id)
       )
     `);
+    await db.exec(`ALTER TABLE photos ADD COLUMN IF NOT EXISTS original_filename TEXT`);
     this.initialized = true;
   }
 
@@ -104,6 +105,18 @@ class PhotoService {
    */
   private async deleteFromS3(key: string): Promise<void> {
     await this.s3.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+  }
+
+  /**
+   * Move an S3 object from one key to another (copy + delete).
+   */
+  private async moveS3Object(oldKey: string, newKey: string): Promise<void> {
+    await this.s3.send(new CopyObjectCommand({
+      Bucket: this.bucket,
+      CopySource: `${this.bucket}/${oldKey}`,
+      Key: newKey,
+    }));
+    await this.deleteFromS3(oldKey);
   }
 
   /**
@@ -199,10 +212,24 @@ class PhotoService {
     latitude?: number | null; longitude?: number | null;
     country_id?: number | null; state_id?: number | null;
     tags?: string[];
+    created_date?: string | null;
+    original_filename?: string | null;
   }): Promise<{ id: number }> {
-    const { photo_id, url, caption, city_id, attraction_id, latitude, longitude, country_id } = params;
+    await this.ensureTable();
+    const { photo_id, url, caption, city_id, attraction_id, latitude, longitude, country_id, created_date, original_filename } = params;
     let { state_id } = params;
     if (!photo_id || !url) throw new Error('Missing required fields: photo_id and url.');
+
+    // Check for duplicate by original_filename
+    if (original_filename) {
+      const existing = await db.get<{ id: number }>(
+        'SELECT id FROM photos WHERE original_filename = $1 AND disabled_date IS NULL',
+        [original_filename]
+      );
+      if (existing) {
+        throw new Error(`DUPLICATE: A photo with filename "${original_filename}" already exists.`);
+      }
+    }
 
     let userId = params.user_id;
     if (userId) {
@@ -251,8 +278,8 @@ class PhotoService {
     }
 
     const result = await db.run(
-      `INSERT INTO photos (photo_id, url, user_id, city_id, attraction_id, caption, latitude, longitude, country_id, state_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
-      [photo_id, url, userId, city_id ?? null, attraction_id ?? null, caption ?? null, latitude ?? null, longitude ?? null, resolvedCountryId, state_id ?? null]
+      `INSERT INTO photos (photo_id, url, user_id, city_id, attraction_id, caption, latitude, longitude, country_id, state_id, created_date, original_filename) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
+      [photo_id, url, userId, city_id ?? null, attraction_id ?? null, caption ?? null, latitude ?? null, longitude ?? null, resolvedCountryId, state_id ?? null, created_date ?? new Date().toISOString(), original_filename ?? null]
     );
     const newId = result.rows[0].id;
 
@@ -401,8 +428,8 @@ class PhotoService {
     return { photos, next_cursor: rows.length >= max_results ? lastId : null };
   }
 
-  private async extractExifMetadata(filePath: string): Promise<ExifMetadata> {
-    const metadata: ExifMetadata = {};
+  private async extractExifMetadata(filePath: string): Promise<ExifMetadata & { created_date?: string }> {
+    const metadata: ExifMetadata & { created_date?: string } = {};
     try {
       const buffer = fs.readFileSync(filePath);
       const tags = ExifReader.load(buffer, { expanded: true });
@@ -439,6 +466,18 @@ class PhotoService {
       if (gps?.Latitude !== undefined && gps?.Longitude !== undefined) {
         metadata.latitude = gps.Latitude;
         metadata.longitude = gps.Longitude;
+      }
+
+      // Extract original date taken from DateTimeOriginal
+      const dateOriginal = tags.exif?.DateTimeOriginal?.description;
+      if (dateOriginal) {
+        // EXIF date format is "YYYY:MM:DD HH:MM:SS" — convert to ISO
+        // Append 'Z' to treat as UTC so the date doesn't shift due to local timezone
+        const isoDate = dateOriginal.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
+        const parsed = new Date(isoDate + 'Z');
+        if (!isNaN(parsed.getTime())) {
+          metadata.created_date = parsed.toISOString();
+        }
       }
     } catch (err) {
       console.warn('Failed to extract EXIF metadata:', err);
@@ -480,7 +519,8 @@ class PhotoService {
         latitude: serverExif.latitude ?? clientExif.latitude ?? undefined,
         longitude: serverExif.longitude ?? clientExif.longitude ?? undefined,
       };
-      console.log('[EXIF] Merged metadata for', file.newFilename, JSON.stringify(exif));
+      const dateTaken = serverExif.created_date || clientExif.created_date || undefined;
+      console.log('[EXIF] Merged metadata for', file.newFilename, JSON.stringify(exif), 'created_date:', dateTaken);
 
       const effectiveTitle = title || exif.title || '';
       const userTags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
@@ -516,6 +556,8 @@ class PhotoService {
         url: publicUrl,
         format,
         created_at: new Date().toISOString(),
+        created_date: dateTaken || new Date().toISOString(),
+        original_filename: file.originalFilename || file.newFilename,
         tags: mergedTags,
         context: { custom: { caption: effectiveTitle, alt: description } },
         exif,
@@ -561,7 +603,7 @@ class PhotoService {
     photoId: number, caption: string | null, tags?: string[],
     cityId?: number | null, attractionId?: number | null,
     latitude?: number | null, longitude?: number | null,
-    stateId?: number | null,
+    stateId?: number | null, countryId?: number | null,
   ): Promise<{ success: boolean }> {
 
     const setClauses = ['caption = $1', 'updated_date = NOW()'];
@@ -574,8 +616,36 @@ class PhotoService {
     if (longitude !== undefined) { setClauses.push(`longitude = $${idx++}`); params.push(longitude); }
     if (stateId !== undefined) { setClauses.push(`state_id = $${idx++}`); params.push(stateId); }
 
-    // Resolve and update country_id when city or attraction changes
-    if (cityId !== undefined || attractionId !== undefined) {
+    // If country_id is explicitly provided, use it directly
+    if (countryId !== undefined) {
+      setClauses.push(`country_id = $${idx++}`);
+      params.push(countryId);
+
+      // Move S3 file to the new country folder
+      if (countryId != null) {
+        try {
+          const photo = await db.get<{ photo_id: string }>('SELECT photo_id FROM photos WHERE id = $1', [photoId]);
+          if (photo?.photo_id) {
+            const oldKey = photo.photo_id;
+            // Look up new country name
+            const country = await db.get<{ name: string }>('SELECT name FROM countries WHERE id = $1', [countryId]);
+            if (country?.name) {
+              // Extract extension from old key
+              const ext = oldKey.split('.').pop() || 'jpg';
+              const newKey = this.buildS3Key(ext, country.name);
+              await this.moveS3Object(oldKey, newKey);
+              // Update photo_id (S3 key) in the DB
+              setClauses.push(`photo_id = $${idx++}`);
+              params.push(newKey);
+              console.log(`[S3] Moved photo from "${oldKey}" to "${newKey}"`);
+            }
+          }
+        } catch (err) {
+          console.warn('[S3] Failed to move photo to new country folder:', err);
+        }
+      }
+    } else if (cityId !== undefined || attractionId !== undefined) {
+      // Resolve country_id from city or attraction when not explicitly provided
       let resolvedCountryId: number | null = null;
       const effectiveCityId = cityId !== undefined ? cityId : null;
       const effectiveAttractionId = attractionId !== undefined ? attractionId : null;
@@ -606,9 +676,11 @@ class PhotoService {
   }
 
   private async getAllDbPhotos(): Promise<Array<any>> {
+    await this.ensureTable();
     const rows = await db.all<any>(
       `SELECT p.id, p.url, p.user_id, p.city_id, p.attraction_id, p.caption, p.created_at, p.photo_id,
               p.latitude, p.longitude, p.created_date, p.updated_date, p.disabled_date, p.country_id, p.state_id,
+              p.original_filename,
               c.name as city_name, a.name as attraction_name, s.name as state_name, co.name as country_name
        FROM photos p
        LEFT JOIN cities c ON p.city_id = c.id
@@ -626,6 +698,7 @@ class PhotoService {
         created_at: row.created_at, photo_id: row.photo_id,
         latitude: row.latitude || null, longitude: row.longitude || null,
         created_date: row.created_date, updated_date: row.updated_date, disabled_date: row.disabled_date,
+        original_filename: row.original_filename || null,
         city_id: row.city_id || null, city_name: row.city_name || null,
         attraction_id: row.attraction_id || null, attraction_name: row.attraction_name || null,
         state_id: row.state_id || null, state_name: row.state_name || null,
