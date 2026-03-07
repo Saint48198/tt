@@ -26,10 +26,17 @@
 }
 
 .search-bar {
+  display: flex;
+  gap: 1rem;
   margin-bottom: 1rem;
 
   .search-field {
-    width: 100%;
+    flex: 1;
+  }
+
+  .country-filter {
+    width: 240px;
+    flex-shrink: 0;
   }
 }
 

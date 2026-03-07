@@ -116,6 +116,16 @@ export class EntityTabComponent implements OnInit {
         }
       }
     });
+
+    // Reload attractions when state selection changes
+    let lastStateIdForAttractions: number | null | undefined = undefined;
+    effect(() => {
+      const stateId = this.state.stateId();
+      if (lastStateIdForAttractions !== undefined && lastStateIdForAttractions !== stateId) {
+        this.loadAttractions();
+      }
+      lastStateIdForAttractions = stateId;
+    });
   }
 
   ngOnInit(): void {
@@ -149,9 +159,14 @@ export class EntityTabComponent implements OnInit {
   private loadAttractions(): void {
     this.loadingAttractions.set(true);
     const countryId = this.state.countryId();
-    const params = countryId
-      ? { country_id: countryId, page: 1, limit: 500 }
-      : { page: 1, limit: 500 };
+    const stateId = this.state.stateId();
+    const params: { country_id?: number; state_id?: number; page: number; limit: number } = { page: 1, limit: 500 };
+    if (countryId) {
+      params.country_id = countryId;
+    }
+    if (stateId) {
+      params.state_id = stateId;
+    }
     this.attractionsService.getAttractions(params).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.allAttractions.set(res.attractions.map((a) => ({ id: a.id, name: a.name })));

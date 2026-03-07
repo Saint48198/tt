@@ -11,6 +11,8 @@ interface Attraction {
   wiki_term?: string;
   country_id: number;
   country_name?: string;
+  state_id?: number;
+  state_name?: string;
   created_date?: string;
   updated_date?: string;
   disabled_date?: string;
@@ -18,6 +20,7 @@ interface Attraction {
 
 interface ListAttractionsOptions {
   country_id?: number;
+  state_id?: number;
   search?: string;
   page?: number;
   limit?: number;
@@ -29,6 +32,7 @@ interface ListAttractionsOptions {
 interface CreateAttractionData {
   name: string;
   country_id: number;
+  state_id?: number | null;
   is_unesco?: boolean;
   is_national_park?: boolean;
   lat: number;
@@ -40,6 +44,7 @@ interface CreateAttractionData {
 interface UpdateAttractionData {
   name?: string;
   country_id?: number;
+  state_id?: number | null;
   is_unesco?: boolean;
   is_national_park?: boolean;
   lat?: number;
@@ -67,7 +72,7 @@ class AttractionService {
     page: number;
     limit: number;
   }> {
-    const { country_id, search, page = 1, limit = 25, sortBy = 'attractions.name', sortOrder = 'asc', includeDisabled = false } = options;
+    const { country_id, state_id, search, page = 1, limit = 25, sortBy = 'attractions.name', sortOrder = 'asc', includeDisabled = false } = options;
 
     let sortByStr = sortBy.toString();
     const sortOrderStr = sortOrder.toString().toLowerCase();
@@ -85,6 +90,11 @@ class AttractionService {
       params.push(country_id);
     }
 
+    if (state_id !== undefined && !Number.isNaN(state_id)) {
+      whereClauses.push(`attractions.state_id = $${paramIdx++}`);
+      params.push(state_id);
+    }
+
     if (search && search.trim()) {
       whereClauses.push(`(attractions.name ILIKE $${paramIdx} OR countries.name ILIKE $${paramIdx})`);
       params.push(`%${search.trim()}%`);
@@ -96,10 +106,13 @@ class AttractionService {
     const query = `
       SELECT attractions.id, attractions.name, attractions.lat, attractions.lng,
              attractions.wiki_term, attractions.is_unesco, attractions.is_national_park,
+             attractions.state_id,
              attractions.created_date, attractions.updated_date, attractions.disabled_date,
-             countries.name AS country_name
+             countries.name AS country_name,
+             states.name AS state_name
       FROM attractions
       JOIN countries ON attractions.country_id = countries.id
+      LEFT JOIN states ON attractions.state_id = states.id
       ${whereClause}
       ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
       LIMIT $${paramIdx++} OFFSET $${paramIdx++}`;
@@ -114,6 +127,10 @@ class AttractionService {
     if (country_id !== undefined && !Number.isNaN(country_id)) {
       countWhereClauses.push(`attractions.country_id = $${countParamIdx++}`);
       countParams.push(country_id);
+    }
+    if (state_id !== undefined && !Number.isNaN(state_id)) {
+      countWhereClauses.push(`attractions.state_id = $${countParamIdx++}`);
+      countParams.push(state_id);
     }
     if (search && search.trim()) {
       countWhereClauses.push(`(attractions.name ILIKE $${countParamIdx} OR countries.name ILIKE $${countParamIdx})`);
@@ -135,31 +152,34 @@ class AttractionService {
     return db.get<Attraction>(
       `SELECT attractions.id, attractions.name, attractions.is_unesco, attractions.is_national_park,
               attractions.lat, attractions.lng, attractions.last_visited, attractions.wiki_term,
+              attractions.state_id,
               attractions.created_date, attractions.updated_date, attractions.disabled_date,
-              countries.id as country_id, countries.name as country_name
+              countries.id as country_id, countries.name as country_name,
+              states.name as state_name
        FROM attractions
        JOIN countries ON attractions.country_id = countries.id
+       LEFT JOIN states ON attractions.state_id = states.id
        WHERE attractions.id = $1 AND attractions.disabled_date IS NULL`,
       [id]
     );
   }
 
   public async createAttraction(data: CreateAttractionData): Promise<{ id: number }> {
-    const { name, country_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term } = data;
+    const { name, country_id, state_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term } = data;
     const result = await db.run(
-      `INSERT INTO attractions (name, country_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
-      [name, country_id, !!is_unesco, !!is_national_park, lat, lng, last_visited || null, wiki_term]
+      `INSERT INTO attractions (name, country_id, state_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
+      [name, country_id, state_id || null, !!is_unesco, !!is_national_park, lat, lng, last_visited || null, wiki_term]
     );
     return { id: result.rows[0].id };
   }
 
   public async updateAttraction(id: number | string, data: UpdateAttractionData): Promise<{ success: boolean; changes: number }> {
-    const { name, country_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term } = data;
+    const { name, country_id, state_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term } = data;
     const result = await db.run(
-      `UPDATE attractions SET name=$1, country_id=$2, is_unesco=$3, is_national_park=$4,
-       lat=$5, lng=$6, last_visited=$7, wiki_term=$8, updated_date=NOW() WHERE id=$9`,
-      [name, country_id, !!is_unesco, !!is_national_park, lat, lng, last_visited || null, wiki_term, id]
+      `UPDATE attractions SET name=$1, country_id=$2, state_id=$3, is_unesco=$4, is_national_park=$5,
+       lat=$6, lng=$7, last_visited=$8, wiki_term=$9, updated_date=NOW() WHERE id=$10`,
+      [name, country_id, state_id ?? null, !!is_unesco, !!is_national_park, lat, lng, last_visited || null, wiki_term, id]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }

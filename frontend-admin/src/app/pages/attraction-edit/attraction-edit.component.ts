@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -12,13 +12,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_FORMATS } from '@angular/material/core';
+import { forkJoin, of } from 'rxjs';
+import { switchMap, tap, catchError } from 'rxjs/operators';
 import { MapComponent, MapMarker } from '@shared/components';
 import { PhotoGalleryComponent } from '../../components/photo-gallery/photo-gallery.component';
 import { AttractionsService } from '../../services/attractions.service';
 import { CountriesService } from '../../services/countries.service';
+import { StatesService } from '../../services/states.service';
 import { GeocodeService } from '../../services/geocode.service';
 import { InfoService, InfoResult } from '../../services/info.service';
-import { Attraction, Country } from '../../interfaces';
+import { Country, State } from '../../interfaces';
 
 const MONTH_YEAR_FORMATS = {
   parse: { dateInput: 'MM/YYYY' },
@@ -58,10 +61,13 @@ export class AttractionEditComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly attractionsService = inject(AttractionsService);
   private readonly countriesService = inject(CountriesService);
+  private readonly statesService = inject(StatesService);
   private readonly geocodeService = inject(GeocodeService);
   private readonly infoService = inject(InfoService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
+
+  private readonly COUNTRIES_WITH_STATES = ['United States', 'United States of America', 'Canada'];
 
   form!: FormGroup;
   isEditMode = signal(false);
@@ -72,20 +78,25 @@ export class AttractionEditComponent implements OnInit {
   wikiInfo = signal<InfoResult | null>(null);
   attractionId: number | null = null;
   countries = signal<Country[]>([]);
+  states = signal<State[]>([]);
+  loadingStates = signal(false);
+  selectedCountryName = signal<string>('');
+  showStates = computed(() => this.COUNTRIES_WITH_STATES.includes(this.selectedCountryName()));
   mapMarkers = signal<MapMarker[]>([]);
   mapCenter = signal<[number, number]>([39.8283, -98.5795]);
   hasCoordinates = signal(false);
 
   ngOnInit(): void {
     this.initForm();
-    this.loadCountries();
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isEditMode.set(true);
       this.attractionId = +id;
-      this.loadAttraction(this.attractionId);
     }
+
+    this.loadInitialData();
+    this.listenForCountryChanges();
 
     this.form.get('lat')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
     this.form.get('lng')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
@@ -95,6 +106,7 @@ export class AttractionEditComponent implements OnInit {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(255)]],
       country_id: [null, [Validators.required]],
+      state_id: [null as number | null],
       lat: [null, [Validators.required]],
       lng: [null, [Validators.required]],
       is_unesco: [false],
@@ -102,6 +114,127 @@ export class AttractionEditComponent implements OnInit {
       last_visited: [null as Date | null],
       wiki_term: ['', [Validators.maxLength(255)]],
     });
+  }
+
+  /**
+   * Load countries (always) and attraction (in edit mode) in parallel via forkJoin.
+   * Once both resolve, patch the form and chain into loading states if needed.
+   */
+  private loadInitialData(): void {
+    this.loading.set(true);
+
+    const countries$ = this.countriesService.getAllCountries('name');
+    const attraction$ = this.attractionId
+      ? this.attractionsService.getAttraction(this.attractionId)
+      : of(null);
+
+    forkJoin({ countries: countries$, attraction: attraction$ })
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        // After both load, populate countries and patch form
+        tap(({ countries, attraction }) => {
+          this.countries.set(countries.countries);
+
+          if (attraction) {
+            this.form.patchValue({
+              name: attraction.name,
+              country_id: attraction.country_id,
+              lat: attraction.lat,
+              lng: attraction.lng,
+              is_unesco: attraction.is_unesco ?? false,
+              is_national_park: attraction.is_national_park ?? false,
+              last_visited: this.parseDate(attraction.last_visited),
+              wiki_term: attraction.wiki_term || '',
+            });
+            this.updateMapFromForm();
+          }
+        }),
+        // Determine if we need to load states for the current country
+        switchMap(({ countries, attraction }) => {
+          const countryId = attraction?.country_id;
+          const country = countryId
+            ? countries.countries.find((c) => c.id === countryId)
+            : undefined;
+
+          if (country && this.COUNTRIES_WITH_STATES.includes(country.name)) {
+            this.selectedCountryName.set(country.name);
+            this.loadingStates.set(true);
+            return this.statesService.getAllStates('name').pipe(
+              tap((res) => {
+                this.states.set(
+                  res.states.filter(
+                    (s) => Number(s.country_id) === Number(countryId),
+                  ),
+                );
+                this.loadingStates.set(false);
+                // Patch state_id after states are loaded so the select can match
+                if (attraction?.state_id) {
+                  this.form.patchValue({ state_id: attraction.state_id });
+                }
+              }),
+              catchError(() => {
+                this.states.set([]);
+                this.loadingStates.set(false);
+                return of(undefined);
+              }),
+            );
+          }
+          return of(undefined);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.loading.set(false);
+          // Trigger wiki lookup after everything is settled
+          if (this.form.get('wiki_term')?.value) {
+            this.lookupWikiInfo();
+          }
+        },
+        error: (err) => {
+          this.snackBar.open(
+            err?.error?.message || 'Failed to load data',
+            'Close',
+            { duration: 5000, panelClass: 'error-snackbar' },
+          );
+          this.loading.set(false);
+          if (this.isEditMode()) {
+            this.router.navigate(['/attractions']);
+          }
+        },
+      });
+  }
+
+  /**
+   * When the user changes country after initial load, reload states if US/Canada
+   * or clear them otherwise. Uses switchMap to cancel any in-flight states request.
+   */
+  private listenForCountryChanges(): void {
+    this.form.get('country_id')?.valueChanges.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      tap((countryId) => {
+        const country = this.countries().find((c) => c.id === countryId);
+        this.selectedCountryName.set(country?.name || '');
+      }),
+      switchMap((countryId) => {
+        if (this.showStates()) {
+          this.loadingStates.set(true);
+          return this.statesService.getAllStates('name').pipe(
+            tap((res) => {
+              this.states.set(res.states.filter((s) => Number(s.country_id) === Number(countryId)));
+              this.loadingStates.set(false);
+            }),
+            catchError(() => {
+              this.states.set([]);
+              this.loadingStates.set(false);
+              return of(undefined);
+            }),
+          );
+        }
+        this.states.set([]);
+        this.form.get('state_id')?.setValue(null);
+        return of(undefined);
+      }),
+    ).subscribe();
   }
 
   private parseDate(value: string | undefined): Date | null {
@@ -120,52 +253,6 @@ export class AttractionEditComponent implements OnInit {
     return `${year}-${month}-01`;
   }
 
-  private loadCountries(): void {
-    this.countriesService.getAllCountries('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => {
-        this.countries.set(response.countries);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to load countries',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-      },
-    });
-  }
-
-  private loadAttraction(id: number): void {
-    this.loading.set(true);
-    this.attractionsService.getAttraction(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (attraction: Attraction) => {
-        this.form.patchValue({
-          name: attraction.name,
-          country_id: attraction.country_id,
-          lat: attraction.lat,
-          lng: attraction.lng,
-          is_unesco: attraction.is_unesco ?? false,
-          is_national_park: attraction.is_national_park ?? false,
-          last_visited: this.parseDate(attraction.last_visited),
-          wiki_term: attraction.wiki_term || '',
-        });
-        this.loading.set(false);
-        this.updateMapFromForm();
-        if (attraction.wiki_term) {
-          this.lookupWikiInfo();
-        }
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to load attraction',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.loading.set(false);
-        this.router.navigate(['/attractions']);
-      },
-    });
-  }
 
   private updateMapFromForm(): void {
     const lat = this.form.get('lat')?.value;
@@ -271,6 +358,7 @@ export class AttractionEditComponent implements OnInit {
     const payload = {
       name: formValue.name,
       country_id: formValue.country_id,
+      state_id: formValue.state_id || null,
       lat: +formValue.lat,
       lng: +formValue.lng,
       is_unesco: formValue.is_unesco || false,

@@ -6,6 +6,8 @@ export interface Attraction {
   wiki_term?: string;
   country_name?: string;
   country_id?: number;
+  state_id?: number | null;
+  state_name?: string;
   is_unesco?: boolean;
   is_national_park?: boolean;
   last_visited?: string;
@@ -23,6 +25,7 @@ export interface AttractionListResponse {
 
 export interface AttractionListParams {
   country_id?: number;
+  state_id?: number;
   search?: string;
   page?: number;
   limit?: number;
@@ -34,6 +37,7 @@ export interface AttractionListParams {
 export interface CreateAttractionRequest {
   name: string;
   country_id: number;
+  state_id?: number | null;
   lat: number;
   lng: number;
   is_unesco?: boolean;

@@ -80,6 +80,7 @@ async function init() {
         lat DOUBLE PRECISION NOT NULL,
         lng DOUBLE PRECISION NOT NULL,
         country_id INTEGER NOT NULL,
+        state_id INTEGER,
         is_unesco BOOLEAN DEFAULT FALSE,
         is_national_park BOOLEAN DEFAULT FALSE,
         wiki_term TEXT,
@@ -87,7 +88,8 @@ async function init() {
         created_date TIMESTAMP DEFAULT NOW(),
         updated_date TIMESTAMP DEFAULT NOW(),
         disabled_date TIMESTAMP,
-        FOREIGN KEY (country_id) REFERENCES countries(id)
+        FOREIGN KEY (country_id) REFERENCES countries(id),
+        FOREIGN KEY (state_id) REFERENCES states(id)
       );
     `);
 

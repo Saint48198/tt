@@ -46,6 +46,23 @@
         </mat-form-field>
       </div>
 
+      @if (showStates()) {
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field full-width">
+            <mat-label>State / Province</mat-label>
+            <mat-select formControlName="state_id" placeholder="Select a state/province">
+              <mat-option [value]="null">— None —</mat-option>
+              @for (state of states(); track state.id) {
+                <mat-option [value]="state.id">{{ state.name }}</mat-option>
+              }
+            </mat-select>
+            @if (loadingStates()) {
+              <mat-hint>Loading states...</mat-hint>
+            }
+          </mat-form-field>
+        </div>
+      }
+
       <div class="form-row-with-action">
         <div class="form-row two-col">
           <mat-form-field appearance="outline" class="form-field">
