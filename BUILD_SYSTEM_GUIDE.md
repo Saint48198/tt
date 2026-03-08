@@ -29,6 +29,7 @@ We've created automated tools and guidelines to prevent these issues.
 ```
 
 This script will:
+
 - ✅ Generate the component using Nx
 - ✅ Automatically add exports to `index.ts`
 - ✅ Build the project to validate
@@ -58,6 +59,7 @@ Before committing, run the validation script:
 ```
 
 This checks for:
+
 - Missing exports in library index files
 - Invalid cross-library imports
 - TypeScript compilation errors
@@ -76,12 +78,12 @@ This checks for:
 
 #### Common Build Errors and Fixes
 
-| Error | Fix |
-|-------|-----|
-| `TS1205: Re-exporting a type when 'isolatedModules' is enabled` | Use `export type { MyType }` instead of `export { MyType }` |
-| `TS2307: Cannot find module '@shared/...'` | Import from `@shared/services` not `@shared/services/subfolder` |
-| `TS7006: Parameter 'x' implicitly has an 'any' type` | Add explicit type: `(x: SomeType) => {}` |
-| `TS2571: Object is of type 'unknown'` | Check service is imported and injected correctly |
+| Error                                                           | Fix                                                             |
+| --------------------------------------------------------------- | --------------------------------------------------------------- |
+| `TS1205: Re-exporting a type when 'isolatedModules' is enabled` | Use `export type { MyType }` instead of `export { MyType }`     |
+| `TS2307: Cannot find module '@shared/...'`                      | Import from `@shared/services` not `@shared/services/subfolder` |
+| `TS7006: Parameter 'x' implicitly has an 'any' type`            | Add explicit type: `(x: SomeType) => {}`                        |
+| `TS2571: Object is of type 'unknown'`                           | Check service is imported and injected correctly                |
 
 #### Path Aliases (Always Use These!)
 
@@ -233,13 +235,13 @@ export type { LoginResponse, UserPayload } from './lib/auth/auth.service';
 // ✅ Correct
 this.service.getData().subscribe({
   next: (data: MyDataType) => {},
-  error: (error: Error) => {}
+  error: (error: Error) => {},
 });
 
 // ❌ Wrong - implicit 'any'
 this.service.getData().subscribe({
   next: (data) => {},
-  error: (error) => {}
+  error: (error) => {},
 });
 ```
 
@@ -248,11 +250,9 @@ this.service.getData().subscribe({
 ```html
 <!-- ✅ New syntax -->
 @if (condition) {
-  <div>Content</div>
-}
-
-@for (item of items; track item.id) {
-  <div>{{ item.name }}</div>
+<div>Content</div>
+} @for (item of items; track item.id) {
+<div>{{ item.name }}</div>
 }
 
 <!-- ❌ Old syntax (still works but discouraged) -->
@@ -265,12 +265,14 @@ this.service.getData().subscribe({
 ## 🚨 Common Mistakes to Avoid
 
 ### ❌ Don't: Create component without adding to index.ts
+
 ```bash
 npx nx g component my-component --project=shared-components
 # Oops! Forgot to export it
 ```
 
 ### ✅ Do: Use the automated script
+
 ```bash
 ./create-component.sh my-component shared-components
 # Automatically exports and validates
@@ -279,11 +281,13 @@ npx nx g component my-component --project=shared-components
 ---
 
 ### ❌ Don't: Use relative imports across libraries
+
 ```typescript
 import { SomeService } from '../../../shared/services/src/lib/some.service';
 ```
 
 ### ✅ Do: Use path aliases
+
 ```typescript
 import { SomeService } from '@shared/services';
 ```
@@ -291,12 +295,14 @@ import { SomeService } from '@shared/services';
 ---
 
 ### ❌ Don't: Export types with regular export
+
 ```typescript
 export { MyInterface, MyType } from './file';
 // Error: TS1205: Re-exporting a type...
 ```
 
 ### ✅ Do: Use export type
+
 ```typescript
 export type { MyInterface, MyType } from './file';
 ```
@@ -312,6 +318,7 @@ npx nx build <project-name>
 ```
 
 Look for:
+
 - `TS1205` - Type export issue
 - `TS2307` - Module not found
 - `TS7006` - Implicit any type
@@ -370,4 +377,3 @@ If you encounter issues:
 5. ✅ Run `./validate-build.sh` before committing
 
 **The scripts handle most of this automatically!**
-

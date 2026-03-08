@@ -34,19 +34,19 @@ async function emptyBucket() {
 
     console.log(`Found ${objects.length} objects to delete...`);
 
-    await s3.send(new DeleteObjectsCommand({
-      Bucket: bucket,
-      Delete: {
-        Objects: objects.map((obj) => ({ Key: obj.Key })),
-        Quiet: true,
-      },
-    }));
+    await s3.send(
+      new DeleteObjectsCommand({
+        Bucket: bucket,
+        Delete: {
+          Objects: objects.map((obj) => ({ Key: obj.Key })),
+          Quiet: true,
+        },
+      })
+    );
     totalDeleted += objects.length;
     console.log(`Deleted ${objects.length} objects (total: ${totalDeleted})`);
 
-    continuationToken = listResponse.IsTruncated
-      ? listResponse.NextContinuationToken
-      : undefined;
+    continuationToken = listResponse.IsTruncated ? listResponse.NextContinuationToken : undefined;
   } while (continuationToken);
 
   console.log(`\nDone! Deleted ${totalDeleted} total objects from bucket "${bucket}".`);
@@ -56,4 +56,3 @@ emptyBucket().catch((err) => {
   console.error('Error emptying bucket:', err);
   process.exit(1);
 });
-

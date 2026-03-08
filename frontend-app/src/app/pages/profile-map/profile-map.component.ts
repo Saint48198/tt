@@ -54,9 +54,10 @@ export class ProfileMapComponent implements OnInit {
   hasMarkers = computed(() => this.markers().length > 0);
 
   ngOnInit(): void {
-    const name = this.route.parent?.snapshot.paramMap.get('username')
-      ?? this.route.snapshot.paramMap.get('username')
-      ?? '';
+    const name =
+      this.route.parent?.snapshot.paramMap.get('username') ??
+      this.route.snapshot.paramMap.get('username') ??
+      '';
     this.username.set(name);
     this.loadProfile(name);
   }
@@ -65,23 +66,22 @@ export class ProfileMapComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
-    this.http.get<PublicProfile>(`/api/public/profile/${encodeURIComponent(username)}`)
+    this.http
+      .get<PublicProfile>(`/api/public/profile/${encodeURIComponent(username)}`)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-      next: (profile) => {
-        this.profile.set(profile);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        if (err.status === 404) {
-          this.error.set('User not found');
-        } else {
-          this.error.set('Failed to load profile');
-        }
-        this.loading.set(false);
-      },
-    });
+        next: (profile) => {
+          this.profile.set(profile);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          if (err.status === 404) {
+            this.error.set('User not found');
+          } else {
+            this.error.set('Failed to load profile');
+          }
+          this.loading.set(false);
+        },
+      });
   }
 }
-
-

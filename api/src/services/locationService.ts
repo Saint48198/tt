@@ -37,10 +37,7 @@ class LocationService {
 
     // Update city if provided
     if (city) {
-      const result = await db.run(
-        `UPDATE cities SET last_visited = NOW() WHERE name = $1`,
-        [city]
-      );
+      const result = await db.run(`UPDATE cities SET last_visited = NOW() WHERE name = $1`, [city]);
 
       if (result.rowCount > 0) {
         updated = true;
@@ -49,10 +46,9 @@ class LocationService {
 
     // Update state if provided and country is US or Canada
     if (state && (country === 'United States' || country === 'Canada')) {
-      const result = await db.run(
-        `UPDATE states SET last_visited = NOW() WHERE name = $1`,
-        [state]
-      );
+      const result = await db.run(`UPDATE states SET last_visited = NOW() WHERE name = $1`, [
+        state,
+      ]);
 
       if (result.rowCount > 0) {
         updated = true;
@@ -61,10 +57,9 @@ class LocationService {
 
     // Update country if provided
     if (country) {
-      const result = await db.run(
-        `UPDATE countries SET last_visited = NOW() WHERE name = $1`,
-        [country]
-      );
+      const result = await db.run(`UPDATE countries SET last_visited = NOW() WHERE name = $1`, [
+        country,
+      ]);
 
       if (result.rowCount > 0) {
         updated = true;
@@ -79,4 +74,3 @@ class LocationService {
 }
 
 export const locationService = LocationService.getInstance();
-

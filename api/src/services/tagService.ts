@@ -35,7 +35,9 @@ class TagService {
   }
 
   public static getInstance(): TagService {
-    if (!TagService.instance) { TagService.instance = new TagService(); }
+    if (!TagService.instance) {
+      TagService.instance = new TagService();
+    }
     return TagService.instance;
   }
 
@@ -84,12 +86,16 @@ class TagService {
 
     do {
       const url = `https://api.cloudinary.com/v1_1/${this.cloudName}/resources/search`;
-      const response: AxiosResponse = await axios.post(url, {
-        expression: 'resource_type:image',
-        with_field: 'tags',
-        max_results: 500,
-        next_cursor: nextCursor,
-      }, { auth: { username: this.apiKey, password: this.apiSecret } });
+      const response: AxiosResponse = await axios.post(
+        url,
+        {
+          expression: 'resource_type:image',
+          with_field: 'tags',
+          max_results: 500,
+          next_cursor: nextCursor,
+        },
+        { auth: { username: this.apiKey, password: this.apiSecret } }
+      );
 
       const resources = response.data?.resources ?? [];
       resources.forEach((asset: CloudinaryResource) => {
@@ -125,12 +131,11 @@ class TagService {
     ].join(' ');
 
     const body = {
-      contents: [{
-        parts: [
-          { text: prompt },
-          { inline_data: { mime_type: mimeType, data: content } },
-        ],
-      }],
+      contents: [
+        {
+          parts: [{ text: prompt }, { inline_data: { mime_type: mimeType, data: content } }],
+        },
+      ],
     };
 
     // Use gemini-2.0-flash as default model
@@ -151,18 +156,23 @@ class TagService {
       candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
     };
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '[]';
-    const cleaned = String(text).trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+    const cleaned = String(text)
+      .trim()
+      .replace(/^```(?:json)?/i, '')
+      .replace(/```$/, '')
+      .trim();
 
     let tags: string[] = [];
     try {
       tags = JSON.parse(cleaned);
     } catch {
-      tags = cleaned.split('\n').map((s: string) => s.replace(/^[-*•]\s*/, '').trim()).filter(Boolean);
+      tags = cleaned
+        .split('\n')
+        .map((s: string) => s.replace(/^[-*•]\s*/, '').trim())
+        .filter(Boolean);
     }
 
-    tags = tags
-      .map((tag) => this.normalizeTag(tag))
-      .filter(Boolean);
+    tags = tags.map((tag) => this.normalizeTag(tag)).filter(Boolean);
 
     return { tags };
   }
@@ -187,9 +197,12 @@ class TagService {
    * Normalize tag string
    */
   private normalizeTag(s: string): string {
-    return s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, '-');
+    return s
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+      .replace(/\s+/g, '-');
   }
 }
 
 export const tagService = TagService.getInstance();
-

@@ -80,9 +80,13 @@ export class PhotoEditDialogComponent implements OnInit {
     if (!photo.in_database || photo.id == null) {
       // Photo only in Cloudinary — needs at least one entity to add to DB
       if (!cityId && !attractionId) {
-        this.snackBar.open('Select at least a city or attraction to add this photo to the database', 'Close', {
-          duration: 5000,
-        });
+        this.snackBar.open(
+          'Select at least a city or attraction to add this photo to the database',
+          'Close',
+          {
+            duration: 5000,
+          }
+        );
         return;
       }
 
@@ -134,7 +138,9 @@ export class PhotoEditDialogComponent implements OnInit {
           this.dialogRef.close({ updated: true });
         },
         error: (err) => {
-          this.snackBar.open(err?.error?.error || 'Failed to update photo', 'Close', { duration: 5000 });
+          this.snackBar.open(err?.error?.error || 'Failed to update photo', 'Close', {
+            duration: 5000,
+          });
           this.state.saving.set(false);
         },
       });

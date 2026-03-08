@@ -104,8 +104,14 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     // React to lat/lng form changes to update the map
-    this.form.get('lat')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
-    this.form.get('lng')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
+    this.form
+      .get('lat')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.updateMapFromForm());
+    this.form
+      .get('lng')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.updateMapFromForm());
   }
 
   private initForm(): void {
@@ -137,33 +143,37 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   private loadCountries(): void {
-    this.countriesService.getAllCountries('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => {
-        this.countries.set(response.countries);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to load countries',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-      },
-    });
+    this.countriesService
+      .getAllCountries('name')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.countries.set(response.countries);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to load countries', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+        },
+      });
   }
 
   private loadStates(): void {
-    this.statesService.getAllStates('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => {
-        this.states.set(response.states);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to load states',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-      },
-    });
+    this.statesService
+      .getAllStates('name')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.states.set(response.states);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to load states', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+        },
+      });
   }
 
   get filteredStates(): State[] {
@@ -174,33 +184,35 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
 
   private loadCity(id: number): void {
     this.loading.set(true);
-    this.citiesService.getCity(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (city: City) => {
-        this.form.patchValue({
-          name: city.name,
-          lat: city.lat,
-          lng: city.lng,
-          country_id: city.country_id,
-          state_id: city.state_id ?? null,
-          last_visited: this.parseDate(city.last_visited),
-          wiki_term: city.wiki_term || '',
-        });
-        this.loading.set(false);
-        this.updateMapFromForm();
-        if (city.wiki_term) {
-          this.lookupWikiInfo();
-        }
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to load city',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.loading.set(false);
-        this.router.navigate(['/cities']);
-      },
-    });
+    this.citiesService
+      .getCity(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (city: City) => {
+          this.form.patchValue({
+            name: city.name,
+            lat: city.lat,
+            lng: city.lng,
+            country_id: city.country_id,
+            state_id: city.state_id ?? null,
+            last_visited: this.parseDate(city.last_visited),
+            wiki_term: city.wiki_term || '',
+          });
+          this.loading.set(false);
+          this.updateMapFromForm();
+          if (city.wiki_term) {
+            this.lookupWikiInfo();
+          }
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to load city', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.loading.set(false);
+          this.router.navigate(['/cities']);
+        },
+      });
   }
 
   private updateMapFromForm(): void {
@@ -246,25 +258,25 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
       ? { city: name, country: country.name, state: state?.name }
       : { place: name };
 
-    this.geocodeService.forwardGeocode(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        this.form.patchValue({ lat: result.lat, lng: result.lng });
-        this.snackBar.open(
-          `Coordinates found: ${result.lat}, ${result.lng}`,
-          'Close',
-          { duration: 3000 }
-        );
-        this.geocoding.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to look up coordinates',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.geocoding.set(false);
-      },
-    });
+    this.geocodeService
+      .forwardGeocode(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.form.patchValue({ lat: result.lat, lng: result.lng });
+          this.snackBar.open(`Coordinates found: ${result.lat}, ${result.lng}`, 'Close', {
+            duration: 3000,
+          });
+          this.geocoding.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to look up coordinates', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.geocoding.set(false);
+        },
+      });
   }
 
   onMonthSelected(date: Date, datepicker: MatDatepicker<Date>): void {
@@ -281,20 +293,22 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
 
     this.loadingWiki.set(true);
     this.wikiInfo.set(null);
-    this.infoService.getInfo(wikiTerm).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        this.wikiInfo.set(result);
-        this.loadingWiki.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.error || 'Failed to look up wiki info',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.loadingWiki.set(false);
-      },
-    });
+    this.infoService
+      .getInfo(wikiTerm)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.wikiInfo.set(result);
+          this.loadingWiki.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.error || 'Failed to look up wiki info', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.loadingWiki.set(false);
+        },
+      });
   }
 
   onSubmit(): void {
@@ -316,9 +330,10 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
       wiki_term: formValue.wiki_term || undefined,
     };
 
-    const request$ = this.isEditMode() && this.cityId
-      ? this.citiesService.updateCity(this.cityId, payload)
-      : this.citiesService.createCity(payload);
+    const request$ =
+      this.isEditMode() && this.cityId
+        ? this.citiesService.updateCity(this.cityId, payload)
+        : this.citiesService.createCity(payload);
 
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
@@ -341,5 +356,3 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
     });
   }
 }
-
-

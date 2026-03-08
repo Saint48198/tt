@@ -177,14 +177,10 @@ export class LightboxComponent implements AfterViewChecked {
   private preloadAdjacent(currentIndex: number, all: LightboxPhoto[]): void {
     const total = all.length;
     if (total <= 1) return;
-    const indices = [
-      (currentIndex + 1) % total,
-      (currentIndex - 1 + total) % total,
-    ];
+    const indices = [(currentIndex + 1) % total, (currentIndex - 1 + total) % total];
     for (const i of indices) {
       const img = new Image();
       img.src = all[i].url;
     }
   }
 }
-

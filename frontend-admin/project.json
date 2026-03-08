@@ -46,7 +46,7 @@
       },
       "defaultConfiguration": "production"
     },
-      "serve": {
+    "serve": {
       "continuous": true,
       "executor": "@angular/build:dev-server",
       "configurations": {

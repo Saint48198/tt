@@ -72,7 +72,7 @@ export class ExploreDetailService {
         this.loadWikiContent(fullCity.wiki_term || fullCity.name);
         this.loadPhotos('cities', fullCity.id);
       }),
-      switchMap(() => EMPTY),
+      switchMap(() => EMPTY)
     );
   }
 
@@ -94,7 +94,7 @@ export class ExploreDetailService {
         }
         this.loadPhotos('attractions', full.id);
       }),
-      switchMap(() => EMPTY),
+      switchMap(() => EMPTY)
     );
   }
 
@@ -110,7 +110,7 @@ export class ExploreDetailService {
           this.wikiContent.set(null);
           return EMPTY;
         }),
-        finalize(() => this.wikiLoading.set(false)),
+        finalize(() => this.wikiLoading.set(false))
       )
       .subscribe();
   }
@@ -144,7 +144,7 @@ export class ExploreDetailService {
           this.photos.set([]);
           return EMPTY;
         }),
-        finalize(() => this.photosLoading.set(false)),
+        finalize(() => this.photosLoading.set(false))
       )
       .subscribe();
   }
@@ -202,10 +202,7 @@ export class ExploreDetailService {
     const total = all.length;
     if (total <= 1) return;
 
-    const indices = [
-      (currentIndex + 1) % total,
-      (currentIndex - 1 + total) % total,
-    ];
+    const indices = [(currentIndex + 1) % total, (currentIndex - 1 + total) % total];
     for (const i of indices) {
       const img = new Image();
       img.src = all[i].url;
@@ -253,4 +250,3 @@ export class ExploreDetailService {
     this.photoEntityId = null;
   }
 }
-

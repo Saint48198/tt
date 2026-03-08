@@ -90,8 +90,14 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     // React to lat/lng form changes to update the map
-    this.form.get('lat')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
-    this.form.get('lng')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
+    this.form
+      .get('lat')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.updateMapFromForm());
+    this.form
+      .get('lng')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.updateMapFromForm());
   }
 
   private initForm(): void {
@@ -124,30 +130,32 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
 
   private loadCountry(id: number): void {
     this.loading.set(true);
-    this.countriesService.getCountry(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (country: Country) => {
-        this.form.patchValue({
-          name: country.name,
-          abbreviation: country.abbreviation || '',
-          lat: country.lat ?? null,
-          lng: country.lng ?? null,
-          slug: country.slug || '',
-          last_visited: this.parseDate(country.last_visited),
-          geo_map_id: country.geo_map_id || '',
-        });
-        this.loading.set(false);
-        this.updateMapFromForm();
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to load country',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.loading.set(false);
-        this.router.navigate(['/countries']);
-      },
-    });
+    this.countriesService
+      .getCountry(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (country: Country) => {
+          this.form.patchValue({
+            name: country.name,
+            abbreviation: country.abbreviation || '',
+            lat: country.lat ?? null,
+            lng: country.lng ?? null,
+            slug: country.slug || '',
+            last_visited: this.parseDate(country.last_visited),
+            geo_map_id: country.geo_map_id || '',
+          });
+          this.loading.set(false);
+          this.updateMapFromForm();
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to load country', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.loading.set(false);
+          this.router.navigate(['/countries']);
+        },
+      });
   }
 
   private updateMapFromForm(): void {
@@ -194,9 +202,10 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
       geo_map_id: formValue.geo_map_id || undefined,
     };
 
-    const request$ = this.isEditMode() && this.countryId
-      ? this.countriesService.updateCountry(this.countryId, payload)
-      : this.countriesService.createCountry(payload);
+    const request$ =
+      this.isEditMode() && this.countryId
+        ? this.countriesService.updateCountry(this.countryId, payload)
+        : this.countriesService.createCountry(payload);
 
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
@@ -227,25 +236,25 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     this.geocoding.set(true);
-    this.geocodeService.forwardGeocode({ country: name }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        this.form.patchValue({ lat: result.lat, lng: result.lng });
-        this.snackBar.open(
-          `Coordinates found: ${result.lat}, ${result.lng}`,
-          'Close',
-          { duration: 3000 }
-        );
-        this.geocoding.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to look up coordinates',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.geocoding.set(false);
-      },
-    });
+    this.geocodeService
+      .forwardGeocode({ country: name })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.form.patchValue({ lat: result.lat, lng: result.lng });
+          this.snackBar.open(`Coordinates found: ${result.lat}, ${result.lng}`, 'Close', {
+            duration: 3000,
+          });
+          this.geocoding.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to look up coordinates', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.geocoding.set(false);
+        },
+      });
   }
 
   onMonthSelected(date: Date, datepicker: MatDatepicker<Date>): void {
@@ -253,7 +262,3 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
     datepicker.close();
   }
 }
-
-
-
-

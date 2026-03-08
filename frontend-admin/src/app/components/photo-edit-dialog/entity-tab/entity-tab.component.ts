@@ -13,7 +13,10 @@ import { CitiesService } from '../../../services/cities.service';
 import { AttractionsService } from '../../../services/attractions.service';
 import { StatesService } from '../../../services/states.service';
 import { PhotoEditStateService } from '../photo-edit-state.service';
-import { ChangeCountryDialogComponent, ChangeCountryDialogResult } from './change-country-dialog.component';
+import {
+  ChangeCountryDialogComponent,
+  ChangeCountryDialogResult,
+} from './change-country-dialog.component';
 
 export interface EntityOption {
   id: number;
@@ -144,57 +147,76 @@ export class EntityTabComponent implements OnInit {
     const params = countryId
       ? { country_id: countryId, page: 1, limit: 500 }
       : { page: 1, limit: 500 };
-    this.citiesService.getCities(params).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (res) => {
-        this.allCities.set(res.cities.map((c) => ({ id: c.id, name: c.name, state_id: c.state_id, state_name: c.state_name })));
-        this.loadingCities.set(false);
-      },
-      error: () => {
-        this.allCities.set([]);
-        this.loadingCities.set(false);
-      },
-    });
+    this.citiesService
+      .getCities(params)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.allCities.set(
+            res.cities.map((c) => ({
+              id: c.id,
+              name: c.name,
+              state_id: c.state_id,
+              state_name: c.state_name,
+            }))
+          );
+          this.loadingCities.set(false);
+        },
+        error: () => {
+          this.allCities.set([]);
+          this.loadingCities.set(false);
+        },
+      });
   }
 
   private loadAttractions(): void {
     this.loadingAttractions.set(true);
     const countryId = this.state.countryId();
     const stateId = this.state.stateId();
-    const params: { country_id?: number; state_id?: number; page: number; limit: number } = { page: 1, limit: 500 };
+    const params: { country_id?: number; state_id?: number; page: number; limit: number } = {
+      page: 1,
+      limit: 500,
+    };
     if (countryId) {
       params.country_id = countryId;
     }
     if (stateId) {
       params.state_id = stateId;
     }
-    this.attractionsService.getAttractions(params).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (res) => {
-        this.allAttractions.set(res.attractions.map((a) => ({ id: a.id, name: a.name })));
-        this.loadingAttractions.set(false);
-      },
-      error: () => {
-        this.allAttractions.set([]);
-        this.loadingAttractions.set(false);
-      },
-    });
+    this.attractionsService
+      .getAttractions(params)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.allAttractions.set(res.attractions.map((a) => ({ id: a.id, name: a.name })));
+          this.loadingAttractions.set(false);
+        },
+        error: () => {
+          this.allAttractions.set([]);
+          this.loadingAttractions.set(false);
+        },
+      });
   }
 
   private loadStates(): void {
     this.loadingStates.set(true);
-    this.statesService.getAllStates('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (res) => {
-        const cid = this.state.countryId();
-        const states = cid
-          ? res.states.filter((s) => Number(s.country_id) === Number(cid))
-          : res.states;
-        this.allStates.set(states.map((s) => ({ id: s.id, name: s.name })));
-        this.loadingStates.set(false);
-      },
-      error: () => {
-        this.allStates.set([]);
-        this.loadingStates.set(false);
-      },
-    });
+    this.statesService
+      .getAllStates('name')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          const cid = this.state.countryId();
+          const states = cid
+            ? res.states.filter((s) => Number(s.country_id) === Number(cid))
+            : res.states;
+          this.allStates.set(states.map((s) => ({ id: s.id, name: s.name })));
+          this.loadingStates.set(false);
+        },
+        error: () => {
+          this.allStates.set([]);
+          this.loadingStates.set(false);
+        },
+      });
   }
 
   // ── City combobox ──
@@ -264,10 +286,12 @@ export class EntityTabComponent implements OnInit {
 
   // ── Change Country ──
   openChangeCountry(): void {
-    this.dialog.open(ChangeCountryDialogComponent, {
-      width: '400px',
-      maxHeight: '80vh',
-    }).afterClosed()
+    this.dialog
+      .open(ChangeCountryDialogComponent, {
+        width: '400px',
+        maxHeight: '80vh',
+      })
+      .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result: ChangeCountryDialogResult | undefined) => {
         if (result?.changed && result.countryId != null && result.countryName) {
@@ -288,4 +312,3 @@ export class EntityTabComponent implements OnInit {
       });
   }
 }
-

@@ -12,7 +12,11 @@
     "build:admin": "npx nx build frontend-admin",
     "build:app": "npx nx build frontend-app",
     "validate": "./validate-build.sh",
-    "component:create": "./create-component.sh"
+    "component:create": "./create-component.sh",
+    "lint": "npx nx run-many -t lint --all",
+    "lint:fix": "npx nx run-many -t lint --all -- --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,html,scss,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,html,scss,css,md}\""
   },
   "private": true,
   "devDependencies": {
@@ -53,6 +57,7 @@
     "esbuild": "^0.19.2",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
+    "eslint-plugin-prettier": "^5.2.0",
     "eslint-plugin-playwright": "^1.6.2",
     "jest": "^30.0.2",
     "jest-environment-jsdom": "^30.0.2",

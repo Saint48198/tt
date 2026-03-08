@@ -61,7 +61,7 @@ export class DashboardComponent implements OnInit {
             'Failed to load dashboard stats. Please try again later.',
           ]);
           return of(null);
-        }),
+        })
       ),
       countriesVisited: this.tripsService.getCountriesVisited().pipe(
         catchError((err) => {
@@ -71,12 +71,12 @@ export class DashboardComponent implements OnInit {
             'Failed to load countries visited. Please try again later.',
           ]);
           return of(null);
-        }),
+        })
       ),
     })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.loading.set(false)),
+        finalize(() => this.loading.set(false))
       )
       .subscribe({
         next: ({ stats, countriesVisited }) => {
@@ -85,7 +85,6 @@ export class DashboardComponent implements OnInit {
         },
       });
   }
-
 
   logout(): void {
     this.authService.logout();

@@ -42,4 +42,3 @@ export interface StateResponse {
   message?: string;
   error?: string;
 }
-

@@ -17,10 +17,7 @@ export class GeocodeService {
   /**
    * Reverse geocode: Convert latitude/longitude to city, state, country
    */
-  reverseGeocode(
-    latitude: number,
-    longitude: number
-  ): Observable<ReverseGeocodeResponse> {
+  reverseGeocode(latitude: number, longitude: number): Observable<ReverseGeocodeResponse> {
     return this.http.post<ReverseGeocodeResponse>(this.apiUrl, {
       latitude,
       longitude,
@@ -30,9 +27,7 @@ export class GeocodeService {
   /**
    * Forward geocode: Convert city/country/place to latitude/longitude
    */
-  forwardGeocode(
-    request: ForwardGeocodeRequest
-  ): Observable<ForwardGeocodeResponse> {
+  forwardGeocode(request: ForwardGeocodeRequest): Observable<ForwardGeocodeResponse> {
     return this.http.post<ForwardGeocodeResponse>(this.apiUrl, request);
   }
 
@@ -58,4 +53,3 @@ export class GeocodeService {
     });
   }
 }
-

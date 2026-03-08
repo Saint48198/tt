@@ -34,12 +34,13 @@ import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
     <lib-map
       [markers]="markers"
       [overlays]="overlays"
-      [center]="[40.7128, -74.0060]"
+      [center]="[40.7128, -74.006]"
       [zoom]="10"
       height="600px"
-      [fitBounds]="true">
+      [fitBounds]="true"
+    >
     </lib-map>
-  `
+  `,
 })
 export class ExampleComponent {
   markers: MapMarker[] = [];
@@ -138,15 +139,15 @@ export class TripMapComponent {
         fillColor: '#4CAF50',
         weight: 2,
         color: '#1B5E20',
-        fillOpacity: 0.3
-      }
-    }
+        fillOpacity: 0.3,
+      },
+    },
   ];
 
   markers: MapMarker[] = [
     { lat: 48.8566, lng: 2.3522, title: 'Paris', popup: '<b>Paris</b><br>The City of Light' },
     { lat: 43.6047, lng: 1.4442, title: 'Toulouse', popup: '<b>Toulouse</b><br>La Ville Rose' },
-    { lat: 45.7640, lng: 4.8357, title: 'Lyon', popup: '<b>Lyon</b><br>Gastronomic Capital' }
+    { lat: 45.764, lng: 4.8357, title: 'Lyon', popup: '<b>Lyon</b><br>Gastronomic Capital' },
   ];
 }
 ```
@@ -176,18 +177,18 @@ markers: MapMarker[] = [
 
 ### Inputs
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `markers` | `MapMarker[]` | `[]` | Array of marker objects to display |
-| `overlays` | `MapOverlay[]` | `[]` | Array of overlay objects (GeoJSON shapes) |
-| `center` | `[number, number]` | `[39.8283, -98.5795]` | Initial map center [latitude, longitude] |
-| `zoom` | `number` | `4` | Initial zoom level (0-19) |
-| `height` | `string` | `'500px'` | Map container height |
-| `width` | `string` | `'100%'` | Map container width |
-| `enableZoom` | `boolean` | `true` | Enable zoom controls and interactions |
-| `enableDrag` | `boolean` | `true` | Enable map dragging |
-| `fitBounds` | `boolean` | `false` | Auto-fit map to show all markers/overlays |
-| `showAttribution` | `boolean` | `true` | Show OpenStreetMap attribution |
+| Property          | Type               | Default               | Description                               |
+| ----------------- | ------------------ | --------------------- | ----------------------------------------- |
+| `markers`         | `MapMarker[]`      | `[]`                  | Array of marker objects to display        |
+| `overlays`        | `MapOverlay[]`     | `[]`                  | Array of overlay objects (GeoJSON shapes) |
+| `center`          | `[number, number]` | `[39.8283, -98.5795]` | Initial map center [latitude, longitude]  |
+| `zoom`            | `number`           | `4`                   | Initial zoom level (0-19)                 |
+| `height`          | `string`           | `'500px'`             | Map container height                      |
+| `width`           | `string`           | `'100%'`              | Map container width                       |
+| `enableZoom`      | `boolean`          | `true`                | Enable zoom controls and interactions     |
+| `enableDrag`      | `boolean`          | `true`                | Enable map dragging                       |
+| `fitBounds`       | `boolean`          | `false`               | Auto-fit map to show all markers/overlays |
+| `showAttribution` | `boolean`          | `true`                | Show OpenStreetMap attribution            |
 
 ### Public Methods
 
@@ -216,9 +217,9 @@ mapComponent.getMap(); // Get raw Leaflet map instance
 interface MapMarker {
   lat: number;
   lng: number;
-  title?: string;        // Tooltip text
-  popup?: string;        // Popup HTML content
-  icon?: L.Icon | L.DivIcon;  // Custom marker icon
+  title?: string; // Tooltip text
+  popup?: string; // Popup HTML content
+  icon?: L.Icon | L.DivIcon; // Custom marker icon
 }
 ```
 
@@ -227,7 +228,7 @@ interface MapMarker {
 ```typescript
 interface MapOverlay {
   type: 'country' | 'state' | 'custom';
-  geoJson: any;          // GeoJSON object
+  geoJson: any; // GeoJSON object
   style?: L.PathOptions; // Leaflet path styling options
   interactive?: boolean; // Enable mouse interactions
 }
@@ -260,11 +261,12 @@ import { MapComponent, MapMarker, MapOverlay } from '@tt/shared/components';
         [overlays]="overlays"
         [fitBounds]="true"
         height="600px"
-        [showAttribution]="true">
+        [showAttribution]="true"
+      >
       </lib-map>
       <button (click)="addCity()">Add Random City</button>
     </div>
-  `
+  `,
 })
 export class TripMapComponent implements AfterViewInit {
   @ViewChild('tripMap') mapComponent!: MapComponent;
@@ -277,16 +279,18 @@ export class TripMapComponent implements AfterViewInit {
         properties: { name: 'France' },
         geometry: {
           type: 'Polygon',
-          coordinates: [/* France boundary data */]
-        }
+          coordinates: [
+            /* France boundary data */
+          ],
+        },
       },
       style: {
         fillColor: '#0055A4',
         color: '#EF4135',
         weight: 3,
-        fillOpacity: 0.3
-      }
-    }
+        fillOpacity: 0.3,
+      },
+    },
   ];
 
   markers: MapMarker[] = [
@@ -294,8 +298,8 @@ export class TripMapComponent implements AfterViewInit {
       lat: 48.8566,
       lng: 2.3522,
       title: 'Paris',
-      popup: '<strong>Paris</strong><br>Visited: June 2025<br>⭐⭐⭐⭐⭐'
-    }
+      popup: '<strong>Paris</strong><br>Visited: June 2025<br>⭐⭐⭐⭐⭐',
+    },
   ];
 
   ngAfterViewInit() {
@@ -307,7 +311,7 @@ export class TripMapComponent implements AfterViewInit {
       lat: 43.6047,
       lng: 1.4442,
       title: 'Toulouse',
-      popup: '<strong>Toulouse</strong><br>To Visit'
+      popup: '<strong>Toulouse</strong><br>To Visit',
     });
   }
 }
@@ -338,5 +342,3 @@ The component includes default styling, but you can customize it further in your
 - For production, consider hosting marker icons locally
 - Call `invalidateSize()` if the map container is resized dynamically
 - GeoJSON coordinates use [longitude, latitude] order (opposite of Leaflet markers)
-
-

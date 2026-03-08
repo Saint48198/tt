@@ -35,23 +35,25 @@ export class LoginComponent {
 
     const { username, password } = this.loginForm.value;
 
-    this.authService.login(username, password).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        // Check if user has admin role
-        if (this.authService.hasRole('admin')) {
-          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-          this.router.navigateByUrl(returnUrl);
-        } else {
-          this.authService.logout();
-          this.errorMessage = 'Access denied. Admin privileges required.';
+    this.authService
+      .login(username, password)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          // Check if user has admin role
+          if (this.authService.hasRole('admin')) {
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+            this.router.navigateByUrl(returnUrl);
+          } else {
+            this.authService.logout();
+            this.errorMessage = 'Access denied. Admin privileges required.';
+            this.isLoading = false;
+          }
+        },
+        error: (error) => {
           this.isLoading = false;
-        }
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.errorMessage = error?.error?.message || 'Login failed. Please try again.';
-      },
-    });
+          this.errorMessage = error?.error?.message || 'Login failed. Please try again.';
+        },
+      });
   }
 }
-

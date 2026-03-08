@@ -63,7 +63,13 @@ export interface TrainPlan extends PlanItem {
   countryIdTo: number;
 }
 
-export type AnyPlanItem = PlanFlight | PlanAttraction | PlanAccommodation | PlanCarRental | PlanFerry | TrainPlan;
+export type AnyPlanItem =
+  | PlanFlight
+  | PlanAttraction
+  | PlanAccommodation
+  | PlanCarRental
+  | PlanFerry
+  | TrainPlan;
 export type PlanItemType = AnyPlanItem['type'];
 
 export interface CreateTripRequest {
@@ -77,5 +83,3 @@ export interface TripResponse {
   message?: string;
   error?: string;
 }
-
-

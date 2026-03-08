@@ -1,4 +1,12 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  OnDestroy,
+  signal,
+  computed,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MapComponent, MapMarker, MapOverlay, OverlayClickEvent } from '@shared/components';
 import { CountryService, Country } from '../../services/country.service';
@@ -57,9 +65,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   /** Find the country abbreviation for a GeoJSON feature name */
   private getCountryAbbr(featureName: string): string {
     const dbName = GEOJSON_TO_DB_NAME[featureName] || featureName;
-    const country = this.countries().find(
-      (c) => c.name.toLowerCase() === dbName.toLowerCase()
-    );
+    const country = this.countries().find((c) => c.name.toLowerCase() === dbName.toLowerCase());
     return country?.abbreviation || country?.name || featureName;
   }
 
@@ -106,62 +112,64 @@ export class HomeComponent implements OnInit, OnDestroy {
   private loadCountries(username: string): void {
     this.loading.set(true);
 
-    this.countryService.getVisitedCountries(username).pipe(
-      takeUntil(this.destroy$),
-      switchMap((countries) => {
-        this.countries.set(countries);
+    this.countryService
+      .getVisitedCountries(username)
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap((countries) => {
+          this.countries.set(countries);
 
-        const countryNames = countries.map((c) => c.name);
-        if (countryNames.length === 0) {
+          const countryNames = countries.map((c) => c.name);
+          if (countryNames.length === 0) {
+            this.loading.set(false);
+            return EMPTY;
+          }
+
+          return this.countryService
+            .getCountryOutlines(countryNames)
+            .pipe(takeUntil(this.destroy$));
+        })
+      )
+      .subscribe({
+        next: (geoJson) => {
+          if (geoJson.features.length > 0) {
+            const username = this.username();
+            this.mapOverlays = geoJson.features.map((feature, i) => {
+              const palette = this.countryColors[i % this.countryColors.length];
+              const featureName = feature.properties?.['name'] || '';
+              const abbr = this.getCountryAbbr(featureName);
+              return {
+                type: 'country' as const,
+                geoJson: {
+                  type: 'FeatureCollection' as const,
+                  features: [feature],
+                },
+                style: {
+                  fillColor: palette.fill,
+                  weight: 2,
+                  opacity: 0.8,
+                  color: palette.border,
+                  fillOpacity: 0.35,
+                },
+                interactive: true,
+                link: `/${username}/explore/${abbr}`,
+              };
+            });
+            this.mapMarkers = [];
+          } else {
+            this.mapMarkers = this.buildMarkers(this.countries());
+          }
           this.loading.set(false);
-          return EMPTY;
-        }
-
-        return this.countryService.getCountryOutlines(countryNames).pipe(
-          takeUntil(this.destroy$),
-        );
-      }),
-    ).subscribe({
-      next: (geoJson) => {
-        if (geoJson.features.length > 0) {
-          const username = this.username();
-          this.mapOverlays = geoJson.features.map((feature, i) => {
-            const palette = this.countryColors[i % this.countryColors.length];
-            const featureName = feature.properties?.['name'] || '';
-            const abbr = this.getCountryAbbr(featureName);
-            return {
-              type: 'country' as const,
-              geoJson: {
-                type: 'FeatureCollection' as const,
-                features: [feature],
-              },
-              style: {
-                fillColor: palette.fill,
-                weight: 2,
-                opacity: 0.8,
-                color: palette.border,
-                fillOpacity: 0.35,
-              },
-              interactive: true,
-              link: `/${username}/explore/${abbr}`,
-            };
-          });
-          this.mapMarkers = [];
-        } else {
-          this.mapMarkers = this.buildMarkers(this.countries());
-        }
-        this.loading.set(false);
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        const countries = this.countries();
-        if (countries.length > 0) {
-          this.mapMarkers = this.buildMarkers(countries);
-        }
-        this.loading.set(false);
-        this.cdr.detectChanges();
-      },
-    });
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          const countries = this.countries();
+          if (countries.length > 0) {
+            this.mapMarkers = this.buildMarkers(countries);
+          }
+          this.loading.set(false);
+          this.cdr.detectChanges();
+        },
+      });
   }
 }
-

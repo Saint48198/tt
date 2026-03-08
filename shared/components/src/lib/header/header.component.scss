@@ -97,7 +97,7 @@
     border-color: #d1d5db;
   }
 
-  &[aria-expanded="true"] {
+  &[aria-expanded='true'] {
     background: #f3f4f6;
     border-color: #667eea;
     color: #667eea;
@@ -109,7 +109,7 @@
   }
 }
 
-.user-menu-trigger[aria-expanded="true"] .menu-icon {
+.user-menu-trigger[aria-expanded='true'] .menu-icon {
   transform: rotate(180deg);
 }
 
@@ -282,7 +282,9 @@
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.875rem;
-  transition: opacity 0.2s, transform 0.1s;
+  transition:
+    opacity 0.2s,
+    transform 0.1s;
 
   &:hover {
     opacity: 0.9;
@@ -311,4 +313,3 @@
     right: -1rem;
   }
 }
-

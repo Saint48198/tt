@@ -102,4 +102,3 @@ class CheckInService {
 }
 
 export const checkInService = CheckInService.getInstance();
-

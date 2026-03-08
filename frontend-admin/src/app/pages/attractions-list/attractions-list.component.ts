@@ -1,4 +1,12 @@
-import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, filter, switchMap, tap } from 'rxjs';
 import { DatePipe, DecimalPipe } from '@angular/common';
@@ -60,7 +68,15 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
 
   private static readonly SORT_STORAGE_KEY = 'attractions_sort';
 
-  displayedColumns: string[] = ['name', 'country_name', 'tags', 'lat', 'lng', 'last_visited', 'actions'];
+  displayedColumns: string[] = [
+    'name',
+    'country_name',
+    'tags',
+    'lat',
+    'lng',
+    'last_visited',
+    'actions',
+  ];
   dataSource = new MatTableDataSource<Attraction>([]);
 
   total = signal(0);
@@ -80,23 +96,24 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
     this.loading.set(true);
 
     // Load countries first, resolve ?country= from URL, then load attractions
-    this.countriesService.getAllCountries('name').pipe(
-      takeUntilDestroyed(this.destroyRef),
-      tap((response) => {
-        this.countries.set(response.countries);
-        const countryParam = this.route.snapshot.queryParamMap.get('country');
-        if (countryParam) {
-          const normalized = countryParam.toLowerCase().replace(/-/g, ' ');
-          const match = response.countries.find(
-            (c) => c.name.toLowerCase() === normalized,
-          );
-          if (match) {
-            this.selectedCountryId.set(match.id);
+    this.countriesService
+      .getAllCountries('name')
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        tap((response) => {
+          this.countries.set(response.countries);
+          const countryParam = this.route.snapshot.queryParamMap.get('country');
+          if (countryParam) {
+            const normalized = countryParam.toLowerCase().replace(/-/g, ' ');
+            const match = response.countries.find((c) => c.name.toLowerCase() === normalized);
+            if (match) {
+              this.selectedCountryId.set(match.id);
+            }
           }
-        }
-      }),
-      switchMap(() => this.fetchAttractions()),
-    ).subscribe();
+        }),
+        switchMap(() => this.fetchAttractions())
+      )
+      .subscribe();
   }
 
   ngAfterViewInit(): void {
@@ -127,7 +144,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
     this.currentSortOrder.set(sortOrder);
     localStorage.setItem(
       AttractionsListComponent.SORT_STORAGE_KEY,
-      JSON.stringify({ sortBy, sortOrder }),
+      JSON.stringify({ sortBy, sortOrder })
     );
   }
 
@@ -137,42 +154,41 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
    */
   private fetchAttractions(
     page = 1,
-    limit = this.paginator?.pageSize || 25,
+    limit = this.paginator?.pageSize || 25
   ): Observable<AttractionListResponse> {
     this.loading.set(true);
 
-    return this.attractionsService.getAttractions({
-      page,
-      limit,
-      sortBy: this.currentSortBy() as 'name' | 'lat' | 'lng' | 'wiki_term' | 'country_name',
-      sortOrder: this.currentSortOrder(),
-      search: this.searchQuery() || undefined,
-      includeDisabled: this.includeDisabled(),
-      country_id: this.selectedCountryId() ?? undefined,
-    }).pipe(
-      tap({
-        next: (response) => {
-          this.dataSource.data = response.attractions;
-          this.total.set(response.total);
-          this.loading.set(false);
-        },
-        error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to load attractions',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' },
-          );
-          this.loading.set(false);
-        },
-      }),
-    );
+    return this.attractionsService
+      .getAttractions({
+        page,
+        limit,
+        sortBy: this.currentSortBy() as 'name' | 'lat' | 'lng' | 'wiki_term' | 'country_name',
+        sortOrder: this.currentSortOrder(),
+        search: this.searchQuery() || undefined,
+        includeDisabled: this.includeDisabled(),
+        country_id: this.selectedCountryId() ?? undefined,
+      })
+      .pipe(
+        tap({
+          next: (response) => {
+            this.dataSource.data = response.attractions;
+            this.total.set(response.total);
+            this.loading.set(false);
+          },
+          error: (err) => {
+            this.snackBar.open(err?.error?.message || 'Failed to load attractions', 'Close', {
+              duration: 5000,
+              panelClass: 'error-snackbar',
+            });
+            this.loading.set(false);
+          },
+        })
+      );
   }
 
   /** Subscribe to a fetchAttractions call (used by user-driven actions) */
   private reload(page = 1): void {
-    this.fetchAttractions(page)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe();
+    this.fetchAttractions(page).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
   private updateCountryUrl(countryId: number | null): void {
@@ -236,37 +252,39 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
   }
 
   deleteAttraction(attraction: Attraction): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Delete Attraction',
-        message: `Are you sure you want to delete "${attraction.name}"?`,
-        confirmText: 'Delete',
-        cancelText: 'Cancel',
-        icon: 'delete',
-        color: 'warn',
-      },
-      width: '420px',
-      autoFocus: false,
-      panelClass: 'confirm-dialog-panel',
-    }).afterClosed().pipe(
-      filter((confirmed) => !!confirmed),
-      switchMap(() => this.attractionsService.deleteAttraction(attraction.id)),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: () => {
-        this.snackBar.open('Attraction deleted successfully', 'Close', {
-          duration: 3000,
-        });
-        this.reload((this.paginator?.pageIndex || 0) + 1);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to delete attraction',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' },
-        );
-      },
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: {
+          title: 'Delete Attraction',
+          message: `Are you sure you want to delete "${attraction.name}"?`,
+          confirmText: 'Delete',
+          cancelText: 'Cancel',
+          icon: 'delete',
+          color: 'warn',
+        },
+        width: '420px',
+        autoFocus: false,
+        panelClass: 'confirm-dialog-panel',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap(() => this.attractionsService.deleteAttraction(attraction.id)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Attraction deleted successfully', 'Close', {
+            duration: 3000,
+          });
+          this.reload((this.paginator?.pageIndex || 0) + 1);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to delete attraction', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+        },
+      });
   }
 }
-

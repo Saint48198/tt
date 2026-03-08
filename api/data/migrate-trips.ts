@@ -29,12 +29,18 @@ async function migrate() {
       console.log('  Dropped startDate, endDate, countryId');
 
       // Add plan JSONB column
-      await client.query(`ALTER TABLE trips ADD COLUMN IF NOT EXISTS plan JSONB NOT NULL DEFAULT '[]'::jsonb`);
+      await client.query(
+        `ALTER TABLE trips ADD COLUMN IF NOT EXISTS plan JSONB NOT NULL DEFAULT '[]'::jsonb`
+      );
       console.log('  Added plan JSONB column');
 
       // Add timestamp columns
-      await client.query(`ALTER TABLE trips ADD COLUMN IF NOT EXISTS created_date TIMESTAMP DEFAULT NOW()`);
-      await client.query(`ALTER TABLE trips ADD COLUMN IF NOT EXISTS updated_date TIMESTAMP DEFAULT NOW()`);
+      await client.query(
+        `ALTER TABLE trips ADD COLUMN IF NOT EXISTS created_date TIMESTAMP DEFAULT NOW()`
+      );
+      await client.query(
+        `ALTER TABLE trips ADD COLUMN IF NOT EXISTS updated_date TIMESTAMP DEFAULT NOW()`
+      );
       console.log('  Added created_date, updated_date');
     } else {
       // Check if the table even exists; if not, create it fresh
@@ -58,9 +64,15 @@ async function migrate() {
         console.log('  Created trips table');
       } else {
         // Table exists with new schema already — just ensure columns exist
-        await client.query(`ALTER TABLE trips ADD COLUMN IF NOT EXISTS plan JSONB NOT NULL DEFAULT '[]'::jsonb`);
-        await client.query(`ALTER TABLE trips ADD COLUMN IF NOT EXISTS created_date TIMESTAMP DEFAULT NOW()`);
-        await client.query(`ALTER TABLE trips ADD COLUMN IF NOT EXISTS updated_date TIMESTAMP DEFAULT NOW()`);
+        await client.query(
+          `ALTER TABLE trips ADD COLUMN IF NOT EXISTS plan JSONB NOT NULL DEFAULT '[]'::jsonb`
+        );
+        await client.query(
+          `ALTER TABLE trips ADD COLUMN IF NOT EXISTS created_date TIMESTAMP DEFAULT NOW()`
+        );
+        await client.query(
+          `ALTER TABLE trips ADD COLUMN IF NOT EXISTS updated_date TIMESTAMP DEFAULT NOW()`
+        );
         console.log('Schema already up to date (or columns added)');
       }
     }
@@ -79,4 +91,3 @@ migrate().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-

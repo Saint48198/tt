@@ -97,5 +97,3 @@ export interface UploadPhotosResponse {
   success: boolean;
   images: UploadedPhoto[];
 }
-
-

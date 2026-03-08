@@ -66,7 +66,9 @@
   color: #475569;
   text-decoration: none;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   cursor: pointer;
 
   .jump-icon {
@@ -201,7 +203,10 @@
   justify-content: center;
   color: #64748b;
 
-  p { margin: 0; font-size: 0.9rem; }
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
 }
 
 .wiki-card {
@@ -233,7 +238,10 @@
   }
 }
 
-.wiki-icon { font-size: 1.5rem; flex-shrink: 0; }
+.wiki-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
 
 .wiki-link {
   font-size: 0.85rem;
@@ -242,7 +250,10 @@
   white-space: nowrap;
   flex-shrink: 0;
 
-  &:hover { text-decoration: underline; color: #1d4ed8; }
+  &:hover {
+    text-decoration: underline;
+    color: #1d4ed8;
+  }
 }
 
 .wiki-image {
@@ -250,7 +261,11 @@
   margin: 0 0 1rem 1.5rem;
   max-width: 220px;
 
-  img { width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; }
+  img {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
 }
 
 .wiki-extract {
@@ -309,10 +324,14 @@
   text-decoration: none;
   margin-left: 0.25rem;
 
-  &:hover { color: #5a67d8; text-decoration: underline; }
-  svg { flex-shrink: 0; }
+  &:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+  }
+  svg {
+    flex-shrink: 0;
+  }
 }
-
 
 // Loading spinner
 .loading-spinner {
@@ -325,7 +344,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // Lightbox
@@ -342,8 +363,15 @@
 }
 
 @media (max-width: 640px) {
-  .detail-grid { grid-template-columns: 1fr; }
-  .city-header-info h2 { font-size: 1.2rem; }
-  .wiki-image { float: none; margin: 0 0 1rem 0; max-width: 100%; }
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .city-header-info h2 {
+    font-size: 1.2rem;
+  }
+  .wiki-image {
+    float: none;
+    margin: 0 0 1rem 0;
+    max-width: 100%;
+  }
 }
-

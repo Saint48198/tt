@@ -37,9 +37,7 @@ router.post('/api/login', async (req: Request, res: Response) => {
 router.post('/api/logout', async (req: Request, res: Response) => {
   // Extract token from Authorization header or cookie
   const authHeader = req.headers.authorization;
-  const tokenFromHeader = authHeader?.startsWith('Bearer ')
-    ? authHeader.split(' ')[1]
-    : null;
+  const tokenFromHeader = authHeader?.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
   const token = tokenFromHeader || req.cookies?.auth_token;
 
@@ -77,9 +75,7 @@ router.get('/api/session', (req: Request, res: Response) => {
   const result = isSessionValid(token);
 
   if (!result.valid) {
-    return res
-      .status(401)
-      .json({ error: 'Invalid session', details: result.error });
+    return res.status(401).json({ error: 'Invalid session', details: result.error });
   }
 
   return res.status(200).json({
@@ -113,17 +109,13 @@ router.post('/api/verify-token', async (req: Request, res: Response) => {
     const tokenExists = await sessionService.verifyTokenExists(token);
 
     if (!tokenExists) {
-      return res
-        .status(401)
-        .json({ error: 'Invalid or revoked token' });
+      return res.status(401).json({ error: 'Invalid or revoked token' });
     }
 
     return res.status(200).json({ valid: true, user: decoded });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Invalid token';
-    return res
-      .status(401)
-      .json({ error: 'Invalid token', details: errorMessage });
+    return res.status(401).json({ error: 'Invalid token', details: errorMessage });
   }
 });
 

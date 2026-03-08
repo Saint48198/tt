@@ -7,7 +7,13 @@
   <div class="photos-grid">
     @for (photo of photos(); track photo.id; let i = $index) {
       <button class="photo-thumb" (click)="openLightbox(i)">
-        <lib-image-loader [src]="photo.url" [alt]="photo.caption || 'Photo'" [lazy]="true" [cover]="true" borderRadius="8px"></lib-image-loader>
+        <lib-image-loader
+          [src]="photo.url"
+          [alt]="photo.caption || 'Photo'"
+          [lazy]="true"
+          [cover]="true"
+          borderRadius="8px"
+        ></lib-image-loader>
         @if (photo.caption) {
           <span class="photo-caption">{{ photo.caption }}</span>
         }
@@ -21,11 +27,14 @@
         <button
           class="pagination-btn"
           [class.pagination-btn-active]="page() === $index + 1"
-          (click)="goToPage($index + 1)">
+          (click)="goToPage($index + 1)"
+        >
           {{ $index + 1 }}
         </button>
       }
-      <button class="pagination-btn" [disabled]="page() === totalPages()" (click)="nextPage()">›</button>
+      <button class="pagination-btn" [disabled]="page() === totalPages()" (click)="nextPage()">
+        ›
+      </button>
     </nav>
   }
 } @else {
@@ -39,6 +48,6 @@
   [open]="lightboxOpen()"
   [currentIndex]="lightboxIndex()"
   (closed)="onLightboxClose()"
-  (indexChange)="onLightboxIndexChange($event)">
+  (indexChange)="onLightboxIndexChange($event)"
+>
 </lib-lightbox>
-

@@ -2,22 +2,26 @@
   <!-- Country (read-only with change link) -->
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Country</mat-label>
-    <input matInput [value]="state.countryName() || 'No country assigned'" disabled>
+    <input matInput [value]="state.countryName() || 'No country assigned'" disabled />
     <mat-icon matPrefix>public</mat-icon>
     <mat-hint align="end">
-      <button type="button" class="change-country-link" (click)="openChangeCountry()">Change country</button>
+      <button type="button" class="change-country-link" (click)="openChangeCountry()">
+        Change country
+      </button>
     </mat-hint>
   </mat-form-field>
 
   <!-- City Combobox -->
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>City</mat-label>
-    <input matInput
-           type="text"
-           [value]="cityInputValue()"
-           (input)="onCityInput($any($event.target).value)"
-           [matAutocomplete]="cityAuto"
-           placeholder="Type to search cities...">
+    <input
+      matInput
+      type="text"
+      [value]="cityInputValue()"
+      (input)="onCityInput($any($event.target).value)"
+      [matAutocomplete]="cityAuto"
+      placeholder="Type to search cities..."
+    />
     <mat-icon matPrefix>location_city</mat-icon>
     @if (state.cityId()) {
       <button matSuffix mat-icon-button (click)="clearCity()" matTooltip="Clear city">
@@ -26,10 +30,12 @@
     } @else {
       <mat-icon matSuffix>arrow_drop_down</mat-icon>
     }
-    <mat-autocomplete #cityAuto="matAutocomplete"
-                      (optionSelected)="onCitySelected($event.option.value)"
-                      [displayWith]="displayCityFn"
-                      autoActiveFirstOption>
+    <mat-autocomplete
+      #cityAuto="matAutocomplete"
+      (optionSelected)="onCitySelected($event.option.value)"
+      [displayWith]="displayCityFn"
+      autoActiveFirstOption
+    >
       @for (city of filteredCities(); track city.id) {
         <mat-option [value]="city">
           <mat-icon>location_city</mat-icon>
@@ -52,12 +58,14 @@
   @if (allStatesCount() > 0 || state.stateId()) {
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>State / Province</mat-label>
-      <input matInput
-             type="text"
-             [value]="stateInputValue()"
-             (input)="onStateInput($any($event.target).value)"
-             [matAutocomplete]="stateAuto"
-             placeholder="Type to search states...">
+      <input
+        matInput
+        type="text"
+        [value]="stateInputValue()"
+        (input)="onStateInput($any($event.target).value)"
+        [matAutocomplete]="stateAuto"
+        placeholder="Type to search states..."
+      />
       <mat-icon matPrefix>map</mat-icon>
       @if (state.stateId()) {
         <button matSuffix mat-icon-button (click)="clearState()" matTooltip="Clear state">
@@ -66,10 +74,12 @@
       } @else {
         <mat-icon matSuffix>arrow_drop_down</mat-icon>
       }
-      <mat-autocomplete #stateAuto="matAutocomplete"
-                        (optionSelected)="onStateSelected($event.option.value)"
-                        [displayWith]="displayStateFn"
-                        autoActiveFirstOption>
+      <mat-autocomplete
+        #stateAuto="matAutocomplete"
+        (optionSelected)="onStateSelected($event.option.value)"
+        [displayWith]="displayStateFn"
+        autoActiveFirstOption
+      >
         @for (state of filteredStates(); track state.id) {
           <mat-option [value]="state">
             <mat-icon>map</mat-icon>
@@ -92,12 +102,14 @@
   <!-- Attraction Combobox -->
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Attraction</mat-label>
-    <input matInput
-           type="text"
-           [value]="attractionInputValue()"
-           (input)="onAttractionInput($any($event.target).value)"
-           [matAutocomplete]="attractionAuto"
-           placeholder="Type to search attractions...">
+    <input
+      matInput
+      type="text"
+      [value]="attractionInputValue()"
+      (input)="onAttractionInput($any($event.target).value)"
+      [matAutocomplete]="attractionAuto"
+      placeholder="Type to search attractions..."
+    />
     <mat-icon matPrefix>attractions</mat-icon>
     @if (state.attractionId()) {
       <button matSuffix mat-icon-button (click)="clearAttraction()" matTooltip="Clear attraction">
@@ -106,10 +118,12 @@
     } @else {
       <mat-icon matSuffix>arrow_drop_down</mat-icon>
     }
-    <mat-autocomplete #attractionAuto="matAutocomplete"
-                      (optionSelected)="onAttractionSelected($event.option.value)"
-                      [displayWith]="displayAttractionFn"
-                      autoActiveFirstOption>
+    <mat-autocomplete
+      #attractionAuto="matAutocomplete"
+      (optionSelected)="onAttractionSelected($event.option.value)"
+      [displayWith]="displayAttractionFn"
+      autoActiveFirstOption
+    >
       @for (attraction of filteredAttractions(); track attraction.id) {
         <mat-option [value]="attraction">
           <mat-icon>attractions</mat-icon>
@@ -128,4 +142,3 @@
     </mat-autocomplete>
   </mat-form-field>
 </div>
-

@@ -2,8 +2,12 @@ import bcrypt from 'bcrypt';
 import { db } from '../db';
 
 interface User {
-  id: number; username: string; email: string;
-  google_access_token?: string; google_refresh_token?: string; google_token_expiry?: number;
+  id: number;
+  username: string;
+  email: string;
+  google_access_token?: string;
+  google_refresh_token?: string;
+  google_token_expiry?: number;
   profile_icon?: string;
   instagram?: string;
   portfolio_url?: string;
@@ -11,22 +15,38 @@ interface User {
 }
 
 interface ListUsersOptions {
-  page?: number; limit?: number; all?: boolean; sortBy?: string; sortOrder?: string; includeDisabled?: boolean;
+  page?: number;
+  limit?: number;
+  all?: boolean;
+  sortBy?: string;
+  sortOrder?: string;
+  includeDisabled?: boolean;
 }
 
 class UserService {
   private static instance: UserService;
   private constructor() {}
   public static getInstance(): UserService {
-    if (!UserService.instance) { UserService.instance = new UserService(); }
+    if (!UserService.instance) {
+      UserService.instance = new UserService();
+    }
     return UserService.instance;
   }
 
   /**
    * Get all users or paginated users with sorting
    */
-  public async getUsers(options: ListUsersOptions): Promise<{ total: number; users: User[]; page?: number; limit?: number }> {
-    const { page = 1, limit = 10, all = false, sortBy = 'username', sortOrder = 'asc', includeDisabled = false } = options;
+  public async getUsers(
+    options: ListUsersOptions
+  ): Promise<{ total: number; users: User[]; page?: number; limit?: number }> {
+    const {
+      page = 1,
+      limit = 10,
+      all = false,
+      sortBy = 'username',
+      sortOrder = 'asc',
+      includeDisabled = false,
+    } = options;
     const sortByStr = sortBy.toString();
     const sortOrderStr = sortOrder.toString().toLowerCase();
     const validColumns = ['username', 'email', 'id'];
@@ -45,13 +65,17 @@ class UserService {
       GROUP BY u.id`;
 
     if (all) {
-      const users = await db.all<User>(`${baseSelect} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`);
+      const users = await db.all<User>(
+        `${baseSelect} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`
+      );
       return { total: users.length, users };
     }
 
     const offset = (page - 1) * limit;
     const countFilter = includeDisabled ? '' : 'WHERE disabled_date IS NULL';
-    const totalRow = await db.get<{ count: string }>(`SELECT COUNT(*) AS count FROM users ${countFilter}`);
+    const totalRow = await db.get<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM users ${countFilter}`
+    );
     const users = await db.all<User>(
       `${baseSelect} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT $1 OFFSET $2`,
       [limit, offset]
@@ -78,13 +102,32 @@ class UserService {
   /**
    * Update a user
    */
-  public async updateUser(id: number | string, updates: { username?: string; email?: string; passwordHash?: string; profile_icon?: string | null; instagram?: string | null; portfolio_url?: string | null }): Promise<{ success: boolean; changes: number }> {
+  public async updateUser(
+    id: number | string,
+    updates: {
+      username?: string;
+      email?: string;
+      passwordHash?: string;
+      profile_icon?: string | null;
+      instagram?: string | null;
+      portfolio_url?: string | null;
+    }
+  ): Promise<{ success: boolean; changes: number }> {
     const { username, email, passwordHash } = updates;
     const hasProfileIcon = 'profile_icon' in updates;
-    const profileIconValue = hasProfileIcon ? (updates.profile_icon || null) : undefined;
+    const profileIconValue = hasProfileIcon ? updates.profile_icon || null : undefined;
     const result = await db.run(
       `UPDATE users SET username = COALESCE($1, username), email = COALESCE($2, email), password_hash = COALESCE($3, password_hash), profile_icon = CASE WHEN $4::boolean THEN $5 ELSE profile_icon END, instagram = COALESCE($6, instagram), portfolio_url = COALESCE($7, portfolio_url) WHERE id = $8`,
-      [username, email, passwordHash, hasProfileIcon, profileIconValue, updates.instagram, updates.portfolio_url, id]
+      [
+        username,
+        email,
+        passwordHash,
+        hasProfileIcon,
+        profileIconValue,
+        updates.instagram,
+        updates.portfolio_url,
+        id,
+      ]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
@@ -93,7 +136,10 @@ class UserService {
    * Delete a user
    */
   public async deleteUser(id: number | string): Promise<{ success: boolean; changes: number }> {
-    const result = await db.run('UPDATE users SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL', [id]);
+    const result = await db.run(
+      'UPDATE users SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL',
+      [id]
+    );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 
@@ -101,7 +147,10 @@ class UserService {
    * Get user password hash
    */
   public async getUserPasswordHash(id: number | string): Promise<string | undefined> {
-    const user = await db.get<{ id: number; password_hash: string }>('SELECT id, password_hash FROM users WHERE id = $1', [id]);
+    const user = await db.get<{ id: number; password_hash: string }>(
+      'SELECT id, password_hash FROM users WHERE id = $1',
+      [id]
+    );
     return user?.password_hash;
   }
 
@@ -131,10 +180,12 @@ class UserService {
    * Get Google access token for a user
    */
   public async getGoogleAccessToken(userId: number): Promise<string | undefined> {
-    const row = await db.get<{ google_access_token: string }>('SELECT google_access_token FROM users WHERE id = $1', [userId]);
+    const row = await db.get<{ google_access_token: string }>(
+      'SELECT google_access_token FROM users WHERE id = $1',
+      [userId]
+    );
     return row?.google_access_token;
   }
-
 
   /**
    * Assign a role to a user
@@ -156,8 +207,15 @@ class UserService {
    * Change a user's password
    * Verifies current password and updates to new password
    */
-  public async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<{ success: boolean }> {
-    const user = await db.get<{ password_hash: string }>('SELECT password_hash FROM users WHERE id = $1', [userId]);
+  public async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<{ success: boolean }> {
+    const user = await db.get<{ password_hash: string }>(
+      'SELECT password_hash FROM users WHERE id = $1',
+      [userId]
+    );
     if (!user) throw new Error('User not found');
     const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
     if (!isMatch) throw new Error('Incorrect current password');
@@ -168,4 +226,3 @@ class UserService {
 }
 
 export const userService = UserService.getInstance();
-

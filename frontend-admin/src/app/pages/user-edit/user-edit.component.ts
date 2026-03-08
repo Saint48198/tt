@@ -1,4 +1,13 @@
-import { Component, DestroyRef, OnInit, inject, signal, HostListener, ElementRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+  HostListener,
+  ElementRef,
+  ViewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -99,31 +108,33 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
 
   private loadUser(id: number): void {
     this.loading.set(true);
-    this.usersService.getUser(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (user: User) => {
-        this.user.set(user);
-        this.form.patchValue({
-          username: user.username,
-          email: user.email,
-          instagram: user.instagram || '',
-          portfolio_url: user.portfolio_url || '',
-        });
-        this.profileIconPreview.set(user.profile_icon || null);
-        // Remove password validator in edit mode
-        this.form.get('password')?.clearValidators();
-        this.form.get('password')?.updateValueAndValidity();
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to load user',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.loading.set(false);
-        this.router.navigate(['/users']);
-      },
-    });
+    this.usersService
+      .getUser(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (user: User) => {
+          this.user.set(user);
+          this.form.patchValue({
+            username: user.username,
+            email: user.email,
+            instagram: user.instagram || '',
+            portfolio_url: user.portfolio_url || '',
+          });
+          this.profileIconPreview.set(user.profile_icon || null);
+          // Remove password validator in edit mode
+          this.form.get('password')?.clearValidators();
+          this.form.get('password')?.updateValueAndValidity();
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to load user', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.loading.set(false);
+          this.router.navigate(['/users']);
+        },
+      });
   }
 
   onSubmit(): void {
@@ -136,28 +147,31 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     const formValue = this.form.value;
 
     if (this.isEditMode() && this.userId) {
-      const payload: { email?: string; instagram?: string | null; portfolio_url?: string | null } = {};
+      const payload: { email?: string; instagram?: string | null; portfolio_url?: string | null } =
+        {};
       if (formValue.email) payload.email = formValue.email;
       payload.instagram = formValue.instagram?.trim() || null;
       payload.portfolio_url = formValue.portfolio_url?.trim() || null;
 
-      this.usersService.updateUser(this.userId, payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: () => {
-          this.saved = true;
-          this.snackBar.open('User updated successfully', 'Close', {
-            duration: 3000,
-          });
-          this.router.navigate(['/users']);
-        },
-        error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to update user',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
-          this.saving.set(false);
-        },
-      });
+      this.usersService
+        .updateUser(this.userId, payload)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.saved = true;
+            this.snackBar.open('User updated successfully', 'Close', {
+              duration: 3000,
+            });
+            this.router.navigate(['/users']);
+          },
+          error: (err) => {
+            this.snackBar.open(err?.error?.message || 'Failed to update user', 'Close', {
+              duration: 5000,
+              panelClass: 'error-snackbar',
+            });
+            this.saving.set(false);
+          },
+        });
     } else {
       const createPayload = {
         username: formValue.username,
@@ -172,23 +186,25 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
         return;
       }
 
-      this.usersService.createUser(createPayload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-        next: () => {
-          this.saved = true;
-          this.snackBar.open('User created successfully', 'Close', {
-            duration: 3000,
-          });
-          this.router.navigate(['/users']);
-        },
-        error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to create user',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
-          this.saving.set(false);
-        },
-      });
+      this.usersService
+        .createUser(createPayload)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.saved = true;
+            this.snackBar.open('User created successfully', 'Close', {
+              duration: 3000,
+            });
+            this.router.navigate(['/users']);
+          },
+          error: (err) => {
+            this.snackBar.open(err?.error?.message || 'Failed to create user', 'Close', {
+              duration: 5000,
+              panelClass: 'error-snackbar',
+            });
+            this.saving.set(false);
+          },
+        });
     }
   }
 
@@ -222,21 +238,23 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     this.uploadingAvatar.set(true);
-    this.usersService.uploadAvatar(this.userId, file).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (res) => {
-        this.profileIconPreview.set(res.profile_icon);
-        this.snackBar.open('Profile icon updated', 'Close', { duration: 3000 });
-        this.uploadingAvatar.set(false);
-      },
-      error: (err: { error?: { error?: string } }) => {
-        this.snackBar.open(
-          err?.error?.error || 'Failed to upload avatar',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.uploadingAvatar.set(false);
-      },
-    });
+    this.usersService
+      .uploadAvatar(this.userId, file)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.profileIconPreview.set(res.profile_icon);
+          this.snackBar.open('Profile icon updated', 'Close', { duration: 3000 });
+          this.uploadingAvatar.set(false);
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.snackBar.open(err?.error?.error || 'Failed to upload avatar', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.uploadingAvatar.set(false);
+        },
+      });
 
     // Reset the input so the same file can be re-selected
     input.value = '';
@@ -249,21 +267,23 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     this.uploadingAvatar.set(true);
-    this.usersService.removeAvatar(this.userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.profileIconPreview.set(null);
-        this.snackBar.open('Profile icon removed', 'Close', { duration: 3000 });
-        this.uploadingAvatar.set(false);
-      },
-      error: (err: { error?: { error?: string } }) => {
-        this.snackBar.open(
-          err?.error?.error || 'Failed to remove avatar',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.uploadingAvatar.set(false);
-      },
-    });
+    this.usersService
+      .removeAvatar(this.userId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.profileIconPreview.set(null);
+          this.snackBar.open('Profile icon removed', 'Close', { duration: 3000 });
+          this.uploadingAvatar.set(false);
+        },
+        error: (err: { error?: { error?: string } }) => {
+          this.snackBar.open(err?.error?.error || 'Failed to remove avatar', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.uploadingAvatar.set(false);
+        },
+      });
   }
 
   togglePasswordSection(): void {
@@ -289,24 +309,27 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     if (!this.userId) return;
 
     this.savingPassword.set(true);
-    this.usersService.changePassword(this.userId, currentPassword, newPassword).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.snackBar.open('Password changed successfully', 'Close', {
-          duration: 3000,
-        });
-        this.passwordForm.reset();
-        this.showPasswordSection.set(false);
-        this.savingPassword.set(false);
-      },
-      error: (err: { error?: { message?: string; error?: string } }) => {
-        this.snackBar.open(
-          err?.error?.message || err?.error?.error || 'Failed to change password',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.savingPassword.set(false);
-      },
-    });
+    this.usersService
+      .changePassword(this.userId, currentPassword, newPassword)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Password changed successfully', 'Close', {
+            duration: 3000,
+          });
+          this.passwordForm.reset();
+          this.showPasswordSection.set(false);
+          this.savingPassword.set(false);
+        },
+        error: (err: { error?: { message?: string; error?: string } }) => {
+          this.snackBar.open(
+            err?.error?.message || err?.error?.error || 'Failed to change password',
+            'Close',
+            { duration: 5000, panelClass: 'error-snackbar' }
+          );
+          this.savingPassword.set(false);
+        },
+      });
   }
 
   getRolesArray(): string[] {
@@ -321,4 +344,3 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     return Array.isArray(user.roles) ? user.roles : [];
   }
 }
-

@@ -47,7 +47,12 @@ const TABLES = [
 ];
 
 // Columns whose values may need timestamp conversion
-const TIMESTAMP_COLUMNS = new Set(['last_visited', 'created_at', 'updated_at', 'google_token_expiry']);
+const TIMESTAMP_COLUMNS = new Set([
+  'last_visited',
+  'created_at',
+  'updated_at',
+  'google_token_expiry',
+]);
 
 /**
  * Convert various SQLite date formats to valid PG TIMESTAMP values.
@@ -154,4 +159,3 @@ async function migrate() {
 }
 
 migrate();
-

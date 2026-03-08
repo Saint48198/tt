@@ -34,44 +34,51 @@ export interface ConfirmDialogData {
       </div>
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-    .confirm-dialog {
-      padding: 24px;
-    }
-    .confirm-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin: 0 0 1rem;
-
-      h2 {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 500;
+  styles: [
+    `
+      :host {
+        display: block;
       }
-    }
-    .confirm-icon {
-      &.warn { color: #f44336; }
-      &.primary { color: #3f51b5; }
-      &.accent { color: #ff4081; }
-    }
-    .confirm-message {
-      font-size: 0.9375rem;
-      color: #555;
-      margin: 0 0 1.5rem;
-    }
-    .confirm-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.5rem;
-    }
-  `],
+      .confirm-dialog {
+        padding: 24px;
+      }
+      .confirm-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 1rem;
+
+        h2 {
+          margin: 0;
+          font-size: 1.25rem;
+          font-weight: 500;
+        }
+      }
+      .confirm-icon {
+        &.warn {
+          color: #f44336;
+        }
+        &.primary {
+          color: #3f51b5;
+        }
+        &.accent {
+          color: #ff4081;
+        }
+      }
+      .confirm-message {
+        font-size: 0.9375rem;
+        color: #555;
+        margin: 0 0 1.5rem;
+      }
+      .confirm-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+      }
+    `,
+  ],
 })
 export class ConfirmDialogComponent {
   readonly dialogRef = inject(MatDialogRef<ConfirmDialogComponent>);
   readonly data: ConfirmDialogData = inject(MAT_DIALOG_DATA);
 }
-

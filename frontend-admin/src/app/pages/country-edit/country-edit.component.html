@@ -29,7 +29,9 @@
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Abbreviation</mat-label>
           <input matInput formControlName="abbreviation" placeholder="e.g. US" />
-          @if (form.get('abbreviation')?.hasError('required') && form.get('abbreviation')?.touched) {
+          @if (
+            form.get('abbreviation')?.hasError('required') && form.get('abbreviation')?.touched
+          ) {
             <mat-error>Abbreviation is required</mat-error>
           }
           @if (form.get('abbreviation')?.hasError('maxlength')) {
@@ -86,9 +88,18 @@
       <div class="form-row two-col">
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Last Visited</mat-label>
-          <input matInput [matDatepicker]="lastVisitedPicker" formControlName="last_visited" placeholder="YYYY-MM" />
+          <input
+            matInput
+            [matDatepicker]="lastVisitedPicker"
+            formControlName="last_visited"
+            placeholder="YYYY-MM"
+          />
           <mat-datepicker-toggle matIconSuffix [for]="lastVisitedPicker"></mat-datepicker-toggle>
-          <mat-datepicker #lastVisitedPicker startView="multi-year" (monthSelected)="onMonthSelected($event, lastVisitedPicker)"></mat-datepicker>
+          <mat-datepicker
+            #lastVisitedPicker
+            startView="multi-year"
+            (monthSelected)="onMonthSelected($event, lastVisitedPicker)"
+          ></mat-datepicker>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="form-field">
@@ -99,7 +110,6 @@
           }
         </mat-form-field>
       </div>
-
     </form>
 
     @if (hasCoordinates()) {
@@ -114,7 +124,8 @@
           [zoom]="5"
           height="400px"
           [fitBounds]="false"
-          [showAttribution]="true">
+          [showAttribution]="true"
+        >
         </lib-map>
       </div>
     }
@@ -136,5 +147,3 @@
     </div>
   }
 </div>
-
-

@@ -1,9 +1,4 @@
-import {
-  Component,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { ImageLoaderComponent } from '../image-loader/image-loader.component';
 import { LightboxComponent } from '../lightbox/lightbox.component';
 import { LightboxPhoto } from '../lightbox/lightbox.types';
@@ -38,7 +33,7 @@ export class PhotoGridComponent {
   readonly lightboxIndex = signal(0);
 
   get lightboxPhotos(): LightboxPhoto[] {
-    return this.photos().map(p => ({ url: p.url, caption: p.caption ?? undefined }));
+    return this.photos().map((p) => ({ url: p.url, caption: p.caption ?? undefined }));
   }
 
   openLightbox(index: number): void {
@@ -74,4 +69,3 @@ export class PhotoGridComponent {
     }
   }
 }
-

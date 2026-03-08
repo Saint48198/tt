@@ -55,4 +55,3 @@ export interface CountryVisited {
   lat: number;
   lng: number;
 }
-

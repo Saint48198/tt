@@ -38,9 +38,7 @@ router.delete('/api/check-ins', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Check-in log not found.' });
     }
 
-    return res
-      .status(200)
-      .json({ message: 'Check-in log deleted successfully.' });
+    return res.status(200).json({ message: 'Check-in log deleted successfully.' });
   } catch (error) {
     console.error('Error deleting check-in:', error);
     return res.status(500).json({ error: 'Failed to delete check-in log.' });

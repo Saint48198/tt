@@ -3,69 +3,83 @@
 ## 🚨 Common Issues That Break Builds
 
 ### 1. **Missing Type Exports** (Most Common)
+
 When using `isolatedModules: true`, you must export types with `export type`:
 
 ❌ **WRONG:**
+
 ```typescript
 export { SomeClass, SomeInterface } from './file';
 ```
 
 ✅ **CORRECT:**
+
 ```typescript
 export { SomeClass } from './file';
 export type { SomeInterface } from './file';
 ```
 
 ### 2. **Incorrect Import Paths**
+
 Always use the path alias defined in `tsconfig.base.json`:
 
 ❌ **WRONG:**
+
 ```typescript
 import { Something } from '@shared/services/login/login.service';
 ```
 
 ✅ **CORRECT:**
+
 ```typescript
 import { Something } from '@shared/services';
 ```
 
 ### 3. **Missing Exports in index.ts**
+
 Every new component must be exported from the library's `index.ts`:
 
 ❌ **WRONG:** Component created but not exported
 
 ✅ **CORRECT:**
+
 ```typescript
 // shared/components/src/index.ts
 export * from './lib/my-new-component/my-new-component.component';
 ```
 
 ### 4. **Missing Type Annotations**
+
 With strict TypeScript settings, all parameters need explicit types:
 
 ❌ **WRONG:**
+
 ```typescript
 subscribe({
-  next: (res) => { } // 'res' has implicit 'any' type
-})
+  next: (res) => {}, // 'res' has implicit 'any' type
+});
 ```
 
 ✅ **CORRECT:**
+
 ```typescript
 subscribe({
-  next: (res: MyResponseType) => { }
-})
+  next: (res: MyResponseType) => {},
+});
 ```
 
 ### 5. **GeoJSON Type Issues**
+
 When using GeoJSON types, ensure proper type definitions:
 
 ❌ **WRONG:**
+
 ```typescript
 geoJson: GeoJSON.GeoJsonObject; // Too generic, doesn't support 'properties'
 ```
 
 ✅ **CORRECT:**
+
 ```typescript
 geoJson: GeoJSON.Feature | GeoJSON.FeatureCollection | GeoJSON.GeoJsonObject;
 ```
@@ -77,19 +91,23 @@ geoJson: GeoJSON.Feature | GeoJSON.FeatureCollection | GeoJSON.GeoJsonObject;
 When creating a new component, follow these steps in order:
 
 ### Step 1: Create Component Files
+
 ```bash
 # Use nx generator or create manually
 npx nx g @nx/angular:component my-component --project=shared-components --standalone
 ```
 
 ### Step 2: Update index.ts IMMEDIATELY
+
 ```typescript
 // shared/components/src/index.ts
 export * from './lib/my-component/my-component.component';
 ```
 
 ### Step 3: Ensure Proper Type Exports
+
 If your component exports interfaces/types:
+
 ```typescript
 // my-component.component.ts
 export interface MyData {
@@ -97,10 +115,11 @@ export interface MyData {
   name: string;
 }
 
-export class MyComponent { }
+export class MyComponent {}
 ```
 
 Then update index.ts:
+
 ```typescript
 // index.ts
 export * from './lib/my-component/my-component.component'; // Exports everything
@@ -110,6 +129,7 @@ export type { MyData } from './lib/my-component/my-component.component';
 ```
 
 ### Step 4: Add Required Imports
+
 ```typescript
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -127,20 +147,23 @@ export class MyComponent {
 ```
 
 ### Step 5: Use Proper Template Syntax
+
 Angular 17+ control flow syntax:
+
 ```html
 <!-- Use @if instead of *ngIf -->
 @if (condition) {
-  <div>Content</div>
+<div>Content</div>
 }
 
 <!-- Use @for instead of *ngFor -->
 @for (item of items; track item.id) {
-  <div>{{ item.name }}</div>
+<div>{{ item.name }}</div>
 }
 ```
 
 ### Step 6: Import from Shared Libraries Correctly
+
 ```typescript
 // ✅ CORRECT - Use path aliases
 import { MapComponent, MapMarker } from '@shared/components';
@@ -152,6 +175,7 @@ import { MapComponent } from '../../../shared/components/src/lib/map/map.compone
 ```
 
 ### Step 7: Type Observable Subscriptions
+
 ```typescript
 import { Observable } from 'rxjs';
 
@@ -165,11 +189,12 @@ myService.getData().subscribe({
   },
   error: (error: Error) => {
     console.error(error.message);
-  }
+  },
 });
 ```
 
 ### Step 8: Run Build Check
+
 ```bash
 # Check for errors before committing
 npx nx build shared-components
@@ -184,6 +209,7 @@ npx nx build frontend-app
 If you broke the build, here's the checklist to fix it:
 
 ### 1. Check TypeScript Errors
+
 ```bash
 npx nx build <project-name> 2>&1 | grep -A5 "ERROR"
 ```
@@ -191,27 +217,35 @@ npx nx build <project-name> 2>&1 | grep -A5 "ERROR"
 ### 2. Common Fixes
 
 **Fix 1: Type Export Error**
+
 ```bash
 # Error: TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'
 ```
+
 Solution: Change `export { Type }` to `export type { Type }`
 
 **Fix 2: Module Not Found**
+
 ```bash
 # Error: TS2307: Cannot find module '@shared/services/...'
 ```
+
 Solution: Import from `@shared/services` not `@shared/services/subfolder`
 
 **Fix 3: Implicit Any Type**
+
 ```bash
 # Error: TS7006: Parameter 'x' implicitly has an 'any' type
 ```
+
 Solution: Add explicit type annotation: `(x: SomeType) => {}`
 
 **Fix 4: Object of Type Unknown**
+
 ```bash
 # Error: TS2571: Object is of type 'unknown'
 ```
+
 Solution: Check service is properly injected and imported
 
 ---
@@ -248,15 +282,17 @@ export class MyComponent {
 ```
 
 **Template (my-component.component.html):**
+
 ```html
 <div class="my-component">
   @if (data) {
-    <h3>{{ data.title }}</h3>
+  <h3>{{ data.title }}</h3>
   }
 </div>
 ```
 
 **Don't forget index.ts:**
+
 ```typescript
 // shared/components/src/index.ts
 export * from './lib/my-component/my-component.component';
@@ -287,6 +323,7 @@ shared/
 ```
 
 **Path Aliases (tsconfig.base.json):**
+
 ```json
 {
   "paths": {
@@ -321,23 +358,27 @@ Before committing new components:
 ## 💡 Pro Tips
 
 1. **Always use nx generators** - They set up the structure correctly:
+
    ```bash
    npx nx g @nx/angular:component my-component --project=shared-components --standalone
    ```
 
 2. **Test imports immediately** - Don't wait until build time:
+
    ```typescript
    // In any consuming component, try importing right away:
    import { MyComponent } from '@shared/components';
    ```
 
 3. **Use TypeScript strict mode** - It catches errors early:
+
    ```json
    "strict": true,
    "noImplicitAny": true
    ```
 
 4. **Export types properly** - Remember the `isolatedModules` setting requires `export type`:
+
    ```typescript
    export type { MyInterface, MyType };
    export { MyClass, MyEnum };
@@ -405,4 +446,3 @@ The key to preventing build breaks:
 5. ✅ Test build after each component creation
 
 **Remember:** The build breaks because of TypeScript's strict mode and `isolatedModules` setting, which are GOOD things - they catch errors early!
-

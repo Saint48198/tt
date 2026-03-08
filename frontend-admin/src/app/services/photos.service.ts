@@ -13,14 +13,16 @@ export class PhotosService {
   /**
    * Get all photos with pagination and optional filtering (merged from Cloudinary + DB)
    */
-  getAllPhotos(params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    noTags?: boolean;
-    entityType?: string;
-    entityId?: number;
-  } = {}): Observable<AllPhotosResponse> {
+  getAllPhotos(
+    params: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      noTags?: boolean;
+      entityType?: string;
+      entityId?: number;
+    } = {}
+  ): Observable<AllPhotosResponse> {
     const queryParams: Record<string, string> = {};
     if (params.page) queryParams['page'] = String(params.page);
     if (params.limit) queryParams['limit'] = String(params.limit);
@@ -34,7 +36,10 @@ export class PhotosService {
   /**
    * Get photos for a specific entity (city or attraction)
    */
-  getPhotosByEntity(entityType: 'cities' | 'attractions', entityId: number): Observable<EntityPhotosResponse> {
+  getPhotosByEntity(
+    entityType: 'cities' | 'attractions',
+    entityId: number
+  ): Observable<EntityPhotosResponse> {
     return this.http.get<EntityPhotosResponse>(`${this.apiUrl}/${entityType}/${entityId}`);
   }
 
@@ -60,10 +65,17 @@ export class PhotosService {
   /**
    * Delete a photo from an entity
    */
-  deletePhoto(entityType: 'cities' | 'attractions', entityId: number, photoId: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.apiUrl}/remove/${entityType}/${entityId}`, {
-      body: { photoId },
-    });
+  deletePhoto(
+    entityType: 'cities' | 'attractions',
+    entityId: number,
+    photoId: number
+  ): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${this.apiUrl}/remove/${entityType}/${entityId}`,
+      {
+        body: { photoId },
+      }
+    );
   }
 
   /**
@@ -97,7 +109,17 @@ export class PhotosService {
   /**
    * Upload files to S3
    */
-  uploadPhotos(files: File[], country?: string, exifData?: Array<{ title?: string; keywords?: string[]; latitude?: number; longitude?: number; created_date?: string }>): Observable<UploadPhotosResponse> {
+  uploadPhotos(
+    files: File[],
+    country?: string,
+    exifData?: Array<{
+      title?: string;
+      keywords?: string[];
+      latitude?: number;
+      longitude?: number;
+      created_date?: string;
+    }>
+  ): Observable<UploadPhotosResponse> {
     const formData = new FormData();
     files.forEach((file) => formData.append('files', file));
     if (country) formData.append('country', country);
@@ -111,7 +133,14 @@ export class PhotosService {
   bulkAddPhotos(
     entityType: 'cities' | 'attractions',
     entityId: number,
-    photos: { photo_id: string; url: string; caption?: string | null; tags?: string[]; latitude?: number | null; longitude?: number | null }[]
+    photos: {
+      photo_id: string;
+      url: string;
+      caption?: string | null;
+      tags?: string[];
+      latitude?: number | null;
+      longitude?: number | null;
+    }[]
   ): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}/bulk/add`, {
       entityType,
@@ -120,4 +149,3 @@ export class PhotosService {
     });
   }
 }
-

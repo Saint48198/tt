@@ -1,4 +1,12 @@
-import { Component, DestroyRef, OnInit, inject, signal, computed, HostListener } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+  computed,
+  HostListener,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -166,23 +174,27 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
       }
     }
 
-    return allCountries
-      .filter((c) => countryIds.has(c.id))
-      .map((c) => c.name);
+    return allCountries.filter((c) => countryIds.has(c.id)).map((c) => c.name);
   });
 
   /** Date range derived from plan items */
   derivedStartDate = computed(() => {
     const items = this.planItems();
     if (!items.length) return null;
-    const dates = items.flatMap((i) => [i.startDate, i.endDate]).filter(Boolean).sort();
+    const dates = items
+      .flatMap((i) => [i.startDate, i.endDate])
+      .filter(Boolean)
+      .sort();
     return dates[0] || null;
   });
 
   derivedEndDate = computed(() => {
     const items = this.planItems();
     if (!items.length) return null;
-    const dates = items.flatMap((i) => [i.startDate, i.endDate]).filter(Boolean).sort();
+    const dates = items
+      .flatMap((i) => [i.startDate, i.endDate])
+      .filter(Boolean)
+      .sort();
     return dates[dates.length - 1] || null;
   });
 
@@ -213,29 +225,34 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   private loadCountries(): void {
-    this.countriesService.getAllCountries('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => {
-        this.countries.set(response.countries);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to load countries',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-      },
-    });
+    this.countriesService
+      .getAllCountries('name')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.countries.set(response.countries);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to load countries', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+        },
+      });
   }
 
   private loadCities(): void {
-    this.citiesService.getAllCities('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => {
-        this.cities.set(response.cities);
-      },
-      error: () => {
-        // Cities are optional for autocomplete, fail silently
-      },
-    });
+    this.citiesService
+      .getAllCities('name')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.cities.set(response.cities);
+        },
+        error: () => {
+          // Cities are optional for autocomplete, fail silently
+        },
+      });
   }
 
   // ── Inline add new country ──
@@ -263,26 +280,34 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
     const geoMapId = `new-${slug}-${Date.now()}`;
     const lat = this.newCountryLat() ?? 0;
     const lng = this.newCountryLng() ?? 0;
-    this.countriesService.createCountry({ name, abbreviation: '', lat, lng, slug, geo_map_id: geoMapId }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => {
-        const newCountry: Country = { id: response.id!, name, abbreviation: '', lat, lng };
-        this.countries.update((c) => [...c, newCountry].sort((a, b) => a.name.localeCompare(b.name)));
-        // Set the value on the plan item form
-        if (this.planItemForm) {
-          this.planItemForm.get(fieldKey)?.setValue(response.id);
-        }
-        this.snackBar.open(`Country "${name}" added`, 'Close', { duration: 3000 });
-        this.addingNewCountryFor.set(null);
-        this.newCountryName.set('');
-        this.newCountryLat.set(null);
-        this.newCountryLng.set(null);
-        this.savingCountry.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(err?.error?.error || 'Failed to create country', 'Close', { duration: 5000, panelClass: 'error-snackbar' });
-        this.savingCountry.set(false);
-      },
-    });
+    this.countriesService
+      .createCountry({ name, abbreviation: '', lat, lng, slug, geo_map_id: geoMapId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const newCountry: Country = { id: response.id!, name, abbreviation: '', lat, lng };
+          this.countries.update((c) =>
+            [...c, newCountry].sort((a, b) => a.name.localeCompare(b.name))
+          );
+          // Set the value on the plan item form
+          if (this.planItemForm) {
+            this.planItemForm.get(fieldKey)?.setValue(response.id);
+          }
+          this.snackBar.open(`Country "${name}" added`, 'Close', { duration: 3000 });
+          this.addingNewCountryFor.set(null);
+          this.newCountryName.set('');
+          this.newCountryLat.set(null);
+          this.newCountryLng.set(null);
+          this.savingCountry.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.error || 'Failed to create country', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.savingCountry.set(false);
+        },
+      });
   }
 
   // ── Inline add new city ──
@@ -311,28 +336,41 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
     this.savingCity.set(true);
     const lat = this.newCityLat() ?? 0;
     const lng = this.newCityLng() ?? 0;
-    this.citiesService.createCity({ name, lat, lng, country_id: countryId }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => {
-        const countryName = this.countries().find((c) => c.id === countryId)?.name || '';
-        const newCity: City = { id: response.id!, name, lat, lng, country_id: countryId, country_name: countryName };
-        this.cities.update((c) => [...c, newCity].sort((a, b) => a.name.localeCompare(b.name)));
-        // Set the city name on the form field
-        if (this.planItemForm) {
-          this.planItemForm.get(fieldKey)?.setValue(name);
-        }
-        this.snackBar.open(`City "${name}" added`, 'Close', { duration: 3000 });
-        this.addingNewCityFor.set(null);
-        this.newCityName.set('');
-        this.newCityCountryId.set(null);
-        this.newCityLat.set(null);
-        this.newCityLng.set(null);
-        this.savingCity.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(err?.error?.error || 'Failed to create city', 'Close', { duration: 5000, panelClass: 'error-snackbar' });
-        this.savingCity.set(false);
-      },
-    });
+    this.citiesService
+      .createCity({ name, lat, lng, country_id: countryId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          const countryName = this.countries().find((c) => c.id === countryId)?.name || '';
+          const newCity: City = {
+            id: response.id!,
+            name,
+            lat,
+            lng,
+            country_id: countryId,
+            country_name: countryName,
+          };
+          this.cities.update((c) => [...c, newCity].sort((a, b) => a.name.localeCompare(b.name)));
+          // Set the city name on the form field
+          if (this.planItemForm) {
+            this.planItemForm.get(fieldKey)?.setValue(name);
+          }
+          this.snackBar.open(`City "${name}" added`, 'Close', { duration: 3000 });
+          this.addingNewCityFor.set(null);
+          this.newCityName.set('');
+          this.newCityCountryId.set(null);
+          this.newCityLat.set(null);
+          this.newCityLng.set(null);
+          this.savingCity.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.error || 'Failed to create city', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.savingCity.set(false);
+        },
+      });
   }
 
   lookupCountryCoords(): void {
@@ -342,17 +380,23 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
       return;
     }
     this.geocodingCountry.set(true);
-    this.geocodeService.forwardGeocode({ country: name }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        this.newCountryLat.set(result.lat);
-        this.newCountryLng.set(result.lng);
-        this.geocodingCountry.set(false);
-      },
-      error: () => {
-        this.snackBar.open('Could not find coordinates for this country', 'Close', { duration: 4000, panelClass: 'error-snackbar' });
-        this.geocodingCountry.set(false);
-      },
-    });
+    this.geocodeService
+      .forwardGeocode({ country: name })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.newCountryLat.set(result.lat);
+          this.newCountryLng.set(result.lng);
+          this.geocodingCountry.set(false);
+        },
+        error: () => {
+          this.snackBar.open('Could not find coordinates for this country', 'Close', {
+            duration: 4000,
+            panelClass: 'error-snackbar',
+          });
+          this.geocodingCountry.set(false);
+        },
+      });
   }
 
   lookupCityCoords(): void {
@@ -365,20 +409,24 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
     const country = countryId ? this.countries().find((c) => c.id === countryId) : null;
 
     this.geocodingCity.set(true);
-    const request = country
-      ? { city: name, country: country.name }
-      : { place: name };
-    this.geocodeService.forwardGeocode(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        this.newCityLat.set(result.lat);
-        this.newCityLng.set(result.lng);
-        this.geocodingCity.set(false);
-      },
-      error: () => {
-        this.snackBar.open('Could not find coordinates for this city', 'Close', { duration: 4000, panelClass: 'error-snackbar' });
-        this.geocodingCity.set(false);
-      },
-    });
+    const request = country ? { city: name, country: country.name } : { place: name };
+    this.geocodeService
+      .forwardGeocode(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.newCityLat.set(result.lat);
+          this.newCityLng.set(result.lng);
+          this.geocodingCity.set(false);
+        },
+        error: () => {
+          this.snackBar.open('Could not find coordinates for this city', 'Close', {
+            duration: 4000,
+            panelClass: 'error-snackbar',
+          });
+          this.geocodingCity.set(false);
+        },
+      });
   }
 
   filterCities(value: string): City[] {
@@ -425,36 +473,44 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
 
   private loadTrip(id: number): void {
     this.loading.set(true);
-    this.tripsService.getTrip(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (trip: Trip) => {
-        this.form.patchValue({
-          name: trip.name,
-          notes: trip.notes || '',
-        });
-        // Defensive: plan may come back as a JSON string instead of an array
-        let plan = trip.plan;
-        if (typeof plan === 'string') {
-          try {
-            plan = JSON.parse(plan);
-          } catch {
-            plan = [];
+    this.tripsService
+      .getTrip(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (trip: Trip) => {
+          this.form.patchValue({
+            name: trip.name,
+            notes: trip.notes || '',
+          });
+          // Defensive: plan may come back as a JSON string instead of an array
+          let plan = trip.plan;
+          if (typeof plan === 'string') {
+            try {
+              plan = JSON.parse(plan);
+            } catch {
+              plan = [];
+            }
           }
-        }
-        const parsedPlan = Array.isArray(plan) ? plan : [];
-        console.log('[TripEdit] Loaded trip', trip.id, '– plan items:', parsedPlan.length, parsedPlan);
-        this.planItems.set(this.sortPlanItemsByDate(parsedPlan));
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.error || 'Failed to load trip',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.loading.set(false);
-        this.router.navigate(['/trips']);
-      },
-    });
+          const parsedPlan = Array.isArray(plan) ? plan : [];
+          console.log(
+            '[TripEdit] Loaded trip',
+            trip.id,
+            '– plan items:',
+            parsedPlan.length,
+            parsedPlan
+          );
+          this.planItems.set(this.sortPlanItemsByDate(parsedPlan));
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.error || 'Failed to load trip', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.loading.set(false);
+          this.router.navigate(['/trips']);
+        },
+      });
   }
 
   getCountryName(id: number): string {
@@ -469,12 +525,15 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
     this.planItemForm = this.buildPlanItemForm(type);
 
     // Default end date to start date when user picks a start date
-    this.planItemForm.get('startDate')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
-      const endDate = this.planItemForm.get('endDate')?.value;
-      if (value && !endDate) {
-        this.planItemForm.get('endDate')?.setValue(value);
-      }
-    });
+    this.planItemForm
+      .get('startDate')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        const endDate = this.planItemForm.get('endDate')?.value;
+        if (value && !endDate) {
+          this.planItemForm.get('endDate')?.setValue(value);
+        }
+      });
   }
 
   cancelAddPlanItem(): void {
@@ -646,23 +705,79 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
     }
   }
 
-  private buildPlanItemFromForm(type: PlanItemType, raw: Record<string, unknown>, id: number): AnyPlanItem {
+  private buildPlanItemFromForm(
+    type: PlanItemType,
+    raw: Record<string, unknown>,
+    id: number
+  ): AnyPlanItem {
     const startDate = this.formatDateValue(raw['startDate'] as Date | null);
     const endDate = this.formatDateValue(raw['endDate'] as Date | null);
 
     switch (type) {
       case 'flight':
-        return { id, type, startDate, endDate, from: raw['from'] as string, fromCountryId: raw['fromCountryId'] as number, to: raw['to'] as string, toCountryId: raw['toCountryId'] as number };
+        return {
+          id,
+          type,
+          startDate,
+          endDate,
+          from: raw['from'] as string,
+          fromCountryId: raw['fromCountryId'] as number,
+          to: raw['to'] as string,
+          toCountryId: raw['toCountryId'] as number,
+        };
       case 'attraction':
-        return { id, type, startDate, endDate, attractionId: raw['attractionId'] as number, attractionName: raw['attractionName'] as string, typeOfAttraction: raw['typeOfAttraction'] as 'UNESCO' | 'National Park' | 'Other', countryId: raw['countryId'] as number };
+        return {
+          id,
+          type,
+          startDate,
+          endDate,
+          attractionId: raw['attractionId'] as number,
+          attractionName: raw['attractionName'] as string,
+          typeOfAttraction: raw['typeOfAttraction'] as 'UNESCO' | 'National Park' | 'Other',
+          countryId: raw['countryId'] as number,
+        };
       case 'accommodation':
-        return { id, type, startDate, endDate, name: raw['name'] as string, city: raw['city'] as string, countryId: raw['countryId'] as number };
+        return {
+          id,
+          type,
+          startDate,
+          endDate,
+          name: raw['name'] as string,
+          city: raw['city'] as string,
+          countryId: raw['countryId'] as number,
+        };
       case 'car_rental':
-        return { id, type, startDate, endDate, company: raw['company'] as string, pickupLocation: raw['pickupLocation'] as string, dropoffLocation: raw['dropoffLocation'] as string };
+        return {
+          id,
+          type,
+          startDate,
+          endDate,
+          company: raw['company'] as string,
+          pickupLocation: raw['pickupLocation'] as string,
+          dropoffLocation: raw['dropoffLocation'] as string,
+        };
       case 'ferry':
-        return { id, type, startDate, endDate, from: raw['from'] as string, countryIdFrom: raw['countryIdFrom'] as number, to: raw['to'] as string, countryIdTo: raw['countryIdTo'] as number };
+        return {
+          id,
+          type,
+          startDate,
+          endDate,
+          from: raw['from'] as string,
+          countryIdFrom: raw['countryIdFrom'] as number,
+          to: raw['to'] as string,
+          countryIdTo: raw['countryIdTo'] as number,
+        };
       case 'train':
-        return { id, type, startDate, endDate, from: raw['from'] as string, countryIdFrom: raw['countryIdFrom'] as number, to: raw['to'] as string, countryIdTo: raw['countryIdTo'] as number };
+        return {
+          id,
+          type,
+          startDate,
+          endDate,
+          from: raw['from'] as string,
+          countryIdFrom: raw['countryIdFrom'] as number,
+          to: raw['to'] as string,
+          countryIdTo: raw['countryIdTo'] as number,
+        };
     }
   }
 
@@ -692,14 +807,12 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
         this.router.navigate(['/trips']);
       },
       error: (err) => {
-        this.snackBar.open(
-          err?.error?.error || 'Failed to update trip',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
+        this.snackBar.open(err?.error?.error || 'Failed to update trip', 'Close', {
+          duration: 5000,
+          panelClass: 'error-snackbar',
+        });
         this.saving.set(false);
       },
     });
   }
 }
-

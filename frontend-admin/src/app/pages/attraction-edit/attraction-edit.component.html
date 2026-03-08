@@ -40,9 +40,18 @@
 
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Last Visited</mat-label>
-          <input matInput [matDatepicker]="lastVisitedPicker" formControlName="last_visited" placeholder="YYYY-MM" />
+          <input
+            matInput
+            [matDatepicker]="lastVisitedPicker"
+            formControlName="last_visited"
+            placeholder="YYYY-MM"
+          />
           <mat-datepicker-toggle matIconSuffix [for]="lastVisitedPicker"></mat-datepicker-toggle>
-          <mat-datepicker #lastVisitedPicker startView="multi-year" (monthSelected)="onMonthSelected($event, lastVisitedPicker)"></mat-datepicker>
+          <mat-datepicker
+            #lastVisitedPicker
+            startView="multi-year"
+            (monthSelected)="onMonthSelected($event, lastVisitedPicker)"
+          ></mat-datepicker>
         </mat-form-field>
       </div>
 
@@ -98,8 +107,12 @@
       </div>
 
       <div class="form-row checkbox-row">
-        <mat-checkbox formControlName="is_unesco" color="primary">UNESCO World Heritage Site</mat-checkbox>
-        <mat-checkbox formControlName="is_national_park" color="primary">National Park</mat-checkbox>
+        <mat-checkbox formControlName="is_unesco" color="primary"
+          >UNESCO World Heritage Site</mat-checkbox
+        >
+        <mat-checkbox formControlName="is_national_park" color="primary"
+          >National Park</mat-checkbox
+        >
       </div>
 
       <div class="form-row">
@@ -144,7 +157,6 @@
           </a>
         </div>
       }
-
     </form>
 
     @if (hasCoordinates()) {
@@ -159,7 +171,8 @@
           [zoom]="10"
           height="400px"
           [fitBounds]="false"
-          [showAttribution]="true">
+          [showAttribution]="true"
+        >
         </lib-map>
       </div>
     }
@@ -176,10 +189,7 @@
             Upload Photos
           </button>
         </div>
-        <app-photo-gallery
-          #photoGallery
-          entityType="attractions"
-          [entityId]="attractionId">
+        <app-photo-gallery #photoGallery entityType="attractions" [entityId]="attractionId">
         </app-photo-gallery>
       </div>
     }
@@ -201,4 +211,3 @@
     </div>
   }
 </div>
-

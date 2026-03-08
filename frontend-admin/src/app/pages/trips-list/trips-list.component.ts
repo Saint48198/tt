@@ -1,4 +1,12 @@
-import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, switchMap } from 'rxjs';
 import { DatePipe, SlicePipe } from '@angular/common';
@@ -69,33 +77,39 @@ export class TripsListComponent implements OnInit, AfterViewInit {
 
   loadTrips(): void {
     this.loading.set(true);
-    this.tripsService.getTrips().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (trips) => {
-        this.dataSource.data = trips.map((trip) => {
-          const parsed = this.parsePlan(trip);
-          return {
-            ...parsed,
-            derivedStartDate: this.getEarliestDate(parsed),
-            derivedEndDate: this.getLatestDate(parsed),
-          };
-        });
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.error || 'Failed to load trips',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.loading.set(false);
-      },
-    });
+    this.tripsService
+      .getTrips()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (trips) => {
+          this.dataSource.data = trips.map((trip) => {
+            const parsed = this.parsePlan(trip);
+            return {
+              ...parsed,
+              derivedStartDate: this.getEarliestDate(parsed),
+              derivedEndDate: this.getLatestDate(parsed),
+            };
+          });
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.error || 'Failed to load trips', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.loading.set(false);
+        },
+      });
   }
 
   private parsePlan(trip: Trip): Trip {
     let plan = trip.plan as any;
     if (typeof plan === 'string') {
-      try { plan = JSON.parse(plan); } catch { plan = []; }
+      try {
+        plan = JSON.parse(plan);
+      } catch {
+        plan = [];
+      }
     }
     return { ...trip, plan: Array.isArray(plan) ? plan : [] };
   }
@@ -134,38 +148,39 @@ export class TripsListComponent implements OnInit, AfterViewInit {
   }
 
   deleteTrip(trip: TripRow): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Delete Trip',
-        message: `Are you sure you want to delete "${trip.name}"?`,
-        confirmText: 'Delete',
-        cancelText: 'Cancel',
-        icon: 'delete',
-        color: 'warn',
-      },
-      width: '420px',
-      autoFocus: false,
-      panelClass: 'confirm-dialog-panel',
-    }).afterClosed().pipe(
-      filter((confirmed) => !!confirmed),
-      switchMap(() => this.tripsService.deleteTrip(trip.id)),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: () => {
-        this.snackBar.open('Trip deleted successfully', 'Close', {
-          duration: 3000,
-        });
-        this.loadTrips();
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.error || 'Failed to delete trip',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-      },
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: {
+          title: 'Delete Trip',
+          message: `Are you sure you want to delete "${trip.name}"?`,
+          confirmText: 'Delete',
+          cancelText: 'Cancel',
+          icon: 'delete',
+          color: 'warn',
+        },
+        width: '420px',
+        autoFocus: false,
+        panelClass: 'confirm-dialog-panel',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap(() => this.tripsService.deleteTrip(trip.id)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Trip deleted successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadTrips();
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.error || 'Failed to delete trip', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+        },
+      });
   }
 }
-
-

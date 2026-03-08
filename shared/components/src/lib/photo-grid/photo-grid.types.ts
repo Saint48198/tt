@@ -3,4 +3,3 @@ export interface PhotoGridItem {
   url: string;
   caption?: string | null;
 }
-

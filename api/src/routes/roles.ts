@@ -77,9 +77,7 @@ router.put('/api/roles/:id', async (req: Request, res: Response) => {
     const result = await roleService.updateRole(id, name);
 
     if (!result.success) {
-      return res
-        .status(404)
-        .json({ error: 'Role not found or no changes made' });
+      return res.status(404).json({ error: 'Role not found or no changes made' });
     }
 
     return res.status(200).json({ message: 'Role updated successfully' });

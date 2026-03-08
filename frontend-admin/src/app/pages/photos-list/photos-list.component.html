@@ -7,7 +7,12 @@
       }
     </div>
     <div class="page-header-right">
-      <mat-button-toggle-group [value]="viewMode()" (change)="viewMode.set($event.value)" aria-label="View mode" hideSingleSelectionIndicator>
+      <mat-button-toggle-group
+        [value]="viewMode()"
+        (change)="viewMode.set($event.value)"
+        aria-label="View mode"
+        hideSingleSelectionIndicator
+      >
         <mat-button-toggle value="masonry" matTooltip="Masonry view">
           <mat-icon>dashboard</mat-icon>
         </mat-button-toggle>
@@ -26,7 +31,11 @@
     <div class="filters-row">
       <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
         <mat-label>Country</mat-label>
-        <mat-select [value]="countryFilter()" (selectionChange)="onCountryChange($event.value)" [disabled]="unassignedFilter()">
+        <mat-select
+          [value]="countryFilter()"
+          (selectionChange)="onCountryChange($event.value)"
+          [disabled]="unassignedFilter()"
+        >
           <mat-option [value]="null">All</mat-option>
           @for (country of countryOptions(); track country.id) {
             <mat-option [value]="country.id">{{ country.name }}</mat-option>
@@ -39,7 +48,11 @@
 
       <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
         <mat-label>State</mat-label>
-        <mat-select [value]="stateFilter()" (selectionChange)="onStateChange($event.value)" [disabled]="unassignedFilter()">
+        <mat-select
+          [value]="stateFilter()"
+          (selectionChange)="onStateChange($event.value)"
+          [disabled]="unassignedFilter()"
+        >
           <mat-option [value]="null">All</mat-option>
           @for (state of stateOptions(); track state.id) {
             <mat-option [value]="state.id">{{ state.name }}</mat-option>
@@ -52,7 +65,11 @@
 
       <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
         <mat-label>City</mat-label>
-        <mat-select [value]="cityFilter()" (selectionChange)="onCityChange($event.value)" [disabled]="unassignedFilter()">
+        <mat-select
+          [value]="cityFilter()"
+          (selectionChange)="onCityChange($event.value)"
+          [disabled]="unassignedFilter()"
+        >
           <mat-option [value]="null">All</mat-option>
           @for (city of cityOptions(); track city.id) {
             <mat-option [value]="city.id">{{ city.name }}</mat-option>
@@ -65,7 +82,11 @@
 
       <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
         <mat-label>Attraction</mat-label>
-        <mat-select [value]="attractionFilter()" (selectionChange)="onAttractionChange($event.value)" [disabled]="unassignedFilter()">
+        <mat-select
+          [value]="attractionFilter()"
+          (selectionChange)="onAttractionChange($event.value)"
+          [disabled]="unassignedFilter()"
+        >
           <mat-option [value]="null">All</mat-option>
           @for (attraction of attractionOptions(); track attraction.id) {
             <mat-option [value]="attraction.id">{{ attraction.name }}</mat-option>
@@ -81,14 +102,16 @@
       <mat-slide-toggle
         [checked]="unassignedFilter()"
         (change)="onUnassignedChange($event.checked)"
-        matTooltip="Show only unassigned photos">
+        matTooltip="Show only unassigned photos"
+      >
         Unassigned
       </mat-slide-toggle>
 
       <mat-slide-toggle
         [checked]="tagsFilter()"
         (change)="tagsFilter.set($event.checked); onFilterChange()"
-        matTooltip="Show only photos without tags">
+        matTooltip="Show only photos without tags"
+      >
         No Tags
       </mat-slide-toggle>
 
@@ -119,7 +142,12 @@
       @for (photo of filteredPhotos(); track photo.url) {
         <div class="photo-card mat-elevation-z2">
           <div class="photo-image-wrapper" (click)="openEditDialog(photo)">
-            <lib-image-loader [src]="photo.url" [alt]="photo.caption || 'Photo'" [lazy]="true" borderRadius="10px 10px 0 0"></lib-image-loader>
+            <lib-image-loader
+              [src]="photo.url"
+              [alt]="photo.caption || 'Photo'"
+              [lazy]="true"
+              borderRadius="10px 10px 0 0"
+            ></lib-image-loader>
 
             <!-- Source badges -->
             <div class="source-badges">
@@ -130,10 +158,12 @@
 
             <!-- Actions overlay -->
             <div class="photo-actions" (click)="$event.stopPropagation()">
-              <button mat-icon-button
-                      [matMenuTriggerFor]="photoMenu"
-                      class="action-btn"
-                      matTooltip="Actions">
+              <button
+                mat-icon-button
+                [matMenuTriggerFor]="photoMenu"
+                class="action-btn"
+                matTooltip="Actions"
+              >
                 <mat-icon>more_vert</mat-icon>
               </button>
               <mat-menu #photoMenu="matMenu">
@@ -141,9 +171,7 @@
                   <mat-icon>edit</mat-icon>
                   <span>Edit</span>
                 </button>
-                <button mat-menu-item
-                        (click)="deletePhoto(photo)"
-                        [disabled]="!photo.in_database">
+                <button mat-menu-item (click)="deletePhoto(photo)" [disabled]="!photo.in_database">
                   <mat-icon color="warn">delete</mat-icon>
                   <span>Delete</span>
                 </button>
@@ -156,7 +184,9 @@
               <p class="photo-caption">{{ photo.caption }}</p>
             }
 
-            @if (photo.city_name || photo.attraction_name || photo.country_name || photo.state_name) {
+            @if (
+              photo.city_name || photo.attraction_name || photo.country_name || photo.state_name
+            ) {
               <div class="photo-entities-row">
                 @if (photo.city_name) {
                   <div class="photo-entity">
@@ -187,7 +217,7 @@
               </div>
             }
 
-            <span class="photo-date">{{ photo.created_date | date:'mediumDate' }}</span>
+            <span class="photo-date">{{ photo.created_date | date: 'mediumDate' }}</span>
           </div>
         </div>
       }
@@ -213,9 +243,20 @@
     @if (viewMode() === 'list') {
       <div class="list-view">
         @for (photo of filteredPhotos(); track photo.url) {
-          <div class="list-item mat-elevation-z1" (click)="openEditDialog(photo)" (keydown.enter)="openEditDialog(photo)" tabindex="0" role="button">
+          <div
+            class="list-item mat-elevation-z1"
+            (click)="openEditDialog(photo)"
+            (keydown.enter)="openEditDialog(photo)"
+            tabindex="0"
+            role="button"
+          >
             <div class="list-item-thumb">
-              <lib-image-loader [src]="photo.url" [alt]="photo.caption || 'Photo'" [lazy]="true" borderRadius="8px"></lib-image-loader>
+              <lib-image-loader
+                [src]="photo.url"
+                [alt]="photo.caption || 'Photo'"
+                [lazy]="true"
+                borderRadius="8px"
+              ></lib-image-loader>
             </div>
             <div class="list-item-details">
               <div class="list-item-header">
@@ -261,9 +302,14 @@
                   </div>
                 }
               </div>
-              <span class="photo-date">{{ photo.created_date | date:'mediumDate' }}</span>
+              <span class="photo-date">{{ photo.created_date | date: 'mediumDate' }}</span>
             </div>
-            <div class="list-item-actions" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="-1">
+            <div
+              class="list-item-actions"
+              (click)="$event.stopPropagation()"
+              (keydown.enter)="$event.stopPropagation()"
+              tabindex="-1"
+            >
               <button mat-icon-button [matMenuTriggerFor]="listPhotoMenu" matTooltip="Actions">
                 <mat-icon>more_vert</mat-icon>
               </button>
@@ -272,9 +318,7 @@
                   <mat-icon>edit</mat-icon>
                   <span>Edit</span>
                 </button>
-                <button mat-menu-item
-                        (click)="deletePhoto(photo)"
-                        [disabled]="!photo.in_database">
+                <button mat-menu-item (click)="deletePhoto(photo)" [disabled]="!photo.in_database">
                   <mat-icon color="warn">delete</mat-icon>
                   <span>Delete</span>
                 </button>
@@ -296,4 +340,3 @@
     ></mat-paginator>
   }
 </div>
-

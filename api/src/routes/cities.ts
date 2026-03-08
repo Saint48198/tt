@@ -4,7 +4,8 @@ import { cityService } from '../services/cityService';
 const router = Router();
 
 router.get('/api/cities', async (req: Request, res: Response) => {
-  const { country_id, state_id, search, page, limit, all, sortBy, sort, includeDisabled } = req.query;
+  const { country_id, state_id, search, page, limit, all, sortBy, sort, includeDisabled } =
+    req.query;
   const pageNum = page !== undefined ? Number(Array.isArray(page) ? page[0] : page) : 1;
   const limitNum = limit !== undefined ? Number(Array.isArray(limit) ? limit[0] : limit) : 25;
   const allFlag = all === 'true';
@@ -20,7 +21,17 @@ router.get('/api/cities', async (req: Request, res: Response) => {
   const searchStr = rawSearch ? rawSearch.toString() : undefined;
 
   try {
-    const result = await cityService.getCities({ country_id: countryIdNum, state_id: stateIdNum, search: searchStr, page: pageNum, limit: limitNum, all: allFlag, sortBy: sortByStr, sort: sortOrderStr, includeDisabled: includeDisabled === 'true' });
+    const result = await cityService.getCities({
+      country_id: countryIdNum,
+      state_id: stateIdNum,
+      search: searchStr,
+      page: pageNum,
+      limit: limitNum,
+      all: allFlag,
+      sortBy: sortByStr,
+      sort: sortOrderStr,
+      includeDisabled: includeDisabled === 'true',
+    });
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch cities:', error);
@@ -81,8 +92,7 @@ router.get('/api/cities/:id', async (req: Request, res: Response) => {
 // PUT /api/cities/:id
 router.put('/api/cities/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, lat, lng, state_id, country_id, last_visited, wiki_term } =
-    req.body;
+  const { name, lat, lng, state_id, country_id, last_visited, wiki_term } = req.body;
 
   if (!name || !lat || !lng || !country_id) {
     return res.status(400).json({

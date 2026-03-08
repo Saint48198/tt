@@ -30,7 +30,17 @@ interface ListCitiesOptions {
 
 class CityService {
   private static instance: CityService;
-  private validColumns = ['cities.name', 'lat', 'lng', 'country_name', 'state_name', 'last_visited', 'created_date', 'updated_date', 'disabled_date'];
+  private validColumns = [
+    'cities.name',
+    'lat',
+    'lng',
+    'country_name',
+    'state_name',
+    'last_visited',
+    'created_date',
+    'updated_date',
+    'disabled_date',
+  ];
 
   private constructor() {}
 
@@ -47,13 +57,24 @@ class CityService {
     page: number;
     limit: number;
   }> {
-    const { country_id, state_id, search, page = 1, limit = 25, all = false, sortBy = 'cities.name', sort = 'asc', includeDisabled = false } = options;
+    const {
+      country_id,
+      state_id,
+      search,
+      page = 1,
+      limit = 25,
+      all = false,
+      sortBy = 'cities.name',
+      sort = 'asc',
+      includeDisabled = false,
+    } = options;
     const offset = (page - 1) * limit;
 
     let sortByStr = sortBy.toString();
     const sortOrderStr = sort.toString().toLowerCase();
     if (sortByStr === 'name') sortByStr = 'cities.name';
-    if (sortByStr && !this.validColumns.includes(sortByStr)) throw new Error('Invalid sort column.');
+    if (sortByStr && !this.validColumns.includes(sortByStr))
+      throw new Error('Invalid sort column.');
     if (!['asc', 'desc'].includes(sortOrderStr)) throw new Error('Invalid sort order.');
 
     const params: any[] = [];
@@ -71,7 +92,9 @@ class CityService {
     }
 
     if (search && search.trim()) {
-      whereClauses.push(`(cities.name ILIKE $${paramIdx} OR countries.name ILIKE $${paramIdx} OR states.name ILIKE $${paramIdx})`);
+      whereClauses.push(
+        `(cities.name ILIKE $${paramIdx} OR countries.name ILIKE $${paramIdx} OR states.name ILIKE $${paramIdx})`
+      );
       params.push(`%${search.trim()}%`);
       paramIdx++;
     }
@@ -108,7 +131,9 @@ class CityService {
       countParams.push(state_id);
     }
     if (search && search.trim()) {
-      countWhereClauses.push(`(cities.name ILIKE $${countParamIdx} OR countries.name ILIKE $${countParamIdx} OR states.name ILIKE $${countParamIdx})`);
+      countWhereClauses.push(
+        `(cities.name ILIKE $${countParamIdx} OR countries.name ILIKE $${countParamIdx} OR states.name ILIKE $${countParamIdx})`
+      );
       countParams.push(`%${search.trim()}%`);
       countParamIdx++;
     }
@@ -139,8 +164,13 @@ class CityService {
   }
 
   public async createCity(data: {
-    name: string; lat: number; lng: number; state_id?: number;
-    country_id: number; last_visited?: string; wiki_term?: string;
+    name: string;
+    lat: number;
+    lng: number;
+    state_id?: number;
+    country_id: number;
+    last_visited?: string;
+    wiki_term?: string;
   }): Promise<{ id: number }> {
     const { name, lat, lng, state_id, country_id, last_visited, wiki_term } = data;
     const result = await db.run(
@@ -150,10 +180,18 @@ class CityService {
     return { id: result.rows[0].id };
   }
 
-  public async updateCity(id: number | string, data: {
-    name: string; lat: number; lng: number; state_id?: number;
-    country_id: number; last_visited?: string; wiki_term?: string;
-  }): Promise<{ success: boolean; changes: number }> {
+  public async updateCity(
+    id: number | string,
+    data: {
+      name: string;
+      lat: number;
+      lng: number;
+      state_id?: number;
+      country_id: number;
+      last_visited?: string;
+      wiki_term?: string;
+    }
+  ): Promise<{ success: boolean; changes: number }> {
     const { name, lat, lng, state_id, country_id, last_visited, wiki_term } = data;
     const result = await db.run(
       'UPDATE cities SET name=$1, lat=$2, lng=$3, state_id=$4, country_id=$5, last_visited=$6, wiki_term=$7, updated_date=NOW() WHERE id=$8',
@@ -163,10 +201,12 @@ class CityService {
   }
 
   public async deleteCity(id: number | string): Promise<{ success: boolean; changes: number }> {
-    const result = await db.run('UPDATE cities SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL', [id]);
+    const result = await db.run(
+      'UPDATE cities SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL',
+      [id]
+    );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 }
 
 export const cityService = CityService.getInstance();
-

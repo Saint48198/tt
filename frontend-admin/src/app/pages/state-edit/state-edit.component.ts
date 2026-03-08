@@ -112,44 +112,47 @@ export class StateEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   private loadCountries(): void {
-    this.countriesService.getAllCountries('name').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => {
-        this.countries.set(response.countries);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to load countries',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-      },
-    });
+    this.countriesService
+      .getAllCountries('name')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.countries.set(response.countries);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to load countries', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+        },
+      });
   }
 
   private loadState(id: number): void {
     this.loading.set(true);
-    this.statesService.getState(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (state: State) => {
-        this.form.patchValue({
-          name: state.name,
-          abbr: state.abbr || '',
-          country_id: state.country_id,
-          last_visited: this.parseDate(state.last_visited),
-        });
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to load state',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.loading.set(false);
-        this.router.navigate(['/states']);
-      },
-    });
+    this.statesService
+      .getState(id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (state: State) => {
+          this.form.patchValue({
+            name: state.name,
+            abbr: state.abbr || '',
+            country_id: state.country_id,
+            last_visited: this.parseDate(state.last_visited),
+          });
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to load state', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.loading.set(false);
+          this.router.navigate(['/states']);
+        },
+      });
   }
-
 
   onSubmit(): void {
     if (this.form.invalid) {
@@ -167,9 +170,10 @@ export class StateEditComponent implements OnInit, HasUnsavedChanges {
       last_visited: this.formatDate(formValue.last_visited),
     };
 
-    const request$ = this.isEditMode() && this.stateId
-      ? this.statesService.updateState(this.stateId, payload)
-      : this.statesService.createState(payload);
+    const request$ =
+      this.isEditMode() && this.stateId
+        ? this.statesService.updateState(this.stateId, payload)
+        : this.statesService.createState(payload);
 
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
@@ -197,4 +201,3 @@ export class StateEditComponent implements OnInit, HasUnsavedChanges {
     datepicker.close();
   }
 }
-

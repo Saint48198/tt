@@ -13,9 +13,18 @@
   } @else {
     <div class="profile-banner">
       <h2>
-        <svg class="banner-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
-          <circle cx="16" cy="16" r="16" fill="#667eea"/>
-          <path d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#fff"/>
+        <svg
+          class="banner-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 32 32"
+          width="24"
+          height="24"
+        >
+          <circle cx="16" cy="16" r="16" fill="#667eea" />
+          <path
+            d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"
+            fill="#fff"
+          />
         </svg>
         {{ username() }}'s Travel Map
       </h2>
@@ -30,8 +39,8 @@
       [fitBounds]="hasMarkers()"
       [enableZoom]="true"
       [enableDrag]="true"
-      [showAttribution]="true">
+      [showAttribution]="true"
+    >
     </lib-map>
   }
 </div>
-

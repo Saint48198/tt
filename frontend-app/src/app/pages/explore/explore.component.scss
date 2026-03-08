@@ -139,7 +139,6 @@
   }
 }
 
-
 .card-icon {
   font-size: 1.75rem;
   flex-shrink: 0;
@@ -294,7 +293,7 @@
 
   &:hover {
     border-color: #764ba2;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.10) 0%, rgba(118, 75, 162, 0.08) 100%);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.08) 100%);
   }
 
   .card-content h3 {
@@ -369,7 +368,9 @@
   color: #475569;
   text-decoration: none;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   cursor: pointer;
 
   .jump-icon {
@@ -637,7 +638,9 @@
   overflow: hidden;
   cursor: pointer;
   aspect-ratio: 1;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 
   &:hover {
     transform: translateY(-2px);
@@ -731,7 +734,6 @@
   }
 }
 
-
 // Screen-reader only (visually hidden)
 .sr-only {
   position: absolute;
@@ -778,4 +780,3 @@
     gap: 0.5rem;
   }
 }
-

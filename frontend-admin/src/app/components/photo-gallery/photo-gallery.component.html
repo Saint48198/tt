@@ -1,4 +1,3 @@
-
 @if (loading()) {
   <div class="photos-loading">
     <mat-spinner diameter="24"></mat-spinner>
@@ -23,8 +22,19 @@
 @if (!loading() && photos().length > 0) {
   <div class="photos-grid">
     @for (photo of photos(); track photo.id) {
-      <div class="photo-card" (click)="openEditModal(photo)" (keydown.enter)="openEditModal(photo)" tabindex="0" role="button">
-        <lib-image-loader [src]="photo.url" [alt]="photo.caption || 'Photo'" [lazy]="true" borderRadius="12px"></lib-image-loader>
+      <div
+        class="photo-card"
+        (click)="openEditModal(photo)"
+        (keydown.enter)="openEditModal(photo)"
+        tabindex="0"
+        role="button"
+      >
+        <lib-image-loader
+          [src]="photo.url"
+          [alt]="photo.caption || 'Photo'"
+          [lazy]="true"
+          borderRadius="12px"
+        ></lib-image-loader>
         <button
           class="delete-btn"
           (click)="requestDelete($event, photo)"
@@ -43,7 +53,13 @@
 
 <!-- Edit Caption Modal -->
 @if (editingPhoto()) {
-  <div class="modal-overlay" (click)="onEditBackdropClick($event)" (keydown.escape)="closeEditModal()" tabindex="0" role="dialog">
+  <div
+    class="modal-overlay"
+    (click)="onEditBackdropClick($event)"
+    (keydown.escape)="closeEditModal()"
+    tabindex="0"
+    role="dialog"
+  >
     <div class="modal-content edit-modal">
       <div class="modal-header">
         <h3>Edit Photo</h3>
@@ -54,12 +70,21 @@
 
       <div class="modal-body">
         <div class="edit-preview">
-          <lib-image-loader [src]="editingPhoto()!.url" [alt]="editingPhoto()!.caption || 'Photo'" borderRadius="8px"></lib-image-loader>
+          <lib-image-loader
+            [src]="editingPhoto()!.url"
+            [alt]="editingPhoto()!.caption || 'Photo'"
+            borderRadius="8px"
+          ></lib-image-loader>
         </div>
 
         <mat-form-field appearance="outline" class="caption-field">
           <mat-label>Caption</mat-label>
-          <textarea matInput [(ngModel)]="editCaption" placeholder="Enter a caption..." rows="3"></textarea>
+          <textarea
+            matInput
+            [(ngModel)]="editCaption"
+            placeholder="Enter a caption..."
+            rows="3"
+          ></textarea>
         </mat-form-field>
 
         <div class="tags-section">
@@ -84,7 +109,13 @@
                 placeholder="Type and press Enter"
               />
             </mat-form-field>
-            <button mat-icon-button type="button" (click)="addTag()" [disabled]="!tagInput.trim()" aria-label="Add tag">
+            <button
+              mat-icon-button
+              type="button"
+              (click)="addTag()"
+              [disabled]="!tagInput.trim()"
+              aria-label="Add tag"
+            >
               <mat-icon>add_circle</mat-icon>
             </button>
           </div>
@@ -93,7 +124,13 @@
 
       <div class="modal-actions">
         <button mat-stroked-button type="button" (click)="closeEditModal()">Cancel</button>
-        <button mat-raised-button color="primary" type="button" (click)="saveCaption()" [disabled]="savingEdit()">
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="saveCaption()"
+          [disabled]="savingEdit()"
+        >
           @if (savingEdit()) {
             <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
           }
@@ -106,7 +143,13 @@
 
 <!-- Delete Confirmation Modal -->
 @if (confirmingDelete()) {
-  <div class="modal-overlay" (click)="onDeleteBackdropClick($event)" (keydown.escape)="cancelDelete()" tabindex="0" role="dialog">
+  <div
+    class="modal-overlay"
+    (click)="onDeleteBackdropClick($event)"
+    (keydown.escape)="cancelDelete()"
+    tabindex="0"
+    role="dialog"
+  >
     <div class="modal-content confirm-modal">
       <div class="modal-header">
         <h3>Delete Photo</h3>
@@ -117,14 +160,26 @@
 
       <div class="modal-body">
         <div class="confirm-preview">
-          <lib-image-loader [src]="confirmingDelete()!.url" [alt]="confirmingDelete()!.caption || 'Photo'" borderRadius="8px"></lib-image-loader>
+          <lib-image-loader
+            [src]="confirmingDelete()!.url"
+            [alt]="confirmingDelete()!.caption || 'Photo'"
+            borderRadius="8px"
+          ></lib-image-loader>
         </div>
-        <p class="confirm-message">Are you sure you want to delete this photo? This action cannot be undone.</p>
+        <p class="confirm-message">
+          Are you sure you want to delete this photo? This action cannot be undone.
+        </p>
       </div>
 
       <div class="modal-actions">
         <button mat-stroked-button type="button" (click)="cancelDelete()">Cancel</button>
-        <button mat-raised-button color="warn" type="button" (click)="confirmDelete()" [disabled]="deleting()">
+        <button
+          mat-raised-button
+          color="warn"
+          type="button"
+          (click)="confirmDelete()"
+          [disabled]="deleting()"
+        >
           @if (deleting()) {
             <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
           }
@@ -134,4 +189,3 @@
     </div>
   </div>
 }
-

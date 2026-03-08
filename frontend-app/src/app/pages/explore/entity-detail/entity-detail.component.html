@@ -16,7 +16,7 @@
               @if (a.country_name) {
                 {{ a.country_name }}
               }
-              <div class="card-tags" style="margin-top: 0.35rem;">
+              <div class="card-tags" style="margin-top: 0.35rem">
                 @if (a.is_unesco) {
                   <span class="tag tag-unesco">UNESCO</span>
                 }
@@ -30,19 +30,78 @@
       </div>
       <nav class="jump-links" aria-label="Page sections">
         <a class="jump-link" href="javascript:void(0)" (click)="scrollTo(idPrefix + '-map')">
-          <svg class="jump-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          <svg
+            class="jump-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+            <line x1="8" y1="2" x2="8" y2="18" />
+            <line x1="16" y1="6" x2="16" y2="22" />
+          </svg>
           Map
         </a>
         <a class="jump-link" href="javascript:void(0)" (click)="scrollTo(idPrefix + '-details')">
-          <svg class="jump-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg
+            class="jump-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
           Details
         </a>
         <a class="jump-link" href="javascript:void(0)" (click)="scrollTo(idPrefix + '-wiki')">
-          <svg class="jump-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <svg
+            class="jump-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          </svg>
           Wikipedia
         </a>
         <a class="jump-link" href="javascript:void(0)" (click)="scrollTo(idPrefix + '-photos')">
-          <svg class="jump-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <svg
+            class="jump-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
           Photos
         </a>
       </nav>
@@ -58,7 +117,8 @@
         width="100%"
         [enableZoom]="true"
         [enableScrollZoom]="false"
-        [enableDrag]="true">
+        [enableDrag]="true"
+      >
       </lib-map>
     </section>
 
@@ -77,8 +137,11 @@
           <div class="detail-card">
             <span class="detail-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="30" height="30">
-                <circle cx="16" cy="16" r="16" fill="#fff"/>
-                <path d="M9 6v2H6v18h20V8h-3V6h-2v2H11V6H9zM7 12h18v10H7V12zm3 2v3h3v-3h-3zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zm-10 5v3h3v-3h-3zm5 0v3h3v-3h-3z" fill="#1f2937"/>
+                <circle cx="16" cy="16" r="16" fill="#fff" />
+                <path
+                  d="M9 6v2H6v18h20V8h-3V6h-2v2H11V6H9zM7 12h18v10H7V12zm3 2v3h3v-3h-3zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zm-10 5v3h3v-3h-3zm5 0v3h3v-3h-3z"
+                  fill="#1f2937"
+                />
               </svg>
             </span>
             <div class="detail-info">
@@ -92,8 +155,11 @@
           <div class="detail-card">
             <span class="detail-icon">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
-                <circle cx="16" cy="16" r="16" fill="#667eea"/>
-                <path d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#fff"/>
+                <circle cx="16" cy="16" r="16" fill="#667eea" />
+                <path
+                  d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"
+                  fill="#fff"
+                />
               </svg>
             </span>
             <div class="detail-info">
@@ -109,8 +175,11 @@
             <div class="detail-card">
               <span class="detail-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
-                  <circle cx="16" cy="16" r="16" fill="#667eea"/>
-                  <path d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z" fill="#fff"/>
+                  <circle cx="16" cy="16" r="16" fill="#667eea" />
+                  <path
+                    d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z"
+                    fill="#fff"
+                  />
                 </svg>
               </span>
               <div class="detail-info">
@@ -127,8 +196,11 @@
             <div class="detail-card">
               <span class="detail-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
-                  <circle cx="16" cy="16" r="16" fill="#667eea"/>
-                  <path d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z" fill="#fff"/>
+                  <circle cx="16" cy="16" r="16" fill="#667eea" />
+                  <path
+                    d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z"
+                    fill="#fff"
+                  />
                 </svg>
               </span>
               <div class="detail-info">
@@ -153,7 +225,12 @@
             <span class="detail-icon">📖</span>
             <div class="detail-info">
               <span class="detail-label">Wikipedia</span>
-              <a class="detail-link" [href]="'https://en.wikipedia.org/wiki/' + e.wiki_term" target="_blank" rel="noopener">
+              <a
+                class="detail-link"
+                [href]="'https://en.wikipedia.org/wiki/' + e.wiki_term"
+                target="_blank"
+                rel="noopener"
+              >
                 View on Wikipedia ↗
               </a>
             </div>
@@ -163,17 +240,40 @@
         <div class="detail-card">
           <span class="detail-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
-              <circle cx="16" cy="16" r="16" fill="#667eea"/>
-              <rect x="8" y="8" width="16" height="16" rx="2" ry="2" fill="none" stroke="#fff" stroke-width="1.5"/>
-              <circle cx="13" cy="13" r="1.5" fill="#fff"/>
-              <polyline points="24 20 19 15 10 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <rect
+                x="8"
+                y="8"
+                width="16"
+                height="16"
+                rx="2"
+                ry="2"
+                fill="none"
+                stroke="#fff"
+                stroke-width="1.5"
+              />
+              <circle cx="13" cy="13" r="1.5" fill="#fff" />
+              <polyline
+                points="24 20 19 15 10 24"
+                fill="none"
+                stroke="#fff"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
           </span>
           <div class="detail-info">
             <span class="detail-label">Photos on Map</span>
-            <a class="detail-link"
-               [routerLink]="photoMapLink()"
-               [queryParams]="detail.entityType() === 'city' ? { city: toSlug(e.name) } : { attraction: toSlug(e.name) }">
+            <a
+              class="detail-link"
+              [routerLink]="photoMapLink()"
+              [queryParams]="
+                detail.entityType() === 'city'
+                  ? { city: toSlug(e.name) }
+                  : { attraction: toSlug(e.name) }
+              "
+            >
               View photos on map ↗
             </a>
           </div>
@@ -193,9 +293,7 @@
           <div class="wiki-header">
             <span class="wiki-icon">📖</span>
             <h3>{{ wiki.title }}</h3>
-            <a class="wiki-link" [href]="wiki.url" target="_blank" rel="noopener">
-              Read more ↗
-            </a>
+            <a class="wiki-link" [href]="wiki.url" target="_blank" rel="noopener"> Read more ↗ </a>
           </div>
           @if (wiki.thumbnail) {
             <div class="wiki-image">
@@ -211,20 +309,52 @@
     <section class="photos-section" [id]="idPrefix + '-photos'">
       <div class="photos-header">
         <span class="photos-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
           </svg>
         </span>
         <h3>Photos</h3>
-        <a class="photos-map-link"
-           [routerLink]="photoMapLink()"
-           [queryParams]="detail.entityType() === 'city' ? { city: toSlug(e.name) } : { attraction: toSlug(e.name) }">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <a
+          class="photos-map-link"
+          [routerLink]="photoMapLink()"
+          [queryParams]="
+            detail.entityType() === 'city'
+              ? { city: toSlug(e.name) }
+              : { attraction: toSlug(e.name) }
+          "
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+            <line x1="8" y1="2" x2="8" y2="18" />
+            <line x1="16" y1="6" x2="16" y2="22" />
+          </svg>
           View on Map
         </a>
-        <span class="photos-count">Showing {{ detail.photos().length }} of {{ detail.photosTotal() }}</span>
+        <span class="photos-count"
+          >Showing {{ detail.photos().length }} of {{ detail.photosTotal() }}</span
+        >
       </div>
       <lib-photo-grid
         [photos]="detail.photos()"
@@ -232,10 +362,9 @@
         [total]="detail.photosTotal()"
         [page]="detail.photosPage()"
         [totalPages]="detail.totalPhotoPages()"
-        (pageChange)="onPhotoPageChange($event)">
+        (pageChange)="onPhotoPageChange($event)"
+      >
       </lib-photo-grid>
     </section>
   </div>
 }
-
-

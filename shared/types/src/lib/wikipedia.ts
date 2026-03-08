@@ -10,5 +10,3 @@ export interface InfoResult {
   intro: string;
   url: string;
 }
-
-

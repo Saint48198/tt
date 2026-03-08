@@ -58,4 +58,4 @@ export type VerifyUserResult = {
   user?: User | null;
   error?: string | null;
   details?: string;
-}
+};

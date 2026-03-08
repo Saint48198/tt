@@ -8,10 +8,7 @@ export interface JWTPayload {
   roles?: string[] | undefined;
 }
 
-export async function authenticateRequest(
-  req: Request,
-  res: Response
-): Promise<JWTPayload | null> {
+export async function authenticateRequest(req: Request, res: Response): Promise<JWTPayload | null> {
   const authToken = req.cookies?.auth_token;
 
   if (!authToken) {

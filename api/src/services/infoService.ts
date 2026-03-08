@@ -81,4 +81,3 @@ class InfoService {
 }
 
 export const infoService = InfoService.getInstance();
-

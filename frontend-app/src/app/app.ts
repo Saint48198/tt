@@ -51,14 +51,12 @@ export class App implements OnInit {
     this.pageViewService.init();
 
     // Redirect / to /:username whenever a signed-in user lands on root
-    this.router.events
-      .pipe(filter((e) => e instanceof NavigationEnd))
-      .subscribe((e) => {
-        const user = this.authService.currentUser;
-        if (user && (e as NavigationEnd).urlAfterRedirects === '/') {
-          this.router.navigate([`/${user.username}`], { replaceUrl: true });
-        }
-      });
+    this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
+      const user = this.authService.currentUser;
+      if (user && (e as NavigationEnd).urlAfterRedirects === '/') {
+        this.router.navigate([`/${user.username}`], { replaceUrl: true });
+      }
+    });
 
     // Also redirect on initial load — only if the browser URL is truly "/"
     const user = this.authService.currentUser;

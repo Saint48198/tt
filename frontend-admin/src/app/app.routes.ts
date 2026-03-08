@@ -5,8 +5,7 @@ import { unsavedChangesGuard } from './guards/unsaved-changes.guard';
 export const appRoutes: Route[] = [
   {
     path: 'login',
-    loadComponent: () =>
-      import('./pages/login/login.component').then((m) => m.LoginComponent),
+    loadComponent: () => import('./pages/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: '',
@@ -37,7 +36,9 @@ export const appRoutes: Route[] = [
   {
     path: 'countries',
     loadComponent: () =>
-      import('./pages/countries-list/countries-list.component').then((m) => m.CountriesListComponent),
+      import('./pages/countries-list/countries-list.component').then(
+        (m) => m.CountriesListComponent
+      ),
     canActivate: [adminGuard],
   },
   {
@@ -97,19 +98,25 @@ export const appRoutes: Route[] = [
   {
     path: 'attractions',
     loadComponent: () =>
-      import('./pages/attractions-list/attractions-list.component').then((m) => m.AttractionsListComponent),
+      import('./pages/attractions-list/attractions-list.component').then(
+        (m) => m.AttractionsListComponent
+      ),
     canActivate: [adminGuard],
   },
   {
     path: 'attractions/new',
     loadComponent: () =>
-      import('./pages/attraction-edit/attraction-edit.component').then((m) => m.AttractionEditComponent),
+      import('./pages/attraction-edit/attraction-edit.component').then(
+        (m) => m.AttractionEditComponent
+      ),
     canActivate: [adminGuard],
   },
   {
     path: 'attractions/:id',
     loadComponent: () =>
-      import('./pages/attraction-edit/attraction-edit.component').then((m) => m.AttractionEditComponent),
+      import('./pages/attraction-edit/attraction-edit.component').then(
+        (m) => m.AttractionEditComponent
+      ),
     canActivate: [adminGuard],
   },
   {

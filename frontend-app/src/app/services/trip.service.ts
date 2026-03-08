@@ -26,4 +26,3 @@ export class TripService {
     return this.http.get<Trip>(`${this.apiUrl}/${id}`);
   }
 }
-

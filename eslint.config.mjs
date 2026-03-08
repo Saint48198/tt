@@ -1,11 +1,13 @@
 import nx from '@nx/eslint-plugin';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import eslintPluginPrettier from 'eslint-plugin-prettier/recommended';
 
 export default [
   ...nx.configs['flat/base'],
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist', '**/out-tsc'],
+    ignores: ['**/dist', '**/out-tsc', '**/node_modules', '**/tmp'],
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
@@ -39,4 +41,7 @@ export default [
     // Override or add rules here
     rules: {},
   },
+  // Prettier must be last to override other formatting rules
+  eslintConfigPrettier,
+  eslintPluginPrettier,
 ];

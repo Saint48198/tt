@@ -82,7 +82,9 @@ class CountryService {
     }
 
     const offset = (page - 1) * limit;
-    const totalRow = await db.get<{ count: string }>(`SELECT COUNT(*) AS count FROM countries ${disabledFilter}`);
+    const totalRow = await db.get<{ count: string }>(
+      `SELECT COUNT(*) AS count FROM countries ${disabledFilter}`
+    );
     const countries = await db.all<Country>(
       `SELECT * FROM countries ${disabledFilter} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT $1 OFFSET $2`,
       [limit, offset]
@@ -134,7 +136,10 @@ class CountryService {
   }
 
   public async deleteCountry(id: number | string): Promise<{ success: boolean; changes: number }> {
-    const result = await db.run('UPDATE countries SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL', [id]);
+    const result = await db.run(
+      'UPDATE countries SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL',
+      [id]
+    );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 

@@ -34,7 +34,10 @@ export class TripsService {
   /**
    * Update an existing trip
    */
-  updateTrip(id: number, trip: CreateTripRequest & { plan?: AnyPlanItem[] }): Observable<TripResponse> {
+  updateTrip(
+    id: number,
+    trip: CreateTripRequest & { plan?: AnyPlanItem[] }
+  ): Observable<TripResponse> {
     return this.http.put<TripResponse>(`${this.apiUrl}/${id}`, trip);
   }
 
@@ -52,4 +55,3 @@ export class TripsService {
     return this.http.get<CountryVisited[]>(`${this.apiUrl}/countries-visited`);
   }
 }
-

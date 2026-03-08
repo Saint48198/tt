@@ -155,12 +155,12 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       this.map.removeLayer(this.clusterGroup);
       this.clusterGroup = null;
     }
-    this.markerLayers.forEach(marker => marker.remove());
+    this.markerLayers.forEach((marker) => marker.remove());
     this.markerLayers = [];
 
     // Build marker instances
     const markers: L.Marker[] = [];
-    this.markers.forEach(markerData => {
+    this.markers.forEach((markerData) => {
       const markerOptions: L.MarkerOptions = {};
 
       if (markerData.icon) {
@@ -213,7 +213,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       this.clusterGroup.addLayers(markers);
       this.map.addLayer(this.clusterGroup);
     } else {
-      markers.forEach(m => m.addTo(this.map));
+      markers.forEach((m) => m.addTo(this.map));
     }
 
     this.markerLayers = markers;
@@ -227,11 +227,11 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     if (!this.map) return;
 
     // Clear existing overlays
-    this.overlayLayers.forEach(overlay => overlay.remove());
+    this.overlayLayers.forEach((overlay) => overlay.remove());
     this.overlayLayers = [];
 
     // Add new overlays
-    this.overlays.forEach(overlayData => {
+    this.overlays.forEach((overlayData) => {
       const defaultStyle: L.PathOptions = {
         fillColor: overlayData.type === 'country' ? '#3388ff' : '#ff7800',
         weight: 2,
@@ -298,7 +298,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
 
     // Add overlay bounds
     if (this.overlayLayers.length > 0) {
-      this.overlayLayers.forEach(layer => {
+      this.overlayLayers.forEach((layer) => {
         bounds.push(layer.getBounds());
       });
     }

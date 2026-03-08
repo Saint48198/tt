@@ -1,4 +1,12 @@
-import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, switchMap } from 'rxjs';
 import { DatePipe, DecimalPipe } from '@angular/common';
@@ -50,7 +58,15 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  displayedColumns: string[] = ['name', 'country_name', 'state_name', 'lat', 'lng', 'last_visited', 'actions'];
+  displayedColumns: string[] = [
+    'name',
+    'country_name',
+    'state_name',
+    'lat',
+    'lng',
+    'last_visited',
+    'actions',
+  ];
   dataSource = new MatTableDataSource<City>([]);
 
   total = signal(0);
@@ -89,11 +105,10 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to load cities',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
+          this.snackBar.open(err?.error?.message || 'Failed to load cities', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
           this.loading.set(false);
         },
       });
@@ -151,37 +166,39 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
   }
 
   deleteCity(city: City): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Delete City',
-        message: `Are you sure you want to delete "${city.name}"?`,
-        confirmText: 'Delete',
-        cancelText: 'Cancel',
-        icon: 'delete',
-        color: 'warn',
-      },
-      width: '420px',
-      autoFocus: false,
-      panelClass: 'confirm-dialog-panel',
-    }).afterClosed().pipe(
-      filter((confirmed) => !!confirmed),
-      switchMap(() => this.citiesService.deleteCity(city.id)),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: () => {
-        this.snackBar.open('City deleted successfully', 'Close', {
-          duration: 3000,
-        });
-        this.loadCities();
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to delete city',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-      },
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: {
+          title: 'Delete City',
+          message: `Are you sure you want to delete "${city.name}"?`,
+          confirmText: 'Delete',
+          cancelText: 'Cancel',
+          icon: 'delete',
+          color: 'warn',
+        },
+        width: '420px',
+        autoFocus: false,
+        panelClass: 'confirm-dialog-panel',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap(() => this.citiesService.deleteCity(city.id)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open('City deleted successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadCities();
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to delete city', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+        },
+      });
   }
 }
-

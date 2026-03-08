@@ -6,11 +6,7 @@ import { PhotoEditStateService } from '../photo-edit-state.service';
 
 @Component({
   selector: 'app-info-tab',
-  imports: [
-    DatePipe,
-    MatIconModule,
-    MatDividerModule,
-  ],
+  imports: [DatePipe, MatIconModule, MatDividerModule],
   templateUrl: './info-tab.component.html',
   styleUrl: './info-tab.component.scss',
 })

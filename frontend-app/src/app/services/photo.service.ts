@@ -16,28 +16,24 @@ export class PhotoService {
    * Get photos for a specific city (paginated)
    */
   getCityPhotos(cityId: number, page = 1, limit = 15): Observable<EntityPhotosResponse> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('limit', limit.toString());
+    const params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
     return this.http
       .get<EntityPhotosResponse>(`/api/photos/cities/${cityId}`, { params })
-      .pipe(
-        catchError(() => of({ photos: [], total: 0, page, limit }))
-      );
+      .pipe(catchError(() => of({ photos: [], total: 0, page, limit })));
   }
 
   /**
    * Get photos for a specific attraction (paginated)
    */
-  getAttractionPhotos(attractionId: number, page = 1, limit = 15): Observable<EntityPhotosResponse> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('limit', limit.toString());
+  getAttractionPhotos(
+    attractionId: number,
+    page = 1,
+    limit = 15
+  ): Observable<EntityPhotosResponse> {
+    const params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
     return this.http
       .get<EntityPhotosResponse>(`/api/photos/attractions/${attractionId}`, { params })
-      .pipe(
-        catchError(() => of({ photos: [], total: 0, page, limit }))
-      );
+      .pipe(catchError(() => of({ photos: [], total: 0, page, limit })));
   }
 
   /**
@@ -54,9 +50,6 @@ export class PhotoService {
     }
     return this.http
       .get<MapPhotosResponse>('/api/photos/map', { params })
-      .pipe(
-        catchError(() => of({ photos: [] }))
-      );
+      .pipe(catchError(() => of({ photos: [] })));
   }
 }
-

@@ -1,68 +1,148 @@
 <div class="admin-layout">
   <aside class="sidebar">
     <div class="sidebar-header">
-      <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
-        <circle cx="16" cy="16" r="16" fill="#fff"/>
-        <path d="M16 7l7 4v6c0 4.42-2.98 8.55-7 9.6C11.98 25.55 9 21.42 9 17v-6l7-4zm0 3.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm-5 8.5c0 1.66 2.24 3 5 3s5-1.34 5-3c0-1.1-1.17-2.07-2.93-2.6a4.97 4.97 0 0 1-4.14 0C10.17 16.93 11 17.9 11 19z" fill="#1e3a5f"/>
+      <svg
+        class="logo"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 32 32"
+        width="28"
+        height="28"
+      >
+        <circle cx="16" cy="16" r="16" fill="#fff" />
+        <path
+          d="M16 7l7 4v6c0 4.42-2.98 8.55-7 9.6C11.98 25.55 9 21.42 9 17v-6l7-4zm0 3.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm-5 8.5c0 1.66 2.24 3 5 3s5-1.34 5-3c0-1.1-1.17-2.07-2.93-2.6a4.97 4.97 0 0 1-4.14 0C10.17 16.93 11 17.9 11 19z"
+          fill="#1e3a5f"
+        />
       </svg>
       <span class="logo-text">Trip Tracker</span>
       <span class="admin-badge">Admin</span>
     </div>
 
     <nav class="sidebar-nav">
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
-          <circle cx="16" cy="16" r="16" fill="#fff"/>
-          <path d="M6 6h8v12H6V6zm12 0h8v8h-8V6zM6 20h8v6H6v-6zm12-4h8v10h-8V16z" fill="#1e3a5f"/>
+      <a
+        routerLink="/"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-item"
+      >
+        <svg
+          class="nav-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 32 32"
+          width="18"
+          height="18"
+        >
+          <circle cx="16" cy="16" r="16" fill="#fff" />
+          <path d="M6 6h8v12H6V6zm12 0h8v8h-8V6zM6 20h8v6H6v-6zm12-4h8v10h-8V16z" fill="#1e3a5f" />
         </svg>
         <span>Dashboard</span>
       </a>
       <a routerLink="/countries" routerLinkActive="active" class="nav-item">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
-          <circle cx="16" cy="16" r="16" fill="#fff"/>
-          <path d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#1e3a5f"/>
+        <svg
+          class="nav-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 32 32"
+          width="18"
+          height="18"
+        >
+          <circle cx="16" cy="16" r="16" fill="#fff" />
+          <path
+            d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"
+            fill="#1e3a5f"
+          />
         </svg>
         <span>Countries</span>
       </a>
       <a routerLink="/states" routerLinkActive="active" class="nav-item">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
-          <circle cx="16" cy="16" r="16" fill="#667eea"/>
-          <path d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z" fill="#fff"/>
+        <svg
+          class="nav-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 32 32"
+          width="18"
+          height="18"
+        >
+          <circle cx="16" cy="16" r="16" fill="#667eea" />
+          <path
+            d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z"
+            fill="#fff"
+          />
         </svg>
         <span>States</span>
       </a>
       <a routerLink="/cities" routerLinkActive="active" class="nav-item">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
-          <circle cx="16" cy="16" r="16" fill="#fff"/>
-          <path d="M6 24h20v-2H6v2zm2-4h3V10H8v10zm5 0h3V7h-3v13zm5 0h3V12h-3v8zm5 0h3V9h-3v11z" fill="#1e3a5f"/>
+        <svg
+          class="nav-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 32 32"
+          width="18"
+          height="18"
+        >
+          <circle cx="16" cy="16" r="16" fill="#fff" />
+          <path
+            d="M6 24h20v-2H6v2zm2-4h3V10H8v10zm5 0h3V7h-3v13zm5 0h3V12h-3v8zm5 0h3V9h-3v11z"
+            fill="#1e3a5f"
+          />
         </svg>
         <span>Cities</span>
       </a>
       <a routerLink="/attractions" routerLinkActive="active" class="nav-item">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
-          <circle cx="16" cy="16" r="16" fill="#fff"/>
-          <path d="M4 26h24v-2H4v2zM6 22h2V12H6v10zm4 0h2V14h-2v8zm4 0h2V12h-2v10zm4 0h2V14h-2v8zm4 0h2V12h-2v10zm4 0h2V14h-2v8zM4 10h24l-4-4h-4V3h-2v3h-4V3h-2v3h-4l-4 4z" fill="#1e3a5f"/>
+        <svg
+          class="nav-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 32 32"
+          width="18"
+          height="18"
+        >
+          <circle cx="16" cy="16" r="16" fill="#fff" />
+          <path
+            d="M4 26h24v-2H4v2zM6 22h2V12H6v10zm4 0h2V14h-2v8zm4 0h2V12h-2v10zm4 0h2V14h-2v8zm4 0h2V12h-2v10zm4 0h2V14h-2v8zM4 10h24l-4-4h-4V3h-2v3h-4V3h-2v3h-4l-4 4z"
+            fill="#1e3a5f"
+          />
         </svg>
         <span>Attractions</span>
       </a>
       <a routerLink="/trips" routerLinkActive="active" class="nav-item">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
-          <circle cx="16" cy="16" r="16" fill="#fff"/>
-          <path d="M24 16l-6-6v4H8v4h10v4l6-6z" fill="#1e3a5f"/>
+        <svg
+          class="nav-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 32 32"
+          width="18"
+          height="18"
+        >
+          <circle cx="16" cy="16" r="16" fill="#fff" />
+          <path d="M24 16l-6-6v4H8v4h10v4l6-6z" fill="#1e3a5f" />
         </svg>
         <span>Trips</span>
       </a>
       <a routerLink="/photos" routerLinkActive="active" class="nav-item">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
-          <circle cx="16" cy="16" r="16" fill="#fff"/>
-          <path d="M6 8a2 2 0 00-2 2v12a2 2 0 002 2h20a2 2 0 002-2V10a2 2 0 00-2-2H6zm10 3a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6zM24 11a1 1 0 110 2 1 1 0 010-2z" fill="#1e3a5f"/>
+        <svg
+          class="nav-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 32 32"
+          width="18"
+          height="18"
+        >
+          <circle cx="16" cy="16" r="16" fill="#fff" />
+          <path
+            d="M6 8a2 2 0 00-2 2v12a2 2 0 002 2h20a2 2 0 002-2V10a2 2 0 00-2-2H6zm10 3a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6zM24 11a1 1 0 110 2 1 1 0 010-2z"
+            fill="#1e3a5f"
+          />
         </svg>
         <span>Photos</span>
       </a>
       <a routerLink="/users" routerLinkActive="active" class="nav-item">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="18" height="18">
-          <circle cx="16" cy="16" r="16" fill="#fff"/>
-          <path d="M12 14a4 4 0 110-8 4 4 0 010 8zm-7 10c0-3.31 3.13-6 7-6s7 2.69 7 6H5zm15-10a3 3 0 110-6 3 3 0 010 6zm5 10h-5c0-2.18-1.08-4.15-2.78-5.5.92-.32 1.93-.5 2.78-.5 3.31 0 6 2.24 6 5v1z" fill="#1e3a5f"/>
+        <svg
+          class="nav-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 32 32"
+          width="18"
+          height="18"
+        >
+          <circle cx="16" cy="16" r="16" fill="#fff" />
+          <path
+            d="M12 14a4 4 0 110-8 4 4 0 010 8zm-7 10c0-3.31 3.13-6 7-6s7 2.69 7 6H5zm15-10a3 3 0 110-6 3 3 0 010 6zm5 10h-5c0-2.18-1.08-4.15-2.78-5.5.92-.32 1.93-.5 2.78-.5 3.31 0 6 2.24 6 5v1z"
+            fill="#1e3a5f"
+          />
         </svg>
         <span>Users</span>
       </a>
@@ -97,9 +177,18 @@
       } @else {
         <div class="stats-grid">
           <div class="stat-card" routerLink="/countries">
-            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="40" height="40">
-              <circle cx="16" cy="16" r="16" fill="#667eea"/>
-              <path d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#fff"/>
+            <svg
+              class="stat-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 32 32"
+              width="40"
+              height="40"
+            >
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <path
+                d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"
+                fill="#fff"
+              />
             </svg>
             <div class="stat-info">
               <span class="stat-value">{{ stats().totalCountries }}</span>
@@ -108,9 +197,18 @@
           </div>
 
           <div class="stat-card" routerLink="/states">
-            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="40" height="40">
-              <circle cx="16" cy="16" r="16" fill="#667eea"/>
-              <path d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z" fill="#fff"/>
+            <svg
+              class="stat-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 32 32"
+              width="40"
+              height="40"
+            >
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <path
+                d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z"
+                fill="#fff"
+              />
             </svg>
             <div class="stat-info">
               <span class="stat-value">{{ stats().totalStates }}</span>
@@ -119,9 +217,18 @@
           </div>
 
           <div class="stat-card" routerLink="/cities">
-            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="40" height="40">
-              <circle cx="16" cy="16" r="16" fill="#667eea"/>
-              <path d="M6 24h20v-2H6v2zm2-4h3V10H8v10zm5 0h3V7h-3v13zm5 0h3V12h-3v8zm5 0h3V9h-3v11z" fill="#fff"/>
+            <svg
+              class="stat-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 32 32"
+              width="40"
+              height="40"
+            >
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <path
+                d="M6 24h20v-2H6v2zm2-4h3V10H8v10zm5 0h3V7h-3v13zm5 0h3V12h-3v8zm5 0h3V9h-3v11z"
+                fill="#fff"
+              />
             </svg>
             <div class="stat-info">
               <span class="stat-value">{{ stats().totalCities }}</span>
@@ -130,9 +237,18 @@
           </div>
 
           <div class="stat-card" routerLink="/attractions">
-            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="40" height="40">
-              <circle cx="16" cy="16" r="16" fill="#667eea"/>
-              <path d="M4 26h24v-2H4v2zM6 22h2V12H6v10zm4 0h2V14h-2v8zm4 0h2V12h-2v10zm4 0h2V14h-2v8zm4 0h2V12h-2v10zm4 0h2V14h-2v8zM4 10h24l-4-4h-4V3h-2v3h-4V3h-2v3h-4l-4 4z" fill="#fff"/>
+            <svg
+              class="stat-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 32 32"
+              width="40"
+              height="40"
+            >
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <path
+                d="M4 26h24v-2H4v2zM6 22h2V12H6v10zm4 0h2V14h-2v8zm4 0h2V12h-2v10zm4 0h2V14h-2v8zm4 0h2V12h-2v10zm4 0h2V14h-2v8zM4 10h24l-4-4h-4V3h-2v3h-4V3h-2v3h-4l-4 4z"
+                fill="#fff"
+              />
             </svg>
             <div class="stat-info">
               <span class="stat-value">{{ stats().totalAttractions }}</span>
@@ -141,9 +257,18 @@
           </div>
 
           <div class="stat-card" routerLink="/photos">
-            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="40" height="40">
-              <circle cx="16" cy="16" r="16" fill="#667eea"/>
-              <path d="M6 8a2 2 0 00-2 2v12a2 2 0 002 2h20a2 2 0 002-2V10a2 2 0 00-2-2H6zm10 3a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6zM24 11a1 1 0 110 2 1 1 0 010-2z" fill="#fff"/>
+            <svg
+              class="stat-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 32 32"
+              width="40"
+              height="40"
+            >
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <path
+                d="M6 8a2 2 0 00-2 2v12a2 2 0 002 2h20a2 2 0 002-2V10a2 2 0 00-2-2H6zm10 3a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6zM24 11a1 1 0 110 2 1 1 0 010-2z"
+                fill="#fff"
+              />
             </svg>
             <div class="stat-info">
               <span class="stat-value">{{ stats().totalPhotos }}</span>
@@ -152,9 +277,18 @@
           </div>
 
           <div class="stat-card" routerLink="/users">
-            <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="40" height="40">
-              <circle cx="16" cy="16" r="16" fill="#667eea"/>
-              <path d="M12 14a4 4 0 110-8 4 4 0 010 8zm-7 10c0-3.31 3.13-6 7-6s7 2.69 7 6H5zm15-10a3 3 0 110-6 3 3 0 010 6zm5 10h-5c0-2.18-1.08-4.15-2.78-5.5.92-.32 1.93-.5 2.78-.5 3.31 0 6 2.24 6 5v1z" fill="#fff"/>
+            <svg
+              class="stat-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 32 32"
+              width="40"
+              height="40"
+            >
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <path
+                d="M12 14a4 4 0 110-8 4 4 0 010 8zm-7 10c0-3.31 3.13-6 7-6s7 2.69 7 6H5zm15-10a3 3 0 110-6 3 3 0 010 6zm5 10h-5c0-2.18-1.08-4.15-2.78-5.5.92-.32 1.93-.5 2.78-.5 3.31 0 6 2.24 6 5v1z"
+                fill="#fff"
+              />
             </svg>
             <div class="stat-info">
               <span class="stat-value">{{ stats().totalUsers }}</span>

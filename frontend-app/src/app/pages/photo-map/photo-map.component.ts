@@ -85,7 +85,7 @@ export class PhotoMapComponent implements OnInit {
           this.loading.set(true);
           this.error.set(null);
         }),
-        switchMap(params =>
+        switchMap((params) =>
           this.photoService.getPhotosForMap({
             city: params['city'] || undefined,
             attraction: params['attraction'] || undefined,
@@ -95,7 +95,7 @@ export class PhotoMapComponent implements OnInit {
           this.error.set('Failed to load photos');
           this.loading.set(false);
           return EMPTY;
-        }),
+        })
       )
       .subscribe((response) => {
         this.photos.set(response.photos);
@@ -108,4 +108,3 @@ export class PhotoMapComponent implements OnInit {
       });
   }
 }
-

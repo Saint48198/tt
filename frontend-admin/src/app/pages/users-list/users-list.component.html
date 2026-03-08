@@ -5,7 +5,8 @@
       <mat-slide-toggle
         [checked]="includeDisabled()"
         (change)="onToggleDisabled($event.checked)"
-        color="primary">
+        color="primary"
+      >
         Show Disabled
       </mat-slide-toggle>
       <button mat-raised-button color="primary" routerLink="/users/new">
@@ -31,7 +32,9 @@
             @if (user.profile_icon) {
               <img [src]="user.profile_icon" alt="" class="user-avatar-img" />
             } @else {
-              <span class="user-avatar-fallback">{{ user.username?.[0]?.toUpperCase() || 'U' }}</span>
+              <span class="user-avatar-fallback">{{
+                user.username?.[0]?.toUpperCase() || 'U'
+              }}</span>
             }
             <span>{{ user.username }}</span>
           </div>
@@ -74,7 +77,11 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.disabled-row]="row.disabled_date"></tr>
+      <tr
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        [class.disabled-row]="row.disabled_date"
+      ></tr>
 
       <!-- No Data Row -->
       <tr class="mat-row" *matNoDataRow>
@@ -95,4 +102,3 @@
     ></mat-paginator>
   </div>
 </div>
-

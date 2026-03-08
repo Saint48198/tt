@@ -15,15 +15,9 @@ const router = Router();
 router.get('/api/users', async (req: Request, res: Response) => {
   const { page, limit, all, sortBy, sortOrder, includeDisabled } = req.query;
 
-  const pageNum =
-    page !== undefined
-      ? Number(Array.isArray(page) ? page[0] : page)
-      : 1;
+  const pageNum = page !== undefined ? Number(Array.isArray(page) ? page[0] : page) : 1;
 
-  const limitNum =
-    limit !== undefined
-      ? Number(Array.isArray(limit) ? limit[0] : limit)
-      : 10;
+  const limitNum = limit !== undefined ? Number(Array.isArray(limit) ? limit[0] : limit) : 10;
 
   const rawSortBy = Array.isArray(sortBy) ? sortBy?.[0] : sortBy;
   const sortByStr = (rawSortBy ?? 'username').toString();
@@ -45,7 +39,9 @@ router.get('/api/users', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Failed to fetch users:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch users.';
-    return res.status(error instanceof Error && message.includes('Invalid') ? 400 : 500).json({ error: message });
+    return res
+      .status(error instanceof Error && message.includes('Invalid') ? 400 : 500)
+      .json({ error: message });
   }
 });
 
@@ -81,12 +77,16 @@ router.put('/api/users/:id', async (req: Request, res: Response) => {
   }
 
   try {
-    const result = await userService.updateUser(id, { email, passwordHash, profile_icon, instagram, portfolio_url });
+    const result = await userService.updateUser(id, {
+      email,
+      passwordHash,
+      profile_icon,
+      instagram,
+      portfolio_url,
+    });
 
     if (!result.success) {
-      return res
-        .status(404)
-        .json({ error: 'User not found or no changes made' });
+      return res.status(404).json({ error: 'User not found or no changes made' });
     }
 
     return res.status(200).json({ message: 'User updated successfully' });
@@ -142,8 +142,7 @@ router.put('/api/users/:id/password', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Current password is incorrect' });
     }
 
-    const passwordRegex =
-      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{12,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{12,}$/;
 
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
@@ -207,7 +206,11 @@ router.post('/api/users/:id/avatar', async (req: Request, res: Response): Promis
         .toFile(outputPath);
 
       // Clean up temp file
-      try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
+      try {
+        fs.unlinkSync(file.filepath);
+      } catch {
+        /* ignore */
+      }
 
       // Delete old avatar file if it exists
       const existingUser = await userService.getUserById(id);
@@ -215,7 +218,11 @@ router.post('/api/users/:id/avatar', async (req: Request, res: Response): Promis
         const oldFilename = existingUser.profile_icon.split('/').pop();
         if (oldFilename) {
           const oldPath = path.join(AVATARS_DIR, oldFilename);
-          try { fs.unlinkSync(oldPath); } catch { /* ignore */ }
+          try {
+            fs.unlinkSync(oldPath);
+          } catch {
+            /* ignore */
+          }
         }
       }
 
@@ -226,7 +233,11 @@ router.post('/api/users/:id/avatar', async (req: Request, res: Response): Promis
       return res.status(200).json({ profile_icon: avatarUrl });
     } catch (uploadErr) {
       console.error('Avatar processing error:', uploadErr);
-      try { fs.unlinkSync(file.filepath); } catch { /* ignore */ }
+      try {
+        fs.unlinkSync(file.filepath);
+      } catch {
+        /* ignore */
+      }
       return res.status(500).json({ error: 'Failed to process avatar image' });
     }
   });
@@ -249,7 +260,11 @@ router.delete('/api/users/:id/avatar', async (req: Request, res: Response) => {
       const oldFilename = existingUser.profile_icon.split('/').pop();
       if (oldFilename) {
         const oldPath = path.join(AVATARS_DIR, oldFilename);
-        try { fs.unlinkSync(oldPath); } catch { /* ignore */ }
+        try {
+          fs.unlinkSync(oldPath);
+        } catch {
+          /* ignore */
+        }
       }
     }
 
@@ -262,7 +277,6 @@ router.delete('/api/users/:id/avatar', async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Failed to remove avatar' });
   }
 });
-
 
 // GET, PUT, etc. not allowed on /api/user-roles
 router.all('/api/user-roles', (req: Request, res: Response) => {
@@ -283,8 +297,7 @@ router.post('/api/user/change-password', async (req: Request, res: Response) => 
   }
 
   // Validate password strength
-  const passwordRegex =
-    /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
+  const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
 
   if (!passwordRegex.test(newPassword)) {
     return res.status(400).json({

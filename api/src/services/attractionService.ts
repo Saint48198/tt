@@ -55,7 +55,17 @@ interface UpdateAttractionData {
 
 class AttractionService {
   private static instance: AttractionService;
-  private validColumns = ['attractions.name', 'lat', 'lng', 'wiki_term', 'country_name', 'last_visited', 'created_date', 'updated_date', 'disabled_date'];
+  private validColumns = [
+    'attractions.name',
+    'lat',
+    'lng',
+    'wiki_term',
+    'country_name',
+    'last_visited',
+    'created_date',
+    'updated_date',
+    'disabled_date',
+  ];
 
   private constructor() {}
 
@@ -72,7 +82,16 @@ class AttractionService {
     page: number;
     limit: number;
   }> {
-    const { country_id, state_id, search, page = 1, limit = 25, sortBy = 'attractions.name', sortOrder = 'asc', includeDisabled = false } = options;
+    const {
+      country_id,
+      state_id,
+      search,
+      page = 1,
+      limit = 25,
+      sortBy = 'attractions.name',
+      sortOrder = 'asc',
+      includeDisabled = false,
+    } = options;
 
     let sortByStr = sortBy.toString();
     const sortOrderStr = sortOrder.toString().toLowerCase();
@@ -96,7 +115,9 @@ class AttractionService {
     }
 
     if (search && search.trim()) {
-      whereClauses.push(`(attractions.name ILIKE $${paramIdx} OR countries.name ILIKE $${paramIdx})`);
+      whereClauses.push(
+        `(attractions.name ILIKE $${paramIdx} OR countries.name ILIKE $${paramIdx})`
+      );
       params.push(`%${search.trim()}%`);
       paramIdx++;
     }
@@ -122,7 +143,9 @@ class AttractionService {
 
     const countParams: any[] = [];
     let countParamIdx = 1;
-    const countWhereClauses: string[] = includeDisabled ? [] : ['attractions.disabled_date IS NULL'];
+    const countWhereClauses: string[] = includeDisabled
+      ? []
+      : ['attractions.disabled_date IS NULL'];
 
     if (country_id !== undefined && !Number.isNaN(country_id)) {
       countWhereClauses.push(`attractions.country_id = $${countParamIdx++}`);
@@ -133,7 +156,9 @@ class AttractionService {
       countParams.push(state_id);
     }
     if (search && search.trim()) {
-      countWhereClauses.push(`(attractions.name ILIKE $${countParamIdx} OR countries.name ILIKE $${countParamIdx})`);
+      countWhereClauses.push(
+        `(attractions.name ILIKE $${countParamIdx} OR countries.name ILIKE $${countParamIdx})`
+      );
       countParams.push(`%${search.trim()}%`);
       countParamIdx++;
     }
@@ -165,27 +190,76 @@ class AttractionService {
   }
 
   public async createAttraction(data: CreateAttractionData): Promise<{ id: number }> {
-    const { name, country_id, state_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term } = data;
+    const {
+      name,
+      country_id,
+      state_id,
+      is_unesco,
+      is_national_park,
+      lat,
+      lng,
+      last_visited,
+      wiki_term,
+    } = data;
     const result = await db.run(
       `INSERT INTO attractions (name, country_id, state_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-      [name, country_id, state_id || null, !!is_unesco, !!is_national_park, lat, lng, last_visited || null, wiki_term]
+      [
+        name,
+        country_id,
+        state_id || null,
+        !!is_unesco,
+        !!is_national_park,
+        lat,
+        lng,
+        last_visited || null,
+        wiki_term,
+      ]
     );
     return { id: result.rows[0].id };
   }
 
-  public async updateAttraction(id: number | string, data: UpdateAttractionData): Promise<{ success: boolean; changes: number }> {
-    const { name, country_id, state_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term } = data;
+  public async updateAttraction(
+    id: number | string,
+    data: UpdateAttractionData
+  ): Promise<{ success: boolean; changes: number }> {
+    const {
+      name,
+      country_id,
+      state_id,
+      is_unesco,
+      is_national_park,
+      lat,
+      lng,
+      last_visited,
+      wiki_term,
+    } = data;
     const result = await db.run(
       `UPDATE attractions SET name=$1, country_id=$2, state_id=$3, is_unesco=$4, is_national_park=$5,
        lat=$6, lng=$7, last_visited=$8, wiki_term=$9, updated_date=NOW() WHERE id=$10`,
-      [name, country_id, state_id ?? null, !!is_unesco, !!is_national_park, lat, lng, last_visited || null, wiki_term, id]
+      [
+        name,
+        country_id,
+        state_id ?? null,
+        !!is_unesco,
+        !!is_national_park,
+        lat,
+        lng,
+        last_visited || null,
+        wiki_term,
+        id,
+      ]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 
-  public async deleteAttraction(id: number | string): Promise<{ success: boolean; changes: number }> {
-    const result = await db.run('UPDATE attractions SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL', [id]);
+  public async deleteAttraction(
+    id: number | string
+  ): Promise<{ success: boolean; changes: number }> {
+    const result = await db.run(
+      'UPDATE attractions SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL',
+      [id]
+    );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 }

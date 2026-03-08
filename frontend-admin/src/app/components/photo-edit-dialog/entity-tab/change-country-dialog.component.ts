@@ -37,10 +37,12 @@ export interface ChangeCountryDialogResult {
     <mat-dialog-content>
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Search countries</mat-label>
-        <input matInput
-               [(ngModel)]="searchQuery"
-               placeholder="Type to filter..."
-               autocomplete="off">
+        <input
+          matInput
+          [(ngModel)]="searchQuery"
+          placeholder="Type to filter..."
+          autocomplete="off"
+        />
         <mat-icon matPrefix>search</mat-icon>
         @if (searchQuery) {
           <button matSuffix mat-icon-button (click)="searchQuery = ''">
@@ -74,29 +76,33 @@ export interface ChangeCountryDialogResult {
       <button mat-button (click)="cancel()">Cancel</button>
     </mat-dialog-actions>
   `,
-  styles: [`
-    .full-width { width: 100%; }
-    .loading-container {
-      display: flex;
-      justify-content: center;
-      padding: 24px;
-    }
-    .country-list {
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    .no-results {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 16px;
-      color: var(--mat-sys-on-surface-variant, #666);
-    }
-    .dialog-title-icon {
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-  `],
+  styles: [
+    `
+      .full-width {
+        width: 100%;
+      }
+      .loading-container {
+        display: flex;
+        justify-content: center;
+        padding: 24px;
+      }
+      .country-list {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      .no-results {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 16px;
+        color: var(--mat-sys-on-surface-variant, #666);
+      }
+      .dialog-title-icon {
+        vertical-align: middle;
+        margin-right: 8px;
+      }
+    `,
+  ],
 })
 export class ChangeCountryDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<ChangeCountryDialogComponent>);
@@ -115,7 +121,8 @@ export class ChangeCountryDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.loading.set(true);
-    this.countriesService.getAllCountries('name')
+    this.countriesService
+      .getAllCountries('name')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -138,4 +145,3 @@ export class ChangeCountryDialogComponent implements OnInit {
     this.dialogRef.close({ changed: false } as ChangeCountryDialogResult);
   }
 }
-

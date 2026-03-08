@@ -8,7 +8,12 @@
     <div class="dialog-layout">
       <!-- Photo preview -->
       <div class="photo-preview">
-        <lib-image-loader [src]="photo.url" [alt]="state.caption() || 'Photo'" imgClass="preview-image" borderRadius="16px"></lib-image-loader>
+        <lib-image-loader
+          [src]="photo.url"
+          [alt]="state.caption() || 'Photo'"
+          imgClass="preview-image"
+          borderRadius="16px"
+        ></lib-image-loader>
       </div>
 
       <!-- Edit form -->
@@ -68,4 +73,3 @@
     </button>
   </mat-dialog-actions>
 </div>
-

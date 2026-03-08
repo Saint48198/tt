@@ -63,12 +63,9 @@ export class CountryService {
       map((world) => ({
         type: 'FeatureCollection' as const,
         features: world.features.filter(
-          (f) =>
-            f.properties?.['name'] &&
-            nameSet.has(f.properties['name'].toLowerCase())
+          (f) => f.properties?.['name'] && nameSet.has(f.properties['name'].toLowerCase())
         ),
       }))
     );
   }
 }
-

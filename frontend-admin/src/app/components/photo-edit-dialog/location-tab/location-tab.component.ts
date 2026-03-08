@@ -1,6 +1,13 @@
 import {
-  AfterViewInit, Component, computed, DestroyRef, ElementRef,
-  inject, OnDestroy, signal, ViewChild,
+  AfterViewInit,
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  inject,
+  OnDestroy,
+  signal,
+  ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
@@ -74,11 +81,13 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
 
   canAddCity = computed(() => {
     const geo = this.reverseGeo();
-    return geo?.city != null
-      && geo.city !== 'Unknown City'
-      && this.matchedCities().length === 0
-      && !this.matchingCities()
-      && this.resolvedCountry() != null;
+    return (
+      geo?.city != null &&
+      geo.city !== 'Unknown City' &&
+      this.matchedCities().length === 0 &&
+      !this.matchingCities() &&
+      this.resolvedCountry() != null
+    );
   });
 
   canAddState = computed(() => {
@@ -87,11 +96,11 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
     if (!geo?.state || geo.state === 'Unknown State' || !country) return false;
     const stateName = geo.state;
     const name = country.name.toLowerCase();
-    const isUsOrCanada = name.includes('united states') || name === 'usa' || name === 'us'
-      || name.includes('canada');
+    const isUsOrCanada =
+      name.includes('united states') || name === 'usa' || name === 'us' || name.includes('canada');
     if (!isUsOrCanada) return false;
     const match = this.allStates().find(
-      (s) => s.name.toLowerCase() === stateName.toLowerCase() && s.country_id === country.id,
+      (s) => s.name.toLowerCase() === stateName.toLowerCase() && s.country_id === country.id
     );
     return !match && !this.stateCreated();
   });
@@ -103,12 +112,14 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
     const lng = this.state.longitude();
     if (lat != null && lng != null) {
       const cap = this.state.caption() || 'Photo';
-      return [{
-        lat,
-        lng,
-        title: cap,
-        popup: `<b>${cap}</b><br/>Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`,
-      }];
+      return [
+        {
+          lat,
+          lng,
+          title: cap,
+          popup: `<b>${cap}</b><br/>Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`,
+        },
+      ];
     }
     return [];
   });
@@ -132,7 +143,7 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
           }
         }
       },
-      { threshold: 0.1 },
+      { threshold: 0.1 }
     );
     this.observer.observe(this.el.nativeElement);
   }
@@ -155,10 +166,11 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
     this.resolvedState.set(null);
     this.stateCreated.set(false);
 
-    this.http.post<{ city: string; state: string; country: string }>('/api/geocode', {
-      latitude: lat,
-      longitude: lng,
-    })
+    this.http
+      .post<{ city: string; state: string; country: string }>('/api/geocode', {
+        latitude: lat,
+        longitude: lng,
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -186,7 +198,8 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
 
   private findMatchingCities(name: string): void {
     this.matchingCities.set(true);
-    this.citiesService.getCities({ search: name, page: 1, limit: 10 })
+    this.citiesService
+      .getCities({ search: name, page: 1, limit: 10 })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -219,7 +232,7 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
       .subscribe({
         next: ({ countries, states }) => {
           const match = countries.countries.find(
-            (c) => c.name.toLowerCase() === countryName.toLowerCase(),
+            (c) => c.name.toLowerCase() === countryName.toLowerCase()
           );
           this.resolvedCountry.set(match || null);
           this.allStates.set(states.states);
@@ -229,7 +242,8 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
             if (geo?.state && geo.state !== 'Unknown State') {
               const geoStateName = geo.state;
               const stateMatch = states.states.find(
-                (s) => s.name.toLowerCase() === geoStateName.toLowerCase() && s.country_id === match.id,
+                (s) =>
+                  s.name.toLowerCase() === geoStateName.toLowerCase() && s.country_id === match.id
               );
               this.resolvedState.set(stateMatch || null);
             }
@@ -245,7 +259,8 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
     const geoStateName = geo.state;
 
     this.creatingState.set(true);
-    this.statesService.createState({ name: geoStateName, country_id: country.id })
+    this.statesService
+      .createState({ name: geoStateName, country_id: country.id })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
@@ -277,13 +292,14 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
 
     this.creatingCity.set(true);
     const resolvedState = this.resolvedState();
-    this.citiesService.createCity({
-      name: geo.city,
-      lat,
-      lng,
-      country_id: country.id,
-      state_id: resolvedState?.id,
-    })
+    this.citiesService
+      .createCity({
+        name: geo.city,
+        lat,
+        lng,
+        country_id: country.id,
+        state_id: resolvedState?.id,
+      })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         switchMap((res) => {
@@ -291,7 +307,7 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
             return this.citiesService.getCity(res.id);
           }
           return of(null);
-        }),
+        })
       )
       .subscribe({
         next: (city) => {
@@ -307,4 +323,3 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
       });
   }
 }
-

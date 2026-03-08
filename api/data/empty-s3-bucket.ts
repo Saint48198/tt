@@ -51,9 +51,7 @@ async function emptyBucket() {
     totalDeleted += objects.length;
     console.log(`Deleted ${objects.length} objects (total: ${totalDeleted})`);
 
-    continuationToken = listResponse.IsTruncated
-      ? listResponse.NextContinuationToken
-      : undefined;
+    continuationToken = listResponse.IsTruncated ? listResponse.NextContinuationToken : undefined;
   } while (continuationToken);
 
   console.log(`\nDone! Deleted ${totalDeleted} total objects from bucket "${bucket}".`);
@@ -63,4 +61,3 @@ emptyBucket().catch((err) => {
   console.error('Error emptying bucket:', err);
   process.exit(1);
 });
-

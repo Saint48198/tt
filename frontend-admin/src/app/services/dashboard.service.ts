@@ -15,4 +15,3 @@ export class DashboardService {
     return this.http.get<DashboardStats>('/api/stats');
   }
 }
-

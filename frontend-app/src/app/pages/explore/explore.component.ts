@@ -36,7 +36,6 @@ interface BreadcrumbItem {
   styleUrl: './explore.component.scss',
 })
 export class ExploreComponent implements OnInit, OnDestroy {
-
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
@@ -165,7 +164,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
     const city = this.selectedCity();
     if (lvl === 'city' && city && country) {
       const countryAbbr = country.abbreviation || country.name;
-      const stateAbbr = state ? (state.abbr || state.name) : null;
+      const stateAbbr = state ? state.abbr || state.name : null;
       const segments = [this.baseUrl(), countryAbbr];
       if (stateAbbr) segments.push(stateAbbr);
       segments.push(this.toSlug(city.name));
@@ -243,44 +242,46 @@ export class ExploreComponent implements OnInit, OnDestroy {
   private loadFromUrl(segments: string[]): void {
     this.loading.set(true);
 
-    this.loadCountries$().pipe(
-      switchMap((countries) => {
-        if (segments.length === 0) {
-          this.level.set('countries');
-          return EMPTY;
-        }
+    this.loadCountries$()
+      .pipe(
+        switchMap((countries) => {
+          if (segments.length === 0) {
+            this.level.set('countries');
+            return EMPTY;
+          }
 
-        const countryAbbr = segments[0];
-        const country = countries.find(
-          (c) => (c.abbreviation || c.name).toLowerCase() === countryAbbr.toLowerCase()
-        );
+          const countryAbbr = segments[0];
+          const country = countries.find(
+            (c) => (c.abbreviation || c.name).toLowerCase() === countryAbbr.toLowerCase()
+          );
 
-        if (!country) {
-          this.level.set('countries');
-          return EMPTY;
-        }
+          if (!country) {
+            this.level.set('countries');
+            return EMPTY;
+          }
 
-        this.selectedCountry.set(country);
+          this.selectedCountry.set(country);
 
-        if (segments.length >= 2 && segments[1].toLowerCase() === 'attractions') {
-          return this.loadAttractionsForUrl$(country, segments[2]);
-        } else if (segments.length >= 3) {
-          return this.loadStatesForUrl$(country, segments[1], segments[2]);
-        } else if (segments.length >= 2) {
-          return this.loadStatesForUrl$(country, segments[1]);
-        } else {
-          return this.loadCountryDrillDown$(country);
-        }
-      }),
-      takeUntil(this.destroy$),
-      finalize(() => this.loading.set(false)),
-    ).subscribe();
+          if (segments.length >= 2 && segments[1].toLowerCase() === 'attractions') {
+            return this.loadAttractionsForUrl$(country, segments[2]);
+          } else if (segments.length >= 3) {
+            return this.loadStatesForUrl$(country, segments[1], segments[2]);
+          } else if (segments.length >= 2) {
+            return this.loadStatesForUrl$(country, segments[1]);
+          } else {
+            return this.loadCountryDrillDown$(country);
+          }
+        }),
+        takeUntil(this.destroy$),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe();
   }
 
   private loadCountries$(): Observable<ExploreCountry[]> {
-    return this.exploreService.getVisitedCountries(this.username()).pipe(
-      tap((countries) => this.countries.set(countries)),
-    );
+    return this.exploreService
+      .getVisitedCountries(this.username())
+      .pipe(tap((countries) => this.countries.set(countries)));
   }
 
   private loadCountryDrillDown$(country: ExploreCountry): Observable<void> {
@@ -297,7 +298,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
           return EMPTY;
         }
         return this.loadCitiesForCountry$(country.id);
-      }),
+      })
     );
   }
 
@@ -305,8 +306,14 @@ export class ExploreComponent implements OnInit, OnDestroy {
   private isStateCountry(country: ExploreCountry): boolean {
     const abbr = (country.abbreviation || '').toUpperCase();
     const name = country.name.toLowerCase();
-    return abbr === 'US' || abbr === 'USA' || name.includes('united states')
-      || abbr === 'CA' || abbr === 'CAN' || name.includes('canada');
+    return (
+      abbr === 'US' ||
+      abbr === 'USA' ||
+      name.includes('united states') ||
+      abbr === 'CA' ||
+      abbr === 'CAN' ||
+      name.includes('canada')
+    );
   }
 
   /** Load GeoJSON overlays for visited states (US and Canada only) */
@@ -315,7 +322,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
 
     const abbr = (country.abbreviation || '').toUpperCase();
     const name = country.name.toLowerCase();
-    const geoKey = (abbr === 'CA' || abbr === 'CAN' || name.includes('canada')) ? 'CA' : 'US';
+    const geoKey = abbr === 'CA' || abbr === 'CAN' || name.includes('canada') ? 'CA' : 'US';
 
     const stateNames = states.map((s) => s.name);
     if (stateNames.length === 0) return;
@@ -330,10 +337,8 @@ export class ExploreComponent implements OnInit, OnDestroy {
             this.countryMapOverlays = geoJson.features.map((feature, i) => {
               const palette = this.stateColors[i % this.stateColors.length];
               const featureName = feature.properties?.['name'] || '';
-              const state = states.find(
-                (s) => s.name.toLowerCase() === featureName.toLowerCase()
-              );
-              const stateAbbr = state ? (state.abbr || state.name) : featureName;
+              const state = states.find((s) => s.name.toLowerCase() === featureName.toLowerCase());
+              const stateAbbr = state ? state.abbr || state.name : featureName;
               return {
                 type: 'state' as const,
                 geoJson: {
@@ -353,11 +358,16 @@ export class ExploreComponent implements OnInit, OnDestroy {
             });
             this.cdr.detectChanges();
           }
-        }),
-      ).subscribe();
+        })
+      )
+      .subscribe();
   }
 
-  private loadStatesForUrl$(country: ExploreCountry, stateAbbr: string, cityName?: string): Observable<void> {
+  private loadStatesForUrl$(
+    country: ExploreCountry,
+    stateAbbr: string,
+    cityName?: string
+  ): Observable<void> {
     this.countryMapOverlays = [];
 
     // For non-state countries, the segment is a city name, not a state abbreviation
@@ -387,7 +397,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
               }
               this.level.set('cities');
               return EMPTY;
-            }),
+            })
           );
         }
         // stateAbbr might actually be a city name for countries without states
@@ -396,7 +406,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
         }
         this.level.set('states');
         return EMPTY;
-      }),
+      })
     );
   }
 
@@ -410,7 +420,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
         }
         this.level.set('cities');
         return EMPTY;
-      }),
+      })
     );
   }
 
@@ -419,7 +429,10 @@ export class ExploreComponent implements OnInit, OnDestroy {
     return this.detailService.loadCityDetail$(city);
   }
 
-  private loadAttractionsForUrl$(country: ExploreCountry, attractionName?: string): Observable<void> {
+  private loadAttractionsForUrl$(
+    country: ExploreCountry,
+    attractionName?: string
+  ): Observable<void> {
     return this.exploreService.getAttractions(country.id).pipe(
       switchMap((attractions) => {
         this.attractions.set(attractions);
@@ -431,7 +444,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
         }
         this.level.set('attractions');
         return EMPTY;
-      }),
+      })
     );
   }
 
@@ -467,19 +480,19 @@ export class ExploreComponent implements OnInit, OnDestroy {
     this.selectedState.set(null);
     this.loading.set(true);
 
-    this.loadCountryDrillDown$(country).pipe(
-      takeUntil(this.destroy$),
-      finalize(() => this.loading.set(false)),
-    ).subscribe();
+    this.loadCountryDrillDown$(country)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe();
   }
 
   onOverlayClick(event: OverlayClickEvent): void {
     // Find the matching state by name and navigate to it
     if (event.name) {
       const eventName = event.name;
-      const state = this.states().find(
-        (s) => s.name.toLowerCase() === eventName.toLowerCase()
-      );
+      const state = this.states().find((s) => s.name.toLowerCase() === eventName.toLowerCase());
       if (state) {
         this.onStateClick(state);
         return;
@@ -499,14 +512,17 @@ export class ExploreComponent implements OnInit, OnDestroy {
     this.selectedState.set(state);
     this.loading.set(true);
 
-    this.exploreService.getCities(state.country_id, state.id).pipe(
-      tap((cities) => {
-        this.cities.set(cities);
-        this.level.set('cities');
-      }),
-      takeUntil(this.destroy$),
-      finalize(() => this.loading.set(false)),
-    ).subscribe();
+    this.exploreService
+      .getCities(state.country_id, state.id)
+      .pipe(
+        tap((cities) => {
+          this.cities.set(cities);
+          this.level.set('cities');
+        }),
+        takeUntil(this.destroy$),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe();
   }
 
   onViewAttractions(): void {
@@ -516,14 +532,17 @@ export class ExploreComponent implements OnInit, OnDestroy {
     this.updateUrl(`${this.baseUrl()}/${countryAbbr}/attractions`);
 
     this.loading.set(true);
-    this.exploreService.getAttractions(country.id).pipe(
-      tap((attractions) => {
-        this.attractions.set(attractions);
-        this.level.set('attractions');
-      }),
-      takeUntil(this.destroy$),
-      finalize(() => this.loading.set(false)),
-    ).subscribe();
+    this.exploreService
+      .getAttractions(country.id)
+      .pipe(
+        tap((attractions) => {
+          this.attractions.set(attractions);
+          this.level.set('attractions');
+        }),
+        takeUntil(this.destroy$),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe();
   }
 
   onCityClick(city: ExploreCity): void {
@@ -531,7 +550,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
     if (!country) return;
     const countryAbbr = country.abbreviation || country.name;
     const state = this.selectedState();
-    const stateAbbr = state ? (state.abbr || state.name) : null;
+    const stateAbbr = state ? state.abbr || state.name : null;
     const citySlug = this.toSlug(city.name);
 
     const segments = [this.baseUrl(), countryAbbr];
@@ -540,10 +559,12 @@ export class ExploreComponent implements OnInit, OnDestroy {
     this.updateUrl(segments.join('/'));
 
     this.loading.set(true);
-    this.loadCityDetail$(city).pipe(
-      takeUntil(this.destroy$),
-      finalize(() => this.loading.set(false)),
-    ).subscribe();
+    this.loadCityDetail$(city)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe();
   }
 
   onAttractionClick(attraction: ExploreAttraction): void {
@@ -554,10 +575,12 @@ export class ExploreComponent implements OnInit, OnDestroy {
     this.updateUrl(`${this.baseUrl()}/${countryAbbr}/attractions/${attractionSlug}`);
 
     this.loading.set(true);
-    this.loadAttractionDetail$(attraction).pipe(
-      takeUntil(this.destroy$),
-      finalize(() => this.loading.set(false)),
-    ).subscribe();
+    this.loadAttractionDetail$(attraction)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.loading.set(false))
+      )
+      .subscribe();
   }
 
   onBreadcrumbClick(crumb: BreadcrumbItem): void {
@@ -596,7 +619,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
   goBack(): void {
     const lvl = this.level();
     const country = this.selectedCountry();
-    const countryAbbr = country ? (country.abbreviation || country.name) : '';
+    const countryAbbr = country ? country.abbreviation || country.name : '';
 
     if (lvl === 'attraction') {
       this.detailService.reset();
@@ -647,10 +670,9 @@ export class ExploreComponent implements OnInit, OnDestroy {
         this.cities.set(cities);
         this.level.set('cities');
       }),
-      switchMap(() => EMPTY),
+      switchMap(() => EMPTY)
     );
   }
-
 
   formatDate(dateStr?: string): string {
     if (!dateStr) return '';
@@ -660,4 +682,3 @@ export class ExploreComponent implements OnInit, OnDestroy {
     });
   }
 }
-

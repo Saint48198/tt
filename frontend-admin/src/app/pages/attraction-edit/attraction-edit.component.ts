@@ -98,8 +98,14 @@ export class AttractionEditComponent implements OnInit {
     this.loadInitialData();
     this.listenForCountryChanges();
 
-    this.form.get('lat')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
-    this.form.get('lng')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateMapFromForm());
+    this.form
+      .get('lat')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.updateMapFromForm());
+    this.form
+      .get('lng')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.updateMapFromForm());
   }
 
   private initForm(): void {
@@ -162,9 +168,7 @@ export class AttractionEditComponent implements OnInit {
             return this.statesService.getAllStates('name').pipe(
               tap((res) => {
                 this.states.set(
-                  res.states.filter(
-                    (s) => Number(s.country_id) === Number(countryId),
-                  ),
+                  res.states.filter((s) => Number(s.country_id) === Number(countryId))
                 );
                 this.loadingStates.set(false);
                 // Patch state_id after states are loaded so the select can match
@@ -176,11 +180,11 @@ export class AttractionEditComponent implements OnInit {
                 this.states.set([]);
                 this.loadingStates.set(false);
                 return of(undefined);
-              }),
+              })
             );
           }
           return of(undefined);
-        }),
+        })
       )
       .subscribe({
         next: () => {
@@ -191,11 +195,10 @@ export class AttractionEditComponent implements OnInit {
           }
         },
         error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to load data',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' },
-          );
+          this.snackBar.open(err?.error?.message || 'Failed to load data', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
           this.loading.set(false);
           if (this.isEditMode()) {
             this.router.navigate(['/attractions']);
@@ -209,32 +212,37 @@ export class AttractionEditComponent implements OnInit {
    * or clear them otherwise. Uses switchMap to cancel any in-flight states request.
    */
   private listenForCountryChanges(): void {
-    this.form.get('country_id')?.valueChanges.pipe(
-      takeUntilDestroyed(this.destroyRef),
-      tap((countryId) => {
-        const country = this.countries().find((c) => c.id === countryId);
-        this.selectedCountryName.set(country?.name || '');
-      }),
-      switchMap((countryId) => {
-        if (this.showStates()) {
-          this.loadingStates.set(true);
-          return this.statesService.getAllStates('name').pipe(
-            tap((res) => {
-              this.states.set(res.states.filter((s) => Number(s.country_id) === Number(countryId)));
-              this.loadingStates.set(false);
-            }),
-            catchError(() => {
-              this.states.set([]);
-              this.loadingStates.set(false);
-              return of(undefined);
-            }),
-          );
-        }
-        this.states.set([]);
-        this.form.get('state_id')?.setValue(null);
-        return of(undefined);
-      }),
-    ).subscribe();
+    this.form
+      .get('country_id')
+      ?.valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef),
+        tap((countryId) => {
+          const country = this.countries().find((c) => c.id === countryId);
+          this.selectedCountryName.set(country?.name || '');
+        }),
+        switchMap((countryId) => {
+          if (this.showStates()) {
+            this.loadingStates.set(true);
+            return this.statesService.getAllStates('name').pipe(
+              tap((res) => {
+                this.states.set(
+                  res.states.filter((s) => Number(s.country_id) === Number(countryId))
+                );
+                this.loadingStates.set(false);
+              }),
+              catchError(() => {
+                this.states.set([]);
+                this.loadingStates.set(false);
+                return of(undefined);
+              })
+            );
+          }
+          this.states.set([]);
+          this.form.get('state_id')?.setValue(null);
+          return of(undefined);
+        })
+      )
+      .subscribe();
   }
 
   private parseDate(value: string | undefined): Date | null {
@@ -252,7 +260,6 @@ export class AttractionEditComponent implements OnInit {
     const month = String(value.getMonth() + 1).padStart(2, '0');
     return `${year}-${month}-01`;
   }
-
 
   private updateMapFromForm(): void {
     const lat = this.form.get('lat')?.value;
@@ -291,29 +298,27 @@ export class AttractionEditComponent implements OnInit {
 
     this.geocoding.set(true);
 
-    const request = country
-      ? { place: `${name}, ${country.name}` }
-      : { place: name };
+    const request = country ? { place: `${name}, ${country.name}` } : { place: name };
 
-    this.geocodeService.forwardGeocode(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        this.form.patchValue({ lat: result.lat, lng: result.lng });
-        this.snackBar.open(
-          `Coordinates found: ${result.lat}, ${result.lng}`,
-          'Close',
-          { duration: 3000 }
-        );
-        this.geocoding.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to look up coordinates',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.geocoding.set(false);
-      },
-    });
+    this.geocodeService
+      .forwardGeocode(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.form.patchValue({ lat: result.lat, lng: result.lng });
+          this.snackBar.open(`Coordinates found: ${result.lat}, ${result.lng}`, 'Close', {
+            duration: 3000,
+          });
+          this.geocoding.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to look up coordinates', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.geocoding.set(false);
+        },
+      });
   }
 
   onMonthSelected(date: Date, datepicker: MatDatepicker<Date>): void {
@@ -330,20 +335,22 @@ export class AttractionEditComponent implements OnInit {
 
     this.loadingWiki.set(true);
     this.wikiInfo.set(null);
-    this.infoService.getInfo(wikiTerm).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (result) => {
-        this.wikiInfo.set(result);
-        this.loadingWiki.set(false);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.error || 'Failed to look up wiki info',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.loadingWiki.set(false);
-      },
-    });
+    this.infoService
+      .getInfo(wikiTerm)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.wikiInfo.set(result);
+          this.loadingWiki.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.error || 'Failed to look up wiki info', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.loadingWiki.set(false);
+        },
+      });
   }
 
   onSubmit(): void {
@@ -367,9 +374,10 @@ export class AttractionEditComponent implements OnInit {
       wiki_term: formValue.wiki_term || undefined,
     };
 
-    const request$ = this.isEditMode() && this.attractionId
-      ? this.attractionsService.updateAttraction(this.attractionId, payload)
-      : this.attractionsService.createAttraction(payload);
+    const request$ =
+      this.isEditMode() && this.attractionId
+        ? this.attractionsService.updateAttraction(this.attractionId, payload)
+        : this.attractionsService.createAttraction(payload);
 
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
@@ -391,4 +399,3 @@ export class AttractionEditComponent implements OnInit {
     });
   }
 }
-

@@ -68,7 +68,9 @@
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 0.9rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
     box-sizing: border-box;
 
     &:focus {
@@ -100,7 +102,9 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
+  transition:
+    opacity 0.2s,
+    transform 0.1s;
   margin-top: 0.5rem;
 
   &:hover:not(:disabled) {
@@ -116,4 +120,3 @@
     cursor: not-allowed;
   }
 }
-

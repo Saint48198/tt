@@ -65,5 +65,3 @@ class ProfileService {
 }
 
 export const profileService = ProfileService.getInstance();
-
-

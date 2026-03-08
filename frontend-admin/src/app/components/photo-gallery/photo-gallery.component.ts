@@ -109,27 +109,34 @@ export class PhotoGalleryComponent implements OnChanges {
 
     this.savingEdit.set(true);
     const tags = this.editTags();
-    this.photosService.updatePhoto(photo.id, { caption: this.editCaption || null, tags }).subscribe({
-      next: () => {
-        this.photos.update((list) =>
-          list.map((p) => (p.id === photo.id ? { ...p, caption: this.editCaption || null, tags: [...tags] } : p))
-        );
-        this.snackBar.open('Photo updated', 'Close', { duration: 3000 });
-        this.savingEdit.set(false);
-        this.closeEditModal();
-      },
-      error: (err) => {
-        this.snackBar.open(err?.error?.error || 'Failed to update photo', 'Close', {
-          duration: 5000,
-          panelClass: 'error-snackbar',
-        });
-        this.savingEdit.set(false);
-      },
-    });
+    this.photosService
+      .updatePhoto(photo.id, { caption: this.editCaption || null, tags })
+      .subscribe({
+        next: () => {
+          this.photos.update((list) =>
+            list.map((p) =>
+              p.id === photo.id ? { ...p, caption: this.editCaption || null, tags: [...tags] } : p
+            )
+          );
+          this.snackBar.open('Photo updated', 'Close', { duration: 3000 });
+          this.savingEdit.set(false);
+          this.closeEditModal();
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.error || 'Failed to update photo', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.savingEdit.set(false);
+        },
+      });
   }
 
   addTag(): void {
-    const parts = this.tagInput.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean);
+    const parts = this.tagInput
+      .split(',')
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
     const newTags = parts.filter((t) => !this.editTags().includes(t));
     if (newTags.length) {
       this.editTags.update((tags) => [...tags, ...newTags]);

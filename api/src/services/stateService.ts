@@ -23,17 +23,38 @@ interface ListStatesOptions {
   includeDisabled?: boolean;
 }
 
-interface CreateStateData { name: string; abbr?: string; country_id: number; last_visited?: string; }
-interface UpdateStateData { name?: string; abbr?: string; country_id?: number; last_visited?: string; }
+interface CreateStateData {
+  name: string;
+  abbr?: string;
+  country_id: number;
+  last_visited?: string;
+}
+interface UpdateStateData {
+  name?: string;
+  abbr?: string;
+  country_id?: number;
+  last_visited?: string;
+}
 
 class StateService {
   private static instance: StateService;
-  private validColumns = ['states.name', 'abbr', 'country_id', 'last_visited', 'country_name', 'created_date', 'updated_date', 'disabled_date'] as const;
+  private validColumns = [
+    'states.name',
+    'abbr',
+    'country_id',
+    'last_visited',
+    'country_name',
+    'created_date',
+    'updated_date',
+    'disabled_date',
+  ] as const;
 
   private constructor() {}
 
   public static getInstance(): StateService {
-    if (!StateService.instance) { StateService.instance = new StateService(); }
+    if (!StateService.instance) {
+      StateService.instance = new StateService();
+    }
     return StateService.instance;
   }
 
@@ -42,9 +63,20 @@ class StateService {
   }
 
   public async getStates(options: ListStatesOptions): Promise<{
-    states: State[]; total: number; page?: number; limit?: number;
+    states: State[];
+    total: number;
+    page?: number;
+    limit?: number;
   }> {
-    const { country_id, page = 1, limit = 10, all = false, sortBy = 'states.name', sortOrder = 'asc', includeDisabled = false } = options;
+    const {
+      country_id,
+      page = 1,
+      limit = 10,
+      all = false,
+      sortBy = 'states.name',
+      sortOrder = 'asc',
+      includeDisabled = false,
+    } = options;
     let sortByStr = sortBy.toString();
     const sortOrderStr = sortOrder.toString().toLowerCase();
     if (sortByStr === 'name') sortByStr = 'states.name';
@@ -72,7 +104,10 @@ class StateService {
                          ${whereClause}`;
 
     if (all) {
-      const states = await db.all<State>(`${baseSelect} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`, params);
+      const states = await db.all<State>(
+        `${baseSelect} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`,
+        params
+      );
       return { total: states.length, states };
     }
 
@@ -105,7 +140,10 @@ class StateService {
     return { id: result.rows[0].id };
   }
 
-  public async updateState(id: number, data: UpdateStateData): Promise<{ success: boolean; changes: number }> {
+  public async updateState(
+    id: number,
+    data: UpdateStateData
+  ): Promise<{ success: boolean; changes: number }> {
     const { name, abbr, country_id, last_visited } = data;
     const result = await db.run(
       'UPDATE states SET name=$1, abbr=$2, country_id=$3, last_visited=$4, updated_date=NOW() WHERE id=$5',
@@ -115,10 +153,12 @@ class StateService {
   }
 
   public async deleteState(id: number): Promise<{ success: boolean; changes: number }> {
-    const result = await db.run('UPDATE states SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL', [id]);
+    const result = await db.run(
+      'UPDATE states SET disabled_date = NOW() WHERE id = $1 AND disabled_date IS NULL',
+      [id]
+    );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 }
 
 export const stateService = StateService.getInstance();
-

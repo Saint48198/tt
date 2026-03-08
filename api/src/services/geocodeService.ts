@@ -45,21 +45,18 @@ class GeocodeService {
   public async reverseGeocode(params: ReverseGeocodeParams): Promise<GeocodeReverseResult> {
     const { latitude, longitude } = params;
 
-    const response = await axios.get(
-      `${this.nominatimUrl}/reverse`,
-      {
-        params: {
-          lat: latitude,
-          lon: longitude,
-          format: 'json',
-          addressdetails: 1,
-        },
-        headers: {
-          'User-Agent': this.userAgent,
-          'Accept-Language': 'en',
-        },
-      }
-    );
+    const response = await axios.get(`${this.nominatimUrl}/reverse`, {
+      params: {
+        lat: latitude,
+        lon: longitude,
+        format: 'json',
+        addressdetails: 1,
+      },
+      headers: {
+        'User-Agent': this.userAgent,
+        'Accept-Language': 'en',
+      },
+    });
 
     const address = response.data?.address;
 
@@ -87,28 +84,22 @@ class GeocodeService {
 
     // Validate input — need at least one of city, country, or place
     if (!city && !country && !place) {
-      throw new Error(
-        'At least one of city, country, or place is required.'
-      );
+      throw new Error('At least one of city, country, or place is required.');
     }
 
-    const query =
-      place || [city, state, country].filter(Boolean).join(', ');
+    const query = place || [city, state, country].filter(Boolean).join(', ');
 
-    const response = await axios.get(
-      `${this.nominatimUrl}/search`,
-      {
-        params: {
-          q: query,
-          format: 'json',
-          limit: 1,
-        },
-        headers: {
-          'User-Agent': this.userAgent,
-          'Accept-Language': 'en',
-        },
-      }
-    );
+    const response = await axios.get(`${this.nominatimUrl}/search`, {
+      params: {
+        q: query,
+        format: 'json',
+        limit: 1,
+      },
+      headers: {
+        'User-Agent': this.userAgent,
+        'Accept-Language': 'en',
+      },
+    });
 
     const results = response.data;
 
@@ -122,6 +113,3 @@ class GeocodeService {
 }
 
 export const geocodeService = GeocodeService.getInstance();
-
-
-

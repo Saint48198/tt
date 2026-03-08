@@ -1,10 +1,11 @@
-import {
-  Component,
-  inject,
-  input,
-} from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MapComponent, MapMarker, ImageLoaderComponent, PhotoGridComponent } from '@shared/components';
+import {
+  MapComponent,
+  MapMarker,
+  ImageLoaderComponent,
+  PhotoGridComponent,
+} from '@shared/components';
 import { ExploreDetailService } from '../../../services/explore.service';
 
 @Component({
@@ -39,7 +40,10 @@ export class EntityDetailComponent {
   // --- Helpers ---
 
   toSlug(name: string): string {
-    return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    return name
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
   }
 
   formatDate(dateStr?: string): string {

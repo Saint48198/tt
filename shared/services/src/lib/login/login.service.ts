@@ -39,7 +39,7 @@ export class AuthService {
       .post<LoginResponse>(
         `${this.apiUrl}/login`,
         { username, password },
-        { withCredentials: true },
+        { withCredentials: true }
       )
       .pipe(
         tap((response) => {
@@ -47,7 +47,7 @@ export class AuthService {
             localStorage.setItem('auth_token', response.token);
             this.decodeAndSetUser(response.token);
           }
-        }),
+        })
       );
   }
 

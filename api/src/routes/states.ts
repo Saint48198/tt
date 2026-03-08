@@ -4,7 +4,6 @@ import { handleApiError } from '../utils/errorHandler';
 
 const router = Router();
 
-
 const toError = (err: unknown): Error => (err instanceof Error ? err : new Error(String(err)));
 
 /**
@@ -39,7 +38,12 @@ router.get('/api/states', async (req: Request, res: Response) => {
 
     return res.status(200).json(result);
   } catch (error: unknown) {
-    return handleApiError(toError(error), res, 'Failed to fetch states.', error instanceof Error && error.message.includes('Invalid') ? 400 : 500);
+    return handleApiError(
+      toError(error),
+      res,
+      'Failed to fetch states.',
+      error instanceof Error && error.message.includes('Invalid') ? 400 : 500
+    );
   }
 });
 

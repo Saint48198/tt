@@ -180,4 +180,3 @@ export class MapExampleComponent {
     },
   ];
 }
-

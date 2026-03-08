@@ -15,14 +15,10 @@ router.post('/api/location/update-visited', async (req: Request, res: Response) 
     });
 
     if (!result.updated) {
-      return res
-        .status(404)
-        .json({ error: 'No matching location found in database' });
+      return res.status(404).json({ error: 'No matching location found in database' });
     }
 
-    return res
-      .status(200)
-      .json({ message: 'Location data updated successfully' });
+    return res.status(200).json({ message: 'Location data updated successfully' });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update location records.';
 
@@ -36,4 +32,3 @@ router.post('/api/location/update-visited', async (req: Request, res: Response) 
 });
 
 export default router;
-

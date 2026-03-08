@@ -20,4 +20,3 @@ export class InfoService {
     return this.http.get<InfoResult>(this.apiUrl, { params });
   }
 }
-

@@ -54,4 +54,3 @@ export interface AttractionResponse {
   message: string;
   id?: number;
 }
-

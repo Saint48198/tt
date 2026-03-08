@@ -3,14 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, EMPTY } from 'rxjs';
 import { map, catchError, switchMap, tap, finalize } from 'rxjs/operators';
 import * as GeoJSON from 'geojson';
-import {
-  Country,
-  State,
-  City,
-  Attraction,
-  WikipediaContent,
-  EntityPhoto,
-} from '@shared/types';
+import { Country, State, City, Attraction, WikipediaContent, EntityPhoto } from '@shared/types';
 import { PhotoService } from './photo.service';
 
 /** Re-export as aliases for backward compatibility */
@@ -29,7 +22,6 @@ const STATE_GEOJSON_FILES: Record<string, string> = {
   CA: '/data/canada-provinces.geojson',
   CAN: '/data/canada-provinces.geojson',
 };
-
 
 @Injectable({
   providedIn: 'root',
@@ -69,8 +61,7 @@ export class ExploreService {
         type: 'FeatureCollection' as const,
         features: data.features.filter(
           (f) =>
-            f.properties?.['name'] &&
-            nameSet.has((f.properties['name'] as string).toLowerCase())
+            f.properties?.['name'] && nameSet.has((f.properties['name'] as string).toLowerCase())
         ),
       }))
     );
@@ -83,9 +74,7 @@ export class ExploreService {
   }
 
   getStates(countryId: number): Observable<ExploreState[]> {
-    const params = new HttpParams()
-      .set('country_id', countryId.toString())
-      .set('all', 'true');
+    const params = new HttpParams().set('country_id', countryId.toString()).set('all', 'true');
 
     return this.http
       .get<{ states: ExploreState[] }>('/api/states', { params })
@@ -93,9 +82,7 @@ export class ExploreService {
   }
 
   getCities(countryId: number, stateId?: number): Observable<ExploreCity[]> {
-    let params = new HttpParams()
-      .set('country_id', countryId.toString())
-      .set('limit', '100');
+    let params = new HttpParams().set('country_id', countryId.toString()).set('limit', '100');
 
     if (stateId !== undefined) {
       params = params.set('state_id', stateId.toString());
@@ -107,9 +94,7 @@ export class ExploreService {
   }
 
   getAttractions(countryId: number): Observable<ExploreAttraction[]> {
-    const params = new HttpParams()
-      .set('country_id', countryId.toString())
-      .set('limit', '100');
+    const params = new HttpParams().set('country_id', countryId.toString()).set('limit', '100');
 
     return this.http
       .get<{ attractions: ExploreAttraction[] }>('/api/attractions', { params })
@@ -175,7 +160,6 @@ export class ExploreDetailService {
     Math.max(1, Math.ceil(this.photosTotal() / this.photosPerPage))
   );
 
-
   private photoEntityType: 'cities' | 'attractions' | null = null;
   private photoEntityId: number | null = null;
 
@@ -189,7 +173,7 @@ export class ExploreDetailService {
         this.loadWikiContent(fullCity.wiki_term || fullCity.name);
         this.loadPhotos('cities', fullCity.id);
       }),
-      switchMap(() => EMPTY),
+      switchMap(() => EMPTY)
     );
   }
 
@@ -205,7 +189,7 @@ export class ExploreDetailService {
         }
         this.loadPhotos('attractions', full.id);
       }),
-      switchMap(() => EMPTY),
+      switchMap(() => EMPTY)
     );
   }
 
@@ -219,7 +203,7 @@ export class ExploreDetailService {
           this.wikiContent.set(null);
           return EMPTY;
         }),
-        finalize(() => this.wikiLoading.set(false)),
+        finalize(() => this.wikiLoading.set(false))
       )
       .subscribe();
   }
@@ -251,11 +235,10 @@ export class ExploreDetailService {
           this.photos.set([]);
           return EMPTY;
         }),
-        finalize(() => this.photosLoading.set(false)),
+        finalize(() => this.photosLoading.set(false))
       )
       .subscribe();
   }
-
 
   photosPagePrev(): void {
     const prev = this.photosPage() - 1;
@@ -291,4 +274,3 @@ export class ExploreDetailService {
     this.photoEntityId = null;
   }
 }
-

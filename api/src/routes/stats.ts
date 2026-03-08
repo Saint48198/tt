@@ -15,4 +15,3 @@ router.get('/api/stats', async (_req: Request, res: Response) => {
 });
 
 export default router;
-

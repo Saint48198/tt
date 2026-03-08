@@ -62,22 +62,23 @@ export class TripCreateComponent implements HasUnsavedChanges {
     this.saving.set(true);
     const { name, notes } = this.form.value;
 
-    this.tripsService.createTrip({ name, notes: notes || undefined }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => {
-        this.saved = true;
-        this.snackBar.open('Trip created successfully', 'Close', { duration: 3000 });
-        // Navigate to the edit page so the user can build the plan
-        this.router.navigate(['/trips', response.id]);
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.error || 'Failed to create trip',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-        this.saving.set(false);
-      },
-    });
+    this.tripsService
+      .createTrip({ name, notes: notes || undefined })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.saved = true;
+          this.snackBar.open('Trip created successfully', 'Close', { duration: 3000 });
+          // Navigate to the edit page so the user can build the plan
+          this.router.navigate(['/trips', response.id]);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.error || 'Failed to create trip', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.saving.set(false);
+        },
+      });
   }
 }
-

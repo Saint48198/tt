@@ -1,4 +1,12 @@
-import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, switchMap } from 'rxjs';
 import { DatePipe } from '@angular/common';
@@ -79,11 +87,10 @@ export class StatesListComponent implements OnInit, AfterViewInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to load states',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
+          this.snackBar.open(err?.error?.message || 'Failed to load states', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
           this.loading.set(false);
         },
       });
@@ -120,37 +127,39 @@ export class StatesListComponent implements OnInit, AfterViewInit {
   }
 
   deleteState(state: State): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Delete State',
-        message: `Are you sure you want to delete "${state.name}"?`,
-        confirmText: 'Delete',
-        cancelText: 'Cancel',
-        icon: 'delete',
-        color: 'warn',
-      },
-      width: '420px',
-      autoFocus: false,
-      panelClass: 'confirm-dialog-panel',
-    }).afterClosed().pipe(
-      filter((confirmed) => !!confirmed),
-      switchMap(() => this.statesService.deleteState(state.id)),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: () => {
-        this.snackBar.open('State deleted successfully', 'Close', {
-          duration: 3000,
-        });
-        this.loadStates();
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to delete state',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-      },
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: {
+          title: 'Delete State',
+          message: `Are you sure you want to delete "${state.name}"?`,
+          confirmText: 'Delete',
+          cancelText: 'Cancel',
+          icon: 'delete',
+          color: 'warn',
+        },
+        width: '420px',
+        autoFocus: false,
+        panelClass: 'confirm-dialog-panel',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap(() => this.statesService.deleteState(state.id)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open('State deleted successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadStates();
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to delete state', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+        },
+      });
   }
 }
-

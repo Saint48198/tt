@@ -1,11 +1,7 @@
 import { Component, DestroyRef, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -115,7 +111,8 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.showCountrySelect) {
-      this.countriesService.getAllCountries('name')
+      this.countriesService
+        .getAllCountries('name')
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (res) => this.countries.set(res.countries),
@@ -168,12 +165,10 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const tags: any = ExifReader.load(buffer, { expanded: true });
 
-      const xmpTitle =
-        tags.xmp?.['dc:title']?.description || tags.xmp?.['title']?.description;
+      const xmpTitle = tags.xmp?.['dc:title']?.description || tags.xmp?.['title']?.description;
       const iptcTitle = tags.iptc?.['Object Name']?.description;
       const exifTitle =
-        tags.exif?.['ImageDescription']?.description ||
-        tags.exif?.['XPTitle']?.description;
+        tags.exif?.['ImageDescription']?.description || tags.exif?.['XPTitle']?.description;
       exif.title = xmpTitle || iptcTitle || exifTitle || undefined;
 
       const xmpSubject = tags.xmp?.['dc:subject'] || tags.xmp?.['subject'];
@@ -184,30 +179,32 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
         if (Array.isArray(xmpSubject)) {
           exif.keywords = xmpSubject
             .map((k: unknown) =>
-              typeof k === 'string'
-                ? k
-                : (k as { description?: string })?.description || String(k)
+              typeof k === 'string' ? k : (k as { description?: string })?.description || String(k)
             )
             .filter(Boolean);
         } else if (typeof xmpSubject === 'object' && xmpSubject?.description) {
           const val: string = xmpSubject.description;
           exif.keywords = val.includes(',')
-            ? val.split(',').map((s: string) => s.trim()).filter(Boolean)
+            ? val
+                .split(',')
+                .map((s: string) => s.trim())
+                .filter(Boolean)
             : [val];
         }
       } else if (iptcKeywords) {
         if (Array.isArray(iptcKeywords)) {
           exif.keywords = iptcKeywords
             .map((k: unknown) =>
-              typeof k === 'string'
-                ? k
-                : (k as { description?: string })?.description || String(k)
+              typeof k === 'string' ? k : (k as { description?: string })?.description || String(k)
             )
             .filter(Boolean);
         } else if (typeof iptcKeywords === 'object' && iptcKeywords?.description) {
           const val: string = iptcKeywords.description;
           exif.keywords = val.includes(',')
-            ? val.split(',').map((s: string) => s.trim()).filter(Boolean)
+            ? val
+                .split(',')
+                .map((s: string) => s.trim())
+                .filter(Boolean)
             : [val];
         }
       } else if (exifKeywords && typeof exifKeywords === 'string') {
@@ -224,8 +221,7 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
       }
 
       // Extract original date taken from DateTimeOriginal
-      const dateOriginal: string | undefined =
-        tags.exif?.DateTimeOriginal?.description;
+      const dateOriginal: string | undefined = tags.exif?.DateTimeOriginal?.description;
       if (dateOriginal) {
         // Append 'Z' to treat as UTC so the date doesn't shift due to local timezone
         const isoDate = dateOriginal.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
@@ -252,9 +248,10 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
 
     for (const file of filtered) {
       const exif = await this.extractExif(file);
-      const resized = file.size > this.MAX_FILE_SIZE && file.type.startsWith('image/')
-        ? await this.resizeImage(file)
-        : file;
+      const resized =
+        file.size > this.MAX_FILE_SIZE && file.type.startsWith('image/')
+          ? await this.resizeImage(file)
+          : file;
       previews.push({
         file: resized,
         previewUrl: URL.createObjectURL(resized),
@@ -308,9 +305,7 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
         seen.add(key);
 
         try {
-          const result = await lastValueFrom(
-            this.geocodeService.reverseGeocode(lat, lng)
-          );
+          const result = await lastValueFrom(this.geocodeService.reverseGeocode(lat, lng));
           if (result?.country) {
             countryNames.add(result.country);
           }
@@ -391,7 +386,11 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
                 return;
               }
 
-              if (blob.size > this.MAX_FILE_SIZE && quality > minQuality && mimeType !== 'image/png') {
+              if (
+                blob.size > this.MAX_FILE_SIZE &&
+                quality > minQuality &&
+                mimeType !== 'image/png'
+              ) {
                 quality -= 0.1;
                 tryCompress();
                 return;
@@ -404,7 +403,7 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
               resolve(resizedFile);
             },
             mimeType,
-            mimeType === 'image/png' ? undefined : quality,
+            mimeType === 'image/png' ? undefined : quality
           );
         };
 
@@ -442,58 +441,57 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
 
     const rawFiles = fileList.map((f) => f.file);
     const exifData = fileList.map((f) => f.exif || {});
-    const country = this.showCountrySelect
-      ? this.selectedCountry() || undefined
-      : undefined;
+    const country = this.showCountrySelect ? this.selectedCountry() || undefined : undefined;
 
-    this.photosService.uploadPhotos(rawFiles, country, exifData)
+    this.photosService
+      .uploadPhotos(rawFiles, country, exifData)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-      next: (res) => {
-        this.uploading.set(false);
-        this.uploadProgress.set(100);
-        const count = res.images?.length || rawFiles.length;
-        this.snackBar.open(
-          `${count} photo${count > 1 ? 's' : ''} uploaded successfully`,
-          'Close',
-          { duration: 4000 }
-        );
-        fileList.forEach((f) => URL.revokeObjectURL(f.previewUrl));
-        // Resolve country_id from selected country name
-        const selectedName = this.selectedCountry();
-        const matchedCountry = this.countries().find((c) => c.name === selectedName);
-        this.dialogRef.close({
-          uploaded: true,
-          count,
-          country_id: matchedCountry?.id ?? null,
-          images: res.images?.map((img, idx) => {
-            const clientExif = fileList[idx]?.exif || {};
-            const serverExif = img.exif || {};
-            return {
-              public_id: img.public_id,
-              secure_url: img.secure_url,
-              url: img.url,
-              original_filename: fileList[idx]?.name || (img['original_filename'] as string) || undefined,
-              exif: {
-                title: serverExif.title || clientExif.title || undefined,
-                keywords: serverExif.keywords?.length ? serverExif.keywords : clientExif.keywords || undefined,
-                latitude: serverExif.latitude ?? clientExif.latitude ?? undefined,
-                longitude: serverExif.longitude ?? clientExif.longitude ?? undefined,
-                created_date: (img['created_date'] as string) || clientExif.created_date || undefined,
-              },
-            };
-          }),
-        });
-      },
-      error: (err) => {
-        this.uploading.set(false);
-        this.snackBar.open(
-          err?.error?.error || 'Upload failed',
-          'Close',
-          { duration: 5000 }
-        );
-      },
-    });
+        next: (res) => {
+          this.uploading.set(false);
+          this.uploadProgress.set(100);
+          const count = res.images?.length || rawFiles.length;
+          this.snackBar.open(
+            `${count} photo${count > 1 ? 's' : ''} uploaded successfully`,
+            'Close',
+            { duration: 4000 }
+          );
+          fileList.forEach((f) => URL.revokeObjectURL(f.previewUrl));
+          // Resolve country_id from selected country name
+          const selectedName = this.selectedCountry();
+          const matchedCountry = this.countries().find((c) => c.name === selectedName);
+          this.dialogRef.close({
+            uploaded: true,
+            count,
+            country_id: matchedCountry?.id ?? null,
+            images: res.images?.map((img, idx) => {
+              const clientExif = fileList[idx]?.exif || {};
+              const serverExif = img.exif || {};
+              return {
+                public_id: img.public_id,
+                secure_url: img.secure_url,
+                url: img.url,
+                original_filename:
+                  fileList[idx]?.name || (img['original_filename'] as string) || undefined,
+                exif: {
+                  title: serverExif.title || clientExif.title || undefined,
+                  keywords: serverExif.keywords?.length
+                    ? serverExif.keywords
+                    : clientExif.keywords || undefined,
+                  latitude: serverExif.latitude ?? clientExif.latitude ?? undefined,
+                  longitude: serverExif.longitude ?? clientExif.longitude ?? undefined,
+                  created_date:
+                    (img['created_date'] as string) || clientExif.created_date || undefined,
+                },
+              };
+            }),
+          });
+        },
+        error: (err) => {
+          this.uploading.set(false);
+          this.snackBar.open(err?.error?.error || 'Upload failed', 'Close', { duration: 5000 });
+        },
+      });
   }
 
   cancel(): void {
@@ -507,4 +505,3 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 }
-

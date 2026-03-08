@@ -79,4 +79,3 @@ export class StatesService {
     return this.http.delete<StateResponse>(`${this.apiUrl}/${id}`);
   }
 }
-

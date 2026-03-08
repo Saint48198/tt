@@ -20,4 +20,3 @@ export interface ForwardGeocodeResponse {
   lat: number;
   lng: number;
 }
-

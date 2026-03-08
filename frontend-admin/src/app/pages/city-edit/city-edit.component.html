@@ -86,9 +86,18 @@
       <div class="form-row two-col">
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Last Visited</mat-label>
-          <input matInput [matDatepicker]="lastVisitedPicker" formControlName="last_visited" placeholder="YYYY-MM" />
+          <input
+            matInput
+            [matDatepicker]="lastVisitedPicker"
+            formControlName="last_visited"
+            placeholder="YYYY-MM"
+          />
           <mat-datepicker-toggle matIconSuffix [for]="lastVisitedPicker"></mat-datepicker-toggle>
-          <mat-datepicker #lastVisitedPicker startView="multi-year" (monthSelected)="onMonthSelected($event, lastVisitedPicker)"></mat-datepicker>
+          <mat-datepicker
+            #lastVisitedPicker
+            startView="multi-year"
+            (monthSelected)="onMonthSelected($event, lastVisitedPicker)"
+          ></mat-datepicker>
         </mat-form-field>
 
         <div class="wiki-field-with-action">
@@ -132,7 +141,6 @@
           </a>
         </div>
       }
-
     </form>
 
     @if (hasCoordinates()) {
@@ -147,7 +155,8 @@
           [zoom]="10"
           height="400px"
           [fitBounds]="false"
-          [showAttribution]="true">
+          [showAttribution]="true"
+        >
         </lib-map>
       </div>
     }
@@ -164,10 +173,7 @@
             Upload Photos
           </button>
         </div>
-        <app-photo-gallery
-          #photoGallery
-          entityType="cities"
-          [entityId]="cityId">
+        <app-photo-gallery #photoGallery entityType="cities" [entityId]="cityId">
         </app-photo-gallery>
       </div>
     }
@@ -189,4 +195,3 @@
     </div>
   }
 </div>
-

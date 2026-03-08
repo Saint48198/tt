@@ -77,9 +77,7 @@ class SessionService {
 
     if (error) {
       throw new Error(
-        error === 'Internal Server Error'
-          ? 'Internal Server Error'
-          : 'Invalid credentials'
+        error === 'Internal Server Error' ? 'Internal Server Error' : 'Invalid credentials'
       );
     }
 
@@ -104,10 +102,7 @@ class SessionService {
     const payload = { id: user.id, username: user.username, email: user.email, roles };
     const token = jwt.sign(payload, JWT_SECRET);
 
-    await db.run('INSERT INTO user_tokens (user_id, token) VALUES ($1, $2)', [
-      user.id,
-      token,
-    ]);
+    await db.run('INSERT INTO user_tokens (user_id, token) VALUES ($1, $2)', [user.id, token]);
 
     return { message: 'Login successful', token };
   }

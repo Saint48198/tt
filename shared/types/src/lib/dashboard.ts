@@ -6,4 +6,3 @@ export interface DashboardStats {
   totalAttractions: number;
   totalPhotos: number;
 }
-

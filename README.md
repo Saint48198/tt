@@ -222,6 +222,7 @@ npx nx show projects
 ```
 
 This script automatically:
+
 - ✅ Generates the component using Nx
 - ✅ Adds exports to library index.ts
 - ✅ Validates the build
@@ -254,11 +255,11 @@ This checks for common build-breaking issues.
 
 ## Application Ports
 
-| Application      | Default Port |
-|------------------|--------------|
-| API              | 3000         |
-| Frontend App     | 4200         |
-| Frontend Admin   | 4201         |
+| Application    | Default Port |
+| -------------- | ------------ |
+| API            | 3000         |
+| Frontend App   | 4200         |
+| Frontend Admin | 4201         |
 
 ## Authentication
 

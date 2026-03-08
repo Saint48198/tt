@@ -67,7 +67,10 @@ export class AttractionsService {
   /**
    * Update an existing attraction
    */
-  updateAttraction(id: number, attraction: CreateAttractionRequest): Observable<AttractionResponse> {
+  updateAttraction(
+    id: number,
+    attraction: CreateAttractionRequest
+  ): Observable<AttractionResponse> {
     return this.http.put<AttractionResponse>(`${this.apiUrl}/${id}`, attraction);
   }
 
@@ -103,4 +106,3 @@ export class AttractionsService {
     return this.getAttractions({ page, limit });
   }
 }
-

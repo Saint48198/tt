@@ -21,7 +21,8 @@ import * as GeoJSON from 'geojson';
         [zoom]="mapZoom"
         [height]="mapHeight"
         [fitBounds]="autoFit"
-        [showAttribution]="true">
+        [showAttribution]="true"
+      >
       </lib-map>
 
       <!-- Legend -->
@@ -43,43 +44,45 @@ import * as GeoJSON from 'geojson';
       }
     </div>
   `,
-  styles: [`
-    .location-map-container {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  styles: [
+    `
+      .location-map-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-      h3 {
-        margin: 0 0 1rem 0;
-        font-size: 1.25rem;
-        color: #333;
-      }
-    }
-
-    .map-legend {
-      margin-top: 1rem;
-      padding: 0.75rem;
-      background: #f5f5f5;
-      border-radius: 6px;
-      display: flex;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-
-      .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.9rem;
-        color: #666;
-
-        .marker-icon,
-        .overlay-icon {
-          font-size: 1.2rem;
+        h3 {
+          margin: 0 0 1rem 0;
+          font-size: 1.25rem;
+          color: #333;
         }
       }
-    }
-  `]
+
+      .map-legend {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #f5f5f5;
+        border-radius: 6px;
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+
+        .legend-item {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.9rem;
+          color: #666;
+
+          .marker-icon,
+          .overlay-icon {
+            font-size: 1.2rem;
+          }
+        }
+      }
+    `,
+  ],
 })
 export class LocationMapComponent {
   // Configuration
@@ -99,14 +102,14 @@ export class LocationMapComponent {
    * In real app, this would come from an API
    */
   loadCityMarkers(cities: Array<{ name: string; lat: number; lng: number; visits?: number }>) {
-    this.markers = cities.map(city => ({
+    this.markers = cities.map((city) => ({
       lat: city.lat,
       lng: city.lng,
       title: city.name,
       popup: `
         <strong>${city.name}</strong><br/>
         ${city.visits ? `Visits: ${city.visits}` : 'Not visited yet'}
-      `
+      `,
     }));
   }
 
@@ -115,18 +118,20 @@ export class LocationMapComponent {
    * In real app, geoJson would be fetched from an API or static file
    */
   loadRegionOverlay(geoJsonData: GeoJSON.GeoJsonObject, regionName: string, color: string) {
-    this.overlays = [{
-      type: 'country',
-      geoJson: geoJsonData,
-      style: {
-        fillColor: color,
-        weight: 2,
-        opacity: 1,
-        color: 'white',
-        fillOpacity: 0.4
+    this.overlays = [
+      {
+        type: 'country',
+        geoJson: geoJsonData,
+        style: {
+          fillColor: color,
+          weight: 2,
+          opacity: 1,
+          color: 'white',
+          fillOpacity: 0.4,
+        },
+        interactive: true,
       },
-      interactive: true
-    }];
+    ];
     this.title = `${regionName} Map`;
   }
 
@@ -139,28 +144,30 @@ export class LocationMapComponent {
     cities: Array<{ name: string; lat: number; lng: number; visited: boolean }>;
   }) {
     // Load markers for cities
-    this.markers = tripData.cities.map(city => ({
+    this.markers = tripData.cities.map((city) => ({
       lat: city.lat,
       lng: city.lng,
       title: city.name,
       popup: `
         <strong>${city.name}</strong><br/>
         Status: ${city.visited ? '✅ Visited' : '⏳ Planned'}
-      `
+      `,
     }));
 
     // Load region overlay if available
     if (tripData.regionGeoJson && tripData.regionName) {
-      this.overlays = [{
-        type: 'country',
-        geoJson: tripData.regionGeoJson,
-        style: {
-          fillColor: '#4CAF50',
-          weight: 2,
-          color: '#1B5E20',
-          fillOpacity: 0.2
-        }
-      }];
+      this.overlays = [
+        {
+          type: 'country',
+          geoJson: tripData.regionGeoJson,
+          style: {
+            fillColor: '#4CAF50',
+            weight: 2,
+            color: '#1B5E20',
+            fillOpacity: 0.2,
+          },
+        },
+      ];
       this.title = `Trip to ${tripData.regionName}`;
     }
   }
@@ -316,5 +323,3 @@ export class CustomMapComponent {
   }
 }
 `;
-
-

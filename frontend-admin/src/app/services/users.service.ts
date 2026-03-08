@@ -83,7 +83,11 @@ export class UsersService {
   /**
    * Change a user's password
    */
-  changePassword(userId: number, currentPassword: string, newPassword: string): Observable<UserResponse> {
+  changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string
+  ): Observable<UserResponse> {
     return this.http.put<UserResponse>(`${this.apiUrl}/${userId}/password`, {
       currentPassword,
       newPassword,
@@ -106,4 +110,3 @@ export class UsersService {
     return this.http.delete<void>(`${this.apiUrl}/${userId}/avatar`);
   }
 }
-

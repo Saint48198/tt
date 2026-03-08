@@ -5,12 +5,14 @@
 I've successfully created a comprehensive Leaflet-based map component for your Trip Tracker application with the following features:
 
 ### 📦 Packages Installed
+
 - ✅ `leaflet` - Core mapping library
 - ✅ `@types/leaflet` - TypeScript type definitions
 
 ### 🎯 Component Features
 
 #### 1. **Location Markers (Pointers)**
+
 - Display unlimited markers on the map
 - Custom tooltips on hover
 - Rich HTML popups on click
@@ -18,12 +20,14 @@ I've successfully created a comprehensive Leaflet-based map component for your T
 - Programmatic add/remove/clear methods
 
 #### 2. **Overlays (Country/State Shapes)**
+
 - Display GeoJSON shapes for countries, states, or custom regions
 - Multiple overlays with different colors
 - Customizable styles (fill color, opacity, borders, etc.)
 - Interactive overlays with tooltips
 
 #### 3. **Flexible Configuration**
+
 - Adjustable center point and zoom level
 - Custom height and width
 - Enable/disable zoom and drag
@@ -33,6 +37,7 @@ I've successfully created a comprehensive Leaflet-based map component for your T
 ### 📁 Files Created
 
 #### Core Component Files
+
 ```
 shared/components/src/lib/map/
 ├── map.component.ts          # Main component logic
@@ -45,6 +50,7 @@ shared/components/src/lib/map/
 ```
 
 #### Example Components
+
 ```
 shared/components/src/lib/map/map-example/
 ├── map-example.component.ts   # Multiple usage examples
@@ -53,6 +59,7 @@ shared/components/src/lib/map/map-example/
 ```
 
 #### Admin Dashboard Integration
+
 ```
 frontend-admin/src/app/components/dashboard-map/
 └── dashboard-map.component.ts # Ready-to-use dashboard map widget
@@ -61,6 +68,7 @@ frontend-admin/src/app/components/dashboard-map/
 ### 🚀 How to Use
 
 #### Basic Usage
+
 ```typescript
 import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
 
@@ -75,9 +83,10 @@ import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
       [center]="[40.7128, -74.006]"
       [zoom]="10"
       height="500px"
-      [fitBounds]="true">
+      [fitBounds]="true"
+    >
     </lib-map>
-  `
+  `,
 })
 export class MyComponent {
   markers: MapMarker[] = [
@@ -85,8 +94,8 @@ export class MyComponent {
       lat: 40.7128,
       lng: -74.006,
       title: 'New York',
-      popup: '<b>NYC</b><br>The Big Apple'
-    }
+      popup: '<b>NYC</b><br>The Big Apple',
+    },
   ];
 
   overlays: MapOverlay[] = [];
@@ -94,6 +103,7 @@ export class MyComponent {
 ```
 
 #### With Country Overlay
+
 ```typescript
 overlays: MapOverlay[] = [
   {
@@ -111,18 +121,18 @@ overlays: MapOverlay[] = [
 
 ### 🎨 Available Input Properties
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `markers` | `MapMarker[]` | `[]` | Location markers to display |
-| `overlays` | `MapOverlay[]` | `[]` | GeoJSON shapes (countries/states) |
-| `center` | `[number, number]` | `[39.8283, -98.5795]` | Map center [lat, lng] |
-| `zoom` | `number` | `4` | Initial zoom level (0-19) |
-| `height` | `string` | `'500px'` | Map container height |
-| `width` | `string` | `'100%'` | Map container width |
-| `enableZoom` | `boolean` | `true` | Enable zoom controls |
-| `enableDrag` | `boolean` | `true` | Enable map dragging |
-| `fitBounds` | `boolean` | `false` | Auto-fit to show all content |
-| `showAttribution` | `boolean` | `true` | Show OSM attribution |
+| Property          | Type               | Default               | Description                       |
+| ----------------- | ------------------ | --------------------- | --------------------------------- |
+| `markers`         | `MapMarker[]`      | `[]`                  | Location markers to display       |
+| `overlays`        | `MapOverlay[]`     | `[]`                  | GeoJSON shapes (countries/states) |
+| `center`          | `[number, number]` | `[39.8283, -98.5795]` | Map center [lat, lng]             |
+| `zoom`            | `number`           | `4`                   | Initial zoom level (0-19)         |
+| `height`          | `string`           | `'500px'`             | Map container height              |
+| `width`           | `string`           | `'100%'`              | Map container width               |
+| `enableZoom`      | `boolean`          | `true`                | Enable zoom controls              |
+| `enableDrag`      | `boolean`          | `true`                | Enable map dragging               |
+| `fitBounds`       | `boolean`          | `false`               | Auto-fit to show all content      |
+| `showAttribution` | `boolean`          | `true`                | Show OSM attribution              |
 
 ### 🔧 Programmatic Control
 
@@ -154,50 +164,54 @@ const leafletMap = this.mapComponent.getMap();
 ### 📊 Real-World Use Cases
 
 #### 1. Country Detail Page
+
 ```typescript
 // Show a country shape with its cities
 const geoJson = await countryService.getCountryGeoJson('FRA');
 overlays = [{ type: 'country', geoJson }];
 
 const cities = await cityService.getCitiesByCountry('FRA');
-markers = cities.map(city => ({
+markers = cities.map((city) => ({
   lat: city.latitude,
   lng: city.longitude,
   title: city.name,
-  popup: `<b>${city.name}</b>`
+  popup: `<b>${city.name}</b>`,
 }));
 ```
 
 #### 2. Trip Detail Page
+
 ```typescript
 // Show visited and planned locations
-markers = trip.cities.map(city => ({
+markers = trip.cities.map((city) => ({
   lat: city.latitude,
   lng: city.longitude,
   title: city.name,
   popup: `
     <b>${city.name}</b><br/>
     ${city.visited ? '✅ Visited' : '⏳ Planned'}
-  `
+  `,
 }));
 ```
 
 #### 3. User Travel Map
+
 ```typescript
 // Show all user's visited locations
 const visits = await userService.getVisitedCities(userId);
-markers = visits.map(city => ({
+markers = visits.map((city) => ({
   lat: city.latitude,
   lng: city.longitude,
   title: city.name,
   popup: `
     <b>${city.name}</b><br/>
     Visits: ${city.visitCount}
-  `
+  `,
 }));
 ```
 
 #### 4. Admin Dashboard
+
 ```typescript
 // Already implemented in:
 // frontend-admin/src/app/components/dashboard-map/dashboard-map.component.ts
@@ -209,15 +223,18 @@ markers = visits.map(city => ({
 For country and state overlays, you'll need GeoJSON data:
 
 #### Countries
+
 - [Natural Earth Data](https://www.naturalearthdata.com/) - Free country boundaries
 - [REST Countries API](https://restcountries.com/)
 - [World Atlas TopoJSON](https://github.com/topojson/world-atlas)
 
 #### US States
+
 - [US Census Bureau](https://www.census.gov/geographies/mapping-files.html)
 - [GitHub: US States GeoJSON](https://github.com/PublicaMundi/MappingAPI/tree/master/data/geojson)
 
 #### Custom Regions
+
 - [geojson.io](https://geojson.io/) - Draw your own shapes
 - [OpenStreetMap Export](https://www.openstreetmap.org/export)
 
@@ -232,18 +249,21 @@ Three comprehensive documentation files are available:
 ### ✨ Next Steps
 
 1. **Add GeoJSON to your API** (if needed)
+
    ```typescript
    // api/src/routes/geojson.ts
    router.get('/geojson/country/:code', getCountryGeoJson);
    ```
 
 2. **Use in Country Detail Page**
+
    ```typescript
    import { MapComponent, MapOverlay } from '@shared/components';
    // Add <lib-map> to your template
    ```
 
 3. **Use in Trip Detail Page**
+
    ```typescript
    import { MapComponent, MapMarker } from '@shared/components';
    // Show trip cities on map
@@ -266,16 +286,19 @@ All TypeScript types are properly defined, ESLint passes, and the component is e
 ### 🐛 Troubleshooting
 
 **Map not showing?**
+
 - Ensure container has a height set
 - Check that center coordinates are valid
 - Try setting `fitBounds="true"`
 
 **Markers not appearing?**
+
 - Verify lat/lng values
 - Check markers array is populated
 - Try setting `fitBounds="true"`
 
 **GeoJSON not displaying?**
+
 - Verify GeoJSON format at [geojson.io](https://geojson.io/)
 - Note: GeoJSON coordinates are [lng, lat] (opposite of markers!)
 - Try setting `fitBounds="true"`
@@ -283,7 +306,7 @@ All TypeScript types are properly defined, ESLint passes, and the component is e
 ---
 
 **For more help**, check:
+
 - Full documentation: `shared/components/src/lib/map/README.md`
 - Quick reference: `shared/components/src/lib/map/QUICK_REFERENCE.md`
 - Usage examples: `shared/components/src/lib/map/USAGE_EXAMPLES.ts`
-

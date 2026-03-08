@@ -44,4 +44,3 @@ export const db = {
   /** Get the underlying pool for transactions */
   pool,
 };
-

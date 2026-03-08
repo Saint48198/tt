@@ -1,4 +1,8 @@
-<lib-header [title]="title" [navLinks]="navLinks" [showNav]="(currentUser$ | async) ? true : false"></lib-header>
+<lib-header
+  [title]="title"
+  [navLinks]="navLinks"
+  [showNav]="(currentUser$ | async) ? true : false"
+></lib-header>
 <main class="app-main">
   <router-outlet></router-outlet>
 </main>

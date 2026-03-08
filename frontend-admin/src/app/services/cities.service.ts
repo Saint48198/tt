@@ -60,11 +60,7 @@ export class CitiesService {
   /**
    * Get cities by country
    */
-  getCitiesByCountry(
-    countryId: number,
-    page = 1,
-    limit = 25
-  ): Observable<CityListResponse> {
+  getCitiesByCountry(countryId: number, page = 1, limit = 25): Observable<CityListResponse> {
     return this.getCities({ country_id: countryId, page, limit });
   }
 
@@ -96,4 +92,3 @@ export class CitiesService {
     return this.http.delete<CityResponse>(`${this.apiUrl}/${id}`);
   }
 }
-

@@ -46,7 +46,10 @@ class RoleService {
   /**
    * Update a role
    */
-  public async updateRole(id: string | number, name: string): Promise<{ success: boolean; changes: number }> {
+  public async updateRole(
+    id: string | number,
+    name: string
+  ): Promise<{ success: boolean; changes: number }> {
     const result = await db.run('UPDATE roles SET name = $1 WHERE id = $2', [name, id]);
     return { success: result.rowCount > 0, changes: result.rowCount };
   }

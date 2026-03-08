@@ -49,4 +49,3 @@ export const unsavedChangesGuard: CanDeactivateFn<HasUnsavedChanges> = (componen
     .afterClosed()
     .pipe(map((result) => result === true));
 };
-

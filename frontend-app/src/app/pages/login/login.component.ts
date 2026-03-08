@@ -1,9 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import {
-  FormBuilder,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '@shared/services';
 
@@ -38,18 +34,13 @@ export class LoginComponent {
     this.authService.login(username as string, password as string).subscribe({
       next: () => {
         this.isLoading.set(false);
-        const returnUrl =
-          this.route.snapshot.queryParams['returnUrl'] || '/';
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
         this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {
         this.isLoading.set(false);
-        this.errorMessage.set(
-          err?.error?.error || 'Login failed. Please try again.'
-        );
+        this.errorMessage.set(err?.error?.error || 'Login failed. Please try again.');
       },
     });
   }
 }
-
-

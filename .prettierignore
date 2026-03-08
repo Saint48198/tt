@@ -4,3 +4,25 @@
 /.nx/cache
 /.nx/workspace-data
 .angular
+
+# Build outputs
+/tmp
+/out-tsc
+
+# Dependencies
+node_modules
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+/logs
+
+# Auto-generated
+package-lock.json
+
+# Uploads
+/api/uploads
+

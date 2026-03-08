@@ -50,13 +50,21 @@
       <div class="form-row">
         <mat-form-field appearance="outline" class="form-field full-width">
           <mat-label>Last Visited</mat-label>
-          <input matInput [matDatepicker]="lastVisitedPicker" formControlName="last_visited" placeholder="YYYY-MM" />
+          <input
+            matInput
+            [matDatepicker]="lastVisitedPicker"
+            formControlName="last_visited"
+            placeholder="YYYY-MM"
+          />
           <mat-datepicker-toggle matIconSuffix [for]="lastVisitedPicker"></mat-datepicker-toggle>
-          <mat-datepicker #lastVisitedPicker startView="multi-year" (monthSelected)="onMonthSelected($event, lastVisitedPicker)"></mat-datepicker>
+          <mat-datepicker
+            #lastVisitedPicker
+            startView="multi-year"
+            (monthSelected)="onMonthSelected($event, lastVisitedPicker)"
+          ></mat-datepicker>
         </mat-form-field>
       </div>
     </form>
-
 
     <div class="form-actions">
       <button mat-stroked-button type="button" routerLink="/states">Cancel</button>
@@ -75,4 +83,3 @@
     </div>
   }
 </div>
-

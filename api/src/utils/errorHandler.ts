@@ -1,11 +1,6 @@
 import { Response } from 'express';
 
-export function handleApiError(
-  err: unknown,
-  res: Response,
-  message: string,
-  status = 400
-) {
+export function handleApiError(err: unknown, res: Response, message: string, status = 400) {
   if (err instanceof Error) {
     return res.status(status).json({
       error: message,

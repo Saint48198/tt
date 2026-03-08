@@ -30,4 +30,3 @@ router.get('/api/public/profile/:username', async (req: Request, res: Response) 
 });
 
 export default router;
-

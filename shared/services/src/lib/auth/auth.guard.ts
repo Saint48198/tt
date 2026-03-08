@@ -97,9 +97,7 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   }
 
   // Check if user has at least one of the required roles
-  const hasRequiredRole = requiredRoles.some((role) =>
-    authService.hasRole(role)
-  );
+  const hasRequiredRole = requiredRoles.some((role) => authService.hasRole(role));
 
   if (hasRequiredRole) {
     return true;
@@ -110,4 +108,3 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
 
   return router.createUrlTree([unauthorizedRoute]);
 };
-

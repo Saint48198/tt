@@ -1,4 +1,12 @@
-import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, switchMap } from 'rxjs';
 import { DatePipe } from '@angular/common';
@@ -79,11 +87,10 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to load countries',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
+          this.snackBar.open(err?.error?.message || 'Failed to load countries', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
           this.loading.set(false);
         },
       });
@@ -120,37 +127,39 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
   }
 
   deleteCountry(country: Country): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Delete Country',
-        message: `Are you sure you want to delete "${country.name}"?`,
-        confirmText: 'Delete',
-        cancelText: 'Cancel',
-        icon: 'delete',
-        color: 'warn',
-      },
-      width: '420px',
-      autoFocus: false,
-      panelClass: 'confirm-dialog-panel',
-    }).afterClosed().pipe(
-      filter((confirmed) => !!confirmed),
-      switchMap(() => this.countriesService.deleteCountry(country.id)),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: () => {
-        this.snackBar.open('Country deleted successfully', 'Close', {
-          duration: 3000,
-        });
-        this.loadCountries();
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to delete country',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-      },
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: {
+          title: 'Delete Country',
+          message: `Are you sure you want to delete "${country.name}"?`,
+          confirmText: 'Delete',
+          cancelText: 'Cancel',
+          icon: 'delete',
+          color: 'warn',
+        },
+        width: '420px',
+        autoFocus: false,
+        panelClass: 'confirm-dialog-panel',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap(() => this.countriesService.deleteCountry(country.id)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open('Country deleted successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadCountries();
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to delete country', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+        },
+      });
   }
 }
-

@@ -69,14 +69,11 @@ async function removeAllPhotos() {
       totalDeleted += objects.length;
       process.stdout.write(`  Deleted batch of ${objects.length} (total: ${totalDeleted})\n`);
 
-      continuationToken = listResponse.IsTruncated
-        ? listResponse.NextContinuationToken
-        : undefined;
+      continuationToken = listResponse.IsTruncated ? listResponse.NextContinuationToken : undefined;
     } while (continuationToken);
 
     process.stdout.write(`\n  Total S3 objects deleted: ${totalDeleted}\n`);
     process.stdout.write('\n--- Done ---\n');
-
   } catch (error) {
     process.stderr.write(`Error removing photos: ${error}\n`);
     process.exit(1);

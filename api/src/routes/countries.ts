@@ -4,20 +4,13 @@ import { db } from '../db';
 
 const router = Router();
 
-
 // GET /api/countries
 router.get('/api/countries', async (req: Request, res: Response) => {
   const { page, limit, all, sortBy, sortOrder, includeDisabled } = req.query;
 
-  const pageNum =
-    page !== undefined
-      ? Number(Array.isArray(page) ? page[0] : page)
-      : 1;
+  const pageNum = page !== undefined ? Number(Array.isArray(page) ? page[0] : page) : 1;
 
-  const limitNum =
-    limit !== undefined
-      ? Number(Array.isArray(limit) ? limit[0] : limit)
-      : 10;
+  const limitNum = limit !== undefined ? Number(Array.isArray(limit) ? limit[0] : limit) : 10;
 
   const rawSortBy = Array.isArray(sortBy) ? sortBy?.[0] : sortBy;
   const sortByStr = (rawSortBy ?? 'name').toString();
@@ -45,8 +38,7 @@ router.get('/api/countries', async (req: Request, res: Response) => {
 
 // POST /api/countries
 router.post('/api/countries', async (req: Request, res: Response) => {
-  const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } =
-    req.body;
+  const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } = req.body;
 
   const missing: string[] = [];
   if (!name) missing.push('Name');
@@ -78,7 +70,9 @@ router.post('/api/countries', async (req: Request, res: Response) => {
     console.error('Failed to create country:', error);
     const message = error instanceof Error ? error.message : '';
     if (message.includes('unique') || message.includes('duplicate')) {
-      return res.status(409).json({ error: 'A country with that name or Geo Map ID already exists.' });
+      return res
+        .status(409)
+        .json({ error: 'A country with that name or Geo Map ID already exists.' });
     }
     return res.status(500).json({ error: 'Failed to create country.' });
   }
@@ -127,8 +121,7 @@ router.get('/api/countries/:id', async (req: Request, res: Response) => {
 // PUT /api/countries/:id
 router.put('/api/countries/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } =
-    req.body;
+  const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } = req.body;
 
   const missing: string[] = [];
   if (!name) missing.push('Name');
@@ -160,7 +153,9 @@ router.put('/api/countries/:id', async (req: Request, res: Response) => {
     console.error('Failed to update country:', error);
     const message = error instanceof Error ? error.message : '';
     if (message.includes('unique') || message.includes('duplicate')) {
-      return res.status(409).json({ error: 'A country with that name or Geo Map ID already exists.' });
+      return res
+        .status(409)
+        .json({ error: 'A country with that name or Geo Map ID already exists.' });
     }
     return res.status(500).json({ error: 'Failed to update country' });
   }

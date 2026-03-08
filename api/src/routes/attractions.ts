@@ -3,20 +3,14 @@ import { attractionService } from '../services/attractionService';
 
 const router = Router();
 
-
 // GET /api/attractions
 router.get('/api/attractions', async (req: Request, res: Response) => {
-  const { country_id, state_id, search, page, limit, sortBy, sortOrder, includeDisabled } = req.query;
+  const { country_id, state_id, search, page, limit, sortBy, sortOrder, includeDisabled } =
+    req.query;
 
-  const pageNum =
-    page !== undefined
-      ? Number(Array.isArray(page) ? page[0] : page)
-      : 1;
+  const pageNum = page !== undefined ? Number(Array.isArray(page) ? page[0] : page) : 1;
 
-  const limitNum =
-    limit !== undefined
-      ? Number(Array.isArray(limit) ? limit[0] : limit)
-      : 25;
+  const limitNum = limit !== undefined ? Number(Array.isArray(limit) ? limit[0] : limit) : 25;
 
   const rawSortBy = Array.isArray(sortBy) ? sortBy?.[0] : sortBy;
   const sortByStr = (rawSortBy ?? 'attractions.name').toString();
@@ -152,9 +146,7 @@ router.put('/api/attractions/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Attraction not found.' });
     }
 
-    return res
-      .status(200)
-      .json({ message: 'Attraction updated successfully.' });
+    return res.status(200).json({ message: 'Attraction updated successfully.' });
   } catch (error) {
     console.error('Failed to update attraction:', error);
     return res.status(500).json({ error: 'Failed to update attraction.' });
@@ -172,9 +164,7 @@ router.delete('/api/attractions/:id', async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Attraction not found.' });
     }
 
-    return res
-      .status(200)
-      .json({ message: 'Attraction deleted successfully.' });
+    return res.status(200).json({ message: 'Attraction deleted successfully.' });
   } catch (error) {
     console.error('Failed to delete attraction:', error);
     return res.status(500).json({ error: 'Failed to delete attraction.' });

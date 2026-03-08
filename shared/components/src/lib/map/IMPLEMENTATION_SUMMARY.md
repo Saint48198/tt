@@ -28,18 +28,21 @@ A fully functional, feature-rich map component built with Leaflet for the Trip T
 ## 🎯 Key Features
 
 ### 1. Location Markers (Pointers)
+
 - Display multiple markers on the map
 - Custom tooltips and popups
 - Custom icons (emoji, images, or default Leaflet icons)
 - Programmatic add/remove markers
 
 ### 2. Overlays (Country/State Shapes)
+
 - Display GeoJSON shapes for countries, states, or custom regions
 - Multiple overlays with different colors
 - Customizable styles (fill color, opacity, border)
 - Interactive overlays with tooltips
 
 ### 3. Flexible Configuration
+
 - Configurable center point and zoom level
 - Adjustable height and width
 - Enable/disable zoom and drag
@@ -47,6 +50,7 @@ A fully functional, feature-rich map component built with Leaflet for the Trip T
 - Show/hide OpenStreetMap attribution
 
 ### 4. Programmatic API
+
 ```typescript
 @ViewChild(MapComponent) map!: MapComponent;
 
@@ -64,6 +68,7 @@ map.getMap(); // Access raw Leaflet instance
 ## 📦 Installation
 
 Already installed:
+
 ```bash
 ✅ npm install leaflet @types/leaflet
 ```
@@ -71,6 +76,7 @@ Already installed:
 ## 🚀 Quick Start
 
 ### 1. Import the component
+
 ```typescript
 import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
 
@@ -82,6 +88,7 @@ import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
 ```
 
 ### 2. Use in template
+
 ```html
 <lib-map
   [markers]="markers"
@@ -89,11 +96,13 @@ import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
   [center]="[40.7128, -74.006]"
   [zoom]="10"
   height="500px"
-  [fitBounds]="true">
+  [fitBounds]="true"
+>
 </lib-map>
 ```
 
 ### 3. Define data in component
+
 ```typescript
 markers: MapMarker[] = [
   {
@@ -121,7 +130,9 @@ overlays: MapOverlay[] = [
 ## 💡 Use Cases in Trip Tracker
 
 ### 1. Country Detail Page
+
 Show a country's shape with cities as markers:
+
 ```typescript
 // Load country GeoJSON
 const geoJson = await countryService.getCountryGeoJson('USA');
@@ -138,28 +149,32 @@ markers = cities.map(city => ({
 ```
 
 ### 2. Trip Detail Page
+
 Show trip route with visited cities:
+
 ```typescript
 // Show country overlay
 overlays = [{ type: 'country', geoJson: tripCountryGeoJson }];
 
 // Mark visited and planned cities
-markers = trip.cities.map(city => ({
+markers = trip.cities.map((city) => ({
   lat: city.latitude,
   lng: city.longitude,
   title: city.name,
   popup: `
     <b>${city.name}</b><br/>
     ${city.visited ? '✅ Visited' : '⏳ Planned'}
-  `
+  `,
 }));
 ```
 
 ### 3. User's Travel Map
+
 Show all locations a user has visited:
+
 ```typescript
 const visitedCities = await userService.getVisitedCities(userId);
-markers = visitedCities.map(city => ({
+markers = visitedCities.map((city) => ({
   lat: city.latitude,
   lng: city.longitude,
   title: city.name,
@@ -167,15 +182,17 @@ markers = visitedCities.map(city => ({
     <b>${city.name}</b><br/>
     Visits: ${city.visitCount}<br/>
     Last visit: ${city.lastVisitDate}
-  `
+  `,
 }));
 ```
 
 ### 4. Admin Dashboard - Location Stats
+
 Show popular destinations on a world map:
+
 ```typescript
 const popularCities = await statsService.getPopularDestinations();
-markers = popularCities.map(city => ({
+markers = popularCities.map((city) => ({
   lat: city.latitude,
   lng: city.longitude,
   title: city.name,
@@ -183,7 +200,7 @@ markers = popularCities.map(city => ({
     <b>${city.name}</b><br/>
     Visits: ${city.totalVisits}<br/>
     Photos: ${city.totalPhotos}
-  `
+  `,
 }));
 ```
 
@@ -192,83 +209,94 @@ markers = popularCities.map(city => ({
 For country and state overlays, you'll need GeoJSON data:
 
 ### Countries
+
 - [Natural Earth Data](https://www.naturalearthdata.com/) - Free, high-quality country boundaries
 - [REST Countries API](https://restcountries.com/) - Some include GeoJSON
 - [World Atlas TopoJSON](https://github.com/topojson/world-atlas) - Convert to GeoJSON
 
 ### US States
+
 - [US Census Bureau](https://www.census.gov/geographies/mapping-files.html)
 - [GitHub: US States GeoJSON](https://github.com/PublicaMundi/MappingAPI/tree/master/data/geojson)
 
 ### Custom Regions
+
 - [geojson.io](https://geojson.io/) - Draw and export custom shapes
 - [OpenStreetMap Export](https://www.openstreetmap.org/export) - Export any region
 
 ## 📚 Interfaces
 
 ### MapMarker
+
 ```typescript
 interface MapMarker {
   lat: number;
   lng: number;
-  title?: string;        // Tooltip text
-  popup?: string;        // Popup HTML content
-  icon?: L.Icon | L.DivIcon;  // Custom icon
+  title?: string; // Tooltip text
+  popup?: string; // Popup HTML content
+  icon?: L.Icon | L.DivIcon; // Custom icon
 }
 ```
 
 ### MapOverlay
+
 ```typescript
 interface MapOverlay {
   type: 'country' | 'state' | 'custom';
   geoJson: GeoJSON.GeoJsonObject;
   style?: L.PathOptions; // Leaflet styling
-  interactive?: boolean;  // Enable mouse interactions
+  interactive?: boolean; // Enable mouse interactions
 }
 ```
 
 ## 🎨 Customization Examples
 
 ### Custom Marker Icons with Emoji
+
 ```typescript
 import * as L from 'leaflet';
 
-markers = [{
-  lat: 48.8566,
-  lng: 2.3522,
-  title: 'Paris',
-  icon: L.divIcon({
-    html: '🗼',
-    className: 'emoji-icon',
-    iconSize: [30, 30],
-    iconAnchor: [15, 30]
-  })
-}];
+markers = [
+  {
+    lat: 48.8566,
+    lng: 2.3522,
+    title: 'Paris',
+    icon: L.divIcon({
+      html: '🗼',
+      className: 'emoji-icon',
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+    }),
+  },
+];
 ```
 
 ### Different Colors per State
+
 ```typescript
 overlays = [
   {
     type: 'state',
     geoJson: californiaGeoJson,
-    style: { fillColor: '#FFD700', fillOpacity: 0.4 }
+    style: { fillColor: '#FFD700', fillOpacity: 0.4 },
   },
   {
     type: 'state',
     geoJson: texasGeoJson,
-    style: { fillColor: '#FF4500', fillOpacity: 0.4 }
-  }
+    style: { fillColor: '#FF4500', fillOpacity: 0.4 },
+  },
 ];
 ```
 
 ### Rich HTML Popups
+
 ```typescript
-markers = [{
-  lat: 40.7128,
-  lng: -74.006,
-  title: 'New York',
-  popup: `
+markers = [
+  {
+    lat: 40.7128,
+    lng: -74.006,
+    title: 'New York',
+    popup: `
     <div style="min-width: 200px">
       <h3 style="margin: 0 0 8px 0">New York City</h3>
       <p style="margin: 0 0 8px 0">The Big Apple</p>
@@ -277,13 +305,15 @@ markers = [{
       </div>
       <small>Visited: June 2025</small>
     </div>
-  `
-}];
+  `,
+  },
+];
 ```
 
 ## 🔧 Next Steps
 
 ### 1. Create a GeoJSON Service (Recommended)
+
 ```typescript
 // api/src/routes/geojson.ts
 export async function getCountryGeoJson(req: Request, res: Response) {
@@ -295,6 +325,7 @@ export async function getCountryGeoJson(req: Request, res: Response) {
 ```
 
 ### 2. Add to Country Detail Page
+
 ```typescript
 // In country detail component
 import { MapComponent, MapOverlay } from '@tt/shared/components';
@@ -304,7 +335,7 @@ overlays: MapOverlay[] = [];
 async loadCountry(countryId: number) {
   const country = await this.countryService.getCountry(countryId);
   const geoJson = await this.geoService.getCountryGeoJson(country.code);
-  
+
   this.overlays = [{
     type: 'country',
     geoJson,
@@ -314,6 +345,7 @@ async loadCountry(countryId: number) {
 ```
 
 ### 3. Add to Admin Dashboard
+
 See the example below for adding a world map to the dashboard.
 
 ## ✅ Testing Checklist
@@ -340,8 +372,6 @@ import { MapComponent, MapMarker, MapOverlay } from '@shared/components';
 ```
 
 For detailed documentation, see:
+
 - [README.md](./README.md)
 - [QUICK_REFERENCE.md](./QUICK_REFERENCE.md)
-
-
-

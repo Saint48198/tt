@@ -72,4 +72,3 @@ export class PageViewService implements OnDestroy {
     return last.charAt(0).toUpperCase() + last.slice(1);
   }
 }
-

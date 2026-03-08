@@ -15,7 +15,9 @@ router.get('/api/tags', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Failed to fetch tags:', error);
     const message = error instanceof Error ? error.message : 'Failed to fetch tags';
-    return res.status(error instanceof Error && message.includes('Invalid') ? 400 : 500).json({ error: message });
+    return res
+      .status(error instanceof Error && message.includes('Invalid') ? 400 : 500)
+      .json({ error: message });
   }
 });
 
@@ -29,7 +31,9 @@ router.post('/api/tags', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Failed to add tags:', error);
     const message = error instanceof Error ? error.message : 'Failed to add tags';
-    return res.status(error instanceof Error && message.includes('Invalid') ? 400 : 500).json({ error: message });
+    return res
+      .status(error instanceof Error && message.includes('Invalid') ? 400 : 500)
+      .json({ error: message });
   }
 });
 
@@ -72,7 +76,11 @@ router.post('/api/tags/suggest', async (req: Request, res: Response) => {
         const b64 = Buffer.from(imgResponse.data).toString('base64');
         base64 = `data:${contentType};base64,${b64}`;
       } catch (fetchErr) {
-        console.error('Failed to fetch image from URL:', imageUrl, fetchErr instanceof Error ? fetchErr.message : fetchErr);
+        console.error(
+          'Failed to fetch image from URL:',
+          imageUrl,
+          fetchErr instanceof Error ? fetchErr.message : fetchErr
+        );
         return res.status(400).json({ error: 'Failed to fetch image from URL' });
       }
     }

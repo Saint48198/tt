@@ -1,4 +1,12 @@
-import { Component, DestroyRef, OnInit, inject, signal, ViewChild, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, switchMap } from 'rxjs';
 import { RouterModule } from '@angular/router';
@@ -60,7 +68,12 @@ export class UsersListComponent implements OnInit, AfterViewInit {
     this.dataSource.sort = this.sort;
   }
 
-  loadUsers(page = 1, limit = 25, sortBy: 'username' | 'email' | 'id' = 'username', sortOrder: 'asc' | 'desc' = 'asc'): void {
+  loadUsers(
+    page = 1,
+    limit = 25,
+    sortBy: 'username' | 'email' | 'id' = 'username',
+    sortOrder: 'asc' | 'desc' = 'asc'
+  ): void {
     this.loading.set(true);
 
     this.usersService
@@ -79,11 +92,10 @@ export class UsersListComponent implements OnInit, AfterViewInit {
           this.loading.set(false);
         },
         error: (err) => {
-          this.snackBar.open(
-            err?.error?.message || 'Failed to load users',
-            'Close',
-            { duration: 5000, panelClass: 'error-snackbar' }
-          );
+          this.snackBar.open(err?.error?.message || 'Failed to load users', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
           this.loading.set(false);
         },
       });
@@ -120,37 +132,40 @@ export class UsersListComponent implements OnInit, AfterViewInit {
   }
 
   deleteUser(user: User): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Delete User',
-        message: `Are you sure you want to delete "${user.username}"?`,
-        confirmText: 'Delete',
-        cancelText: 'Cancel',
-        icon: 'delete',
-        color: 'warn',
-      },
-      width: '420px',
-      autoFocus: false,
-      panelClass: 'confirm-dialog-panel',
-    }).afterClosed().pipe(
-      filter((confirmed) => !!confirmed),
-      switchMap(() => this.usersService.deleteUser(user.id)),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: () => {
-        this.snackBar.open('User deleted successfully', 'Close', {
-          duration: 3000,
-        });
-        this.loadUsers();
-      },
-      error: (err) => {
-        this.snackBar.open(
-          err?.error?.message || 'Failed to delete user',
-          'Close',
-          { duration: 5000, panelClass: 'error-snackbar' }
-        );
-      },
-    });
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: {
+          title: 'Delete User',
+          message: `Are you sure you want to delete "${user.username}"?`,
+          confirmText: 'Delete',
+          cancelText: 'Cancel',
+          icon: 'delete',
+          color: 'warn',
+        },
+        width: '420px',
+        autoFocus: false,
+        panelClass: 'confirm-dialog-panel',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => !!confirmed),
+        switchMap(() => this.usersService.deleteUser(user.id)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          this.snackBar.open('User deleted successfully', 'Close', {
+            duration: 3000,
+          });
+          this.loadUsers();
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to delete user', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+        },
+      });
   }
 
   getRolesArray(roles: string | string[] | undefined): string[] {
@@ -158,11 +173,11 @@ export class UsersListComponent implements OnInit, AfterViewInit {
       return [];
     }
     if (typeof roles === 'string') {
-      return roles.split(',').map(r => r.trim()).filter(r => r);
+      return roles
+        .split(',')
+        .map((r) => r.trim())
+        .filter((r) => r);
     }
     return Array.isArray(roles) ? roles : [];
   }
 }
-
-
-

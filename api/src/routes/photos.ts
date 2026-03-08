@@ -71,7 +71,6 @@ router.get('/api/photos/map', async (req: Request, res: Response) => {
 // GET /api/photos/all
 router.get('/api/photos/all', async (req: Request, res: Response) => {
   try {
-
     const page = req.query.page ? Number(req.query.page) : 1;
     const limit = req.query.limit ? Number(req.query.limit) : 25;
     const search = req.query.search as string | undefined;
@@ -79,7 +78,14 @@ router.get('/api/photos/all', async (req: Request, res: Response) => {
     const entityType = req.query.entityType as string | undefined;
     const entityId = req.query.entityId ? Number(req.query.entityId) : undefined;
 
-    const result = await photoService.getAllPhotosMerged({ page, limit, search, noTags, entityType, entityId });
+    const result = await photoService.getAllPhotosMerged({
+      page,
+      limit,
+      search,
+      noTags,
+      entityType,
+      entityId,
+    });
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch all photos:', error);
@@ -89,7 +95,6 @@ router.get('/api/photos/all', async (req: Request, res: Response) => {
 
 // GET /api/photos/:entityType/:entityId
 router.get('/api/photos/:entityType/:entityId', async (req: Request, res: Response) => {
-
   const { entityType, entityId } = req.params;
   const { page, limit } = req.query;
 
@@ -120,7 +125,6 @@ router.get('/api/photos/:entityType/:entityId', async (req: Request, res: Respon
 // POST /api/photos/suggest-titles
 router.post('/api/photos/suggest-titles', async (req: Request, res: Response) => {
   try {
-
     const { imageBase64, mimeType, hints } = req.body || {};
 
     const result = await photoService.suggestTitles({
@@ -143,43 +147,39 @@ router.post('/api/photos/suggest-titles', async (req: Request, res: Response) =>
 });
 
 // POST /api/photos/add/:entityType/:entityId
-router.post(
-  '/api/photos/add/:entityType/:entityId',
-  async (req: Request, res: Response) => {
+router.post('/api/photos/add/:entityType/:entityId', async (req: Request, res: Response) => {
+  const { entityType, entityId } = req.params;
 
-    const { entityType, entityId } = req.params;
-
-    if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
-      return res.status(400).json({ error: 'Invalid entityType or entityId' });
-    }
-
-    const { url, userId, caption } = req.body;
-
-    try {
-      const result = await photoService.addPhotoByEntity({
-        entityType,
-        entityId: Number(entityId),
-        url,
-        userId,
-        caption,
-      });
-
-      return res.status(201).json({
-        message: 'Photo added successfully.',
-        id: result.id,
-      });
-    } catch (error) {
-      console.error('Failed to add photo:', error);
-      const message = error instanceof Error ? error.message : 'Failed to add photo';
-
-      if (message.includes('Invalid') || message.includes('Missing')) {
-        return res.status(400).json({ error: message });
-      }
-
-      return res.status(500).json({ error: message });
-    }
+  if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
+    return res.status(400).json({ error: 'Invalid entityType or entityId' });
   }
-);
+
+  const { url, userId, caption } = req.body;
+
+  try {
+    const result = await photoService.addPhotoByEntity({
+      entityType,
+      entityId: Number(entityId),
+      url,
+      userId,
+      caption,
+    });
+
+    return res.status(201).json({
+      message: 'Photo added successfully.',
+      id: result.id,
+    });
+  } catch (error) {
+    console.error('Failed to add photo:', error);
+    const message = error instanceof Error ? error.message : 'Failed to add photo';
+
+    if (message.includes('Invalid') || message.includes('Missing')) {
+      return res.status(400).json({ error: message });
+    }
+
+    return res.status(500).json({ error: message });
+  }
+});
 
 // POST /api/photos/bulk/add
 router.post('/api/photos/bulk/add', async (req: Request, res: Response) => {
@@ -248,24 +248,39 @@ router.delete('/api/photos/bulk/remove', async (req: Request, res: Response) => 
 // GET /api/photos/search
 router.get('/api/photos/search', async (req: Request, res: Response) => {
   try {
-
     const rawFolder = req.query.folder;
-    const folder = (typeof rawFolder === 'string' ? rawFolder : Array.isArray(rawFolder) ? rawFolder[0] : undefined) as string | undefined;
+    const folder = (
+      typeof rawFolder === 'string'
+        ? rawFolder
+        : Array.isArray(rawFolder)
+          ? rawFolder[0]
+          : undefined
+    ) as string | undefined;
 
     const rawTag = req.query.tag;
-    const tag = (typeof rawTag === 'string' ? rawTag : Array.isArray(rawTag) ? rawTag[0] : undefined) as string | undefined;
+    const tag = (
+      typeof rawTag === 'string' ? rawTag : Array.isArray(rawTag) ? rawTag[0] : undefined
+    ) as string | undefined;
 
     const rawMaxResults = req.query.max_results;
-    const maxResultsStr = (typeof rawMaxResults === 'string' ? rawMaxResults : Array.isArray(rawMaxResults)
-      ? rawMaxResults[0]
-      : undefined) as string | undefined;
+    const maxResultsStr = (
+      typeof rawMaxResults === 'string'
+        ? rawMaxResults
+        : Array.isArray(rawMaxResults)
+          ? rawMaxResults[0]
+          : undefined
+    ) as string | undefined;
 
     const maxResults = maxResultsStr ? Number(maxResultsStr) : 10;
 
     const rawNextCursor = req.query.next_cursor;
-    const nextCursor = (typeof rawNextCursor === 'string' ? rawNextCursor : Array.isArray(rawNextCursor)
-      ? rawNextCursor[0]
-      : undefined) as string | undefined;
+    const nextCursor = (
+      typeof rawNextCursor === 'string'
+        ? rawNextCursor
+        : Array.isArray(rawNextCursor)
+          ? rawNextCursor[0]
+          : undefined
+    ) as string | undefined;
 
     const result = await photoService.searchPhotos({
       folder,
@@ -282,92 +297,115 @@ router.get('/api/photos/search', async (req: Request, res: Response) => {
 });
 
 // POST /api/photos/upload
-router.post(
-  '/api/photos/upload',
-  async (req: Request, res: Response): Promise<any> => {
-    try {
+router.post('/api/photos/upload', async (req: Request, res: Response): Promise<any> => {
+  try {
+    const form = formidable({
+      multiples: true,
+      uploadDir: '/tmp',
+      keepExtensions: true,
+      maxFileSize: 50 * 1024 * 1024, // 50MB per file
+      maxTotalFileSize: 500 * 1024 * 1024, // 500MB total
+      maxFiles: 50,
+    });
 
-      const form = formidable({
-        multiples: true,
-        uploadDir: '/tmp',
-        keepExtensions: true,
-        maxFileSize: 50 * 1024 * 1024, // 50MB per file
-        maxTotalFileSize: 500 * 1024 * 1024, // 500MB total
-        maxFiles: 50,
-      });
+    form.parse(req, async (err: any, fields: any, files: any) => {
+      if (err) {
+        console.error('Form parsing error:', err);
+        return res.status(500).json({ error: 'Error parsing form data' });
+      }
 
-      form.parse(req, async (err: any, fields: any, files: any) => {
-        if (err) {
-          console.error('Form parsing error:', err);
-          return res.status(500).json({ error: 'Error parsing form data' });
-        }
+      console.log('[Upload] Files keys:', Object.keys(files || {}));
+      const fileField = (files as any).files;
+      console.log(
+        '[Upload] fileField type:',
+        typeof fileField,
+        'isArray:',
+        Array.isArray(fileField),
+        'length:',
+        Array.isArray(fileField) ? fileField.length : fileField ? 1 : 0
+      );
 
-        console.log('[Upload] Files keys:', Object.keys(files || {}));
-        const fileField = (files as any).files;
-        console.log('[Upload] fileField type:', typeof fileField, 'isArray:', Array.isArray(fileField), 'length:', Array.isArray(fileField) ? fileField.length : fileField ? 1 : 0);
+      if (!fileField) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
 
-        if (!fileField) {
-          return res.status(400).json({ error: 'No file uploaded' });
-        }
+      const uploadedFiles = Array.isArray(fileField) ? fileField : [fileField];
 
-        const uploadedFiles = Array.isArray(fileField)
-          ? fileField
-          : [fileField];
+      const firstFieldValue = (v: unknown): string | undefined => {
+        if (v == null) return undefined;
+        if (Array.isArray(v)) return v[0] != null ? String(v[0]) : undefined;
+        return String(v);
+      };
 
-        const firstFieldValue = (v: unknown): string | undefined => {
-          if (v == null) return undefined;
-          if (Array.isArray(v)) return v[0] != null ? String(v[0]) : undefined;
-          return String(v);
-        };
+      const visibility = firstFieldValue((fields as any).visibility);
+      const tagsRaw = firstFieldValue((fields as any).tags);
+      const title = firstFieldValue((fields as any).title) ?? '';
+      const description = firstFieldValue((fields as any).description) ?? '';
+      const country = firstFieldValue((fields as any).country);
+      const exifDataRaw = firstFieldValue((fields as any).exifData);
+      let clientExifData:
+        | Array<{
+            title?: string;
+            keywords?: string[];
+            latitude?: number;
+            longitude?: number;
+            created_date?: string;
+          }>
+        | undefined;
+      try {
+        if (exifDataRaw) clientExifData = JSON.parse(exifDataRaw);
+      } catch {
+        /* ignore parse errors */
+      }
 
-        const visibility = firstFieldValue((fields as any).visibility);
-        const tagsRaw = firstFieldValue((fields as any).tags);
-        const title = firstFieldValue((fields as any).title) ?? '';
-        const description = firstFieldValue((fields as any).description) ?? '';
-        const country = firstFieldValue((fields as any).country);
-        const exifDataRaw = firstFieldValue((fields as any).exifData);
-        let clientExifData: Array<{ title?: string; keywords?: string[]; latitude?: number; longitude?: number; created_date?: string }> | undefined;
-        try {
-          if (exifDataRaw) clientExifData = JSON.parse(exifDataRaw);
-        } catch { /* ignore parse errors */ }
+      try {
+        const result = await photoService.uploadPhotos({
+          files: uploadedFiles.map((f: any) => ({
+            filepath: f.filepath,
+            newFilename: f.newFilename,
+            originalFilename: f.originalFilename || undefined,
+          })),
+          visibility,
+          tags: tagsRaw,
+          title,
+          description,
+          country,
+          clientExifData,
+        });
 
-        try {
-          const result = await photoService.uploadPhotos({
-            files: uploadedFiles.map((f: any) => ({
-              filepath: f.filepath,
-              newFilename: f.newFilename,
-              originalFilename: f.originalFilename || undefined,
-            })),
-            visibility,
-            tags: tagsRaw,
-            title,
-            description,
-            country,
-            clientExifData,
-          });
-
-          return res.status(200).json(result);
-        } catch (uploadError) {
-          console.error('Upload error:', uploadError);
-          return res.status(500).json({ error: 'Failed to upload images' });
-        }
-      });
-    } catch (error) {
-      console.error('Upload error:', error);
-      return res.status(500).json({ error: 'Failed to upload images' });
-    }
+        return res.status(200).json(result);
+      } catch (uploadError) {
+        console.error('Upload error:', uploadError);
+        return res.status(500).json({ error: 'Failed to upload images' });
+      }
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    return res.status(500).json({ error: 'Failed to upload images' });
   }
-);
+});
 
 // POST /api/photos/add — add a Cloudinary photo to the database
 router.post('/api/photos/add', async (req: Request, res: Response) => {
-
-  const { photo_id, url, caption, city_id, attraction_id, user_id, latitude, longitude, tags, country_id, state_id, created_date, original_filename } = req.body;
+  const {
+    photo_id,
+    url,
+    caption,
+    city_id,
+    attraction_id,
+    user_id,
+    latitude,
+    longitude,
+    tags,
+    country_id,
+    state_id,
+    created_date,
+    original_filename,
+  } = req.body;
 
   if (!photo_id || !url) {
     return res.status(400).json({ error: 'Missing required fields: photo_id and url.' });
   }
-
 
   try {
     const result = await photoService.addPhotoToDb({
@@ -395,17 +433,27 @@ router.post('/api/photos/add', async (req: Request, res: Response) => {
 
 // PATCH /api/photos/:id
 router.patch('/api/photos/:id', async (req: Request, res: Response) => {
-
   const { id } = req.params;
 
   if (!id || Number.isNaN(Number(id))) {
     return res.status(400).json({ error: 'Invalid photo id' });
   }
 
-  const { caption, tags, city_id, attraction_id, latitude, longitude, state_id, country_id } = req.body;
+  const { caption, tags, city_id, attraction_id, latitude, longitude, state_id, country_id } =
+    req.body;
 
   try {
-    await photoService.updatePhoto(Number(id), caption ?? null, tags, city_id, attraction_id, latitude, longitude, state_id, country_id);
+    await photoService.updatePhoto(
+      Number(id),
+      caption ?? null,
+      tags,
+      city_id,
+      attraction_id,
+      latitude,
+      longitude,
+      state_id,
+      country_id
+    );
     return res.status(200).json({ message: 'Photo updated successfully.' });
   } catch (error) {
     console.error('Failed to update photo:', error);
@@ -420,42 +468,42 @@ router.patch('/api/photos/:id', async (req: Request, res: Response) => {
 });
 
 // DELETE /api/photos/remove/:entityType/:entityId
-router.delete(
-  '/api/photos/remove/:entityType/:entityId',
-  async (req: Request, res: Response) => {
+router.delete('/api/photos/remove/:entityType/:entityId', async (req: Request, res: Response) => {
+  const { entityType, entityId } = req.params;
 
-    const { entityType, entityId } = req.params;
-
-    if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
-      return res.status(400).json({ error: 'Invalid entityType or entityId' });
-    }
-
-    const { photoId } = req.body;
-
-    if (!photoId) {
-      return res.status(400).json({ error: 'Missing required field: photoId.' });
-    }
-
-    try {
-      await photoService.removePhoto({
-        entityType,
-        entityId: Number(entityId),
-        photoId,
-      });
-
-      return res.status(200).json({ message: 'Photo removed successfully.' });
-    } catch (error) {
-      console.error('Failed to remove photo:', error);
-      const message = error instanceof Error ? error.message : 'Failed to remove photo';
-
-      if (message.includes('Invalid') || message.includes('Missing') || message.includes('not found')) {
-        return res.status(message.includes('not found') ? 404 : 400).json({ error: message });
-      }
-
-      return res.status(500).json({ error: message });
-    }
+  if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
+    return res.status(400).json({ error: 'Invalid entityType or entityId' });
   }
-);
+
+  const { photoId } = req.body;
+
+  if (!photoId) {
+    return res.status(400).json({ error: 'Missing required field: photoId.' });
+  }
+
+  try {
+    await photoService.removePhoto({
+      entityType,
+      entityId: Number(entityId),
+      photoId,
+    });
+
+    return res.status(200).json({ message: 'Photo removed successfully.' });
+  } catch (error) {
+    console.error('Failed to remove photo:', error);
+    const message = error instanceof Error ? error.message : 'Failed to remove photo';
+
+    if (
+      message.includes('Invalid') ||
+      message.includes('Missing') ||
+      message.includes('not found')
+    ) {
+      return res.status(message.includes('not found') ? 404 : 400).json({ error: message });
+    }
+
+    return res.status(500).json({ error: message });
+  }
+});
 
 // DELETE /api/photos/:id — delete a photo by DB id (removes from S3 and database)
 router.delete('/api/photos/:id', async (req: Request, res: Response) => {

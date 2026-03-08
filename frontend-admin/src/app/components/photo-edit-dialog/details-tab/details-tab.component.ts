@@ -46,7 +46,8 @@ export class DetailsTabComponent {
     this.suggestError.set(null);
     this.suggestedTags.set([]);
 
-    this.http.post<{ tags: string[] }>('/api/tags/suggest', { imageUrl: url })
+    this.http
+      .post<{ tags: string[] }>('/api/tags/suggest', { imageUrl: url })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {

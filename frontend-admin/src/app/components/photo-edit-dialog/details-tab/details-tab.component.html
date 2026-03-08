@@ -2,14 +2,16 @@
   <!-- Caption -->
   <mat-form-field appearance="outline" class="full-width">
     <mat-label>Caption</mat-label>
-    <textarea matInput
-              [ngModel]="state.caption()"
-              (ngModelChange)="state.caption.set($event)"
-              placeholder="Enter a caption..."
-              rows="3"
-              cdkTextareaAutosize
-              cdkAutosizeMinRows="2"
-              cdkAutosizeMaxRows="5"></textarea>
+    <textarea
+      matInput
+      [ngModel]="state.caption()"
+      (ngModelChange)="state.caption.set($event)"
+      placeholder="Enter a caption..."
+      rows="3"
+      cdkTextareaAutosize
+      cdkAutosizeMinRows="2"
+      cdkAutosizeMaxRows="5"
+    ></textarea>
     <mat-icon matPrefix>short_text</mat-icon>
     <mat-hint>Describe the photo</mat-hint>
   </mat-form-field>
@@ -18,15 +20,20 @@
   <div class="tags-section">
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Add tags</mat-label>
-      <input matInput
-             [(ngModel)]="tagsInput"
-             (keydown)="onTagKeydown($event)"
-             placeholder="Type a tag and press Enter...">
+      <input
+        matInput
+        [(ngModel)]="tagsInput"
+        (keydown)="onTagKeydown($event)"
+        placeholder="Type a tag and press Enter..."
+      />
       <mat-icon matPrefix>label</mat-icon>
-      <button matSuffix mat-icon-button
-              (click)="addTag()"
-              [disabled]="!tagsInput.trim()"
-              matTooltip="Add tag">
+      <button
+        matSuffix
+        mat-icon-button
+        (click)="addTag()"
+        [disabled]="!tagsInput.trim()"
+        matTooltip="Add tag"
+      >
         <mat-icon>add_circle</mat-icon>
       </button>
       <mat-hint>Press Enter or comma to add</mat-hint>
@@ -59,8 +66,12 @@
             Analyzing image…
           </button>
         } @else {
-          <button mat-stroked-button (click)="suggestTags()" class="suggest-btn"
-                  matTooltip="Use AI to suggest tags based on the photo">
+          <button
+            mat-stroked-button
+            (click)="suggestTags()"
+            class="suggest-btn"
+            matTooltip="Use AI to suggest tags based on the photo"
+          >
             <mat-icon>auto_awesome</mat-icon>
             Suggest Tags
           </button>
@@ -79,9 +90,11 @@
             <span class="suggested-label">Suggested — click to add:</span>
             <mat-chip-set class="tags-chip-set">
               @for (tag of suggestedTags(); track tag) {
-                <mat-chip class="suggested-chip"
-                          (click)="addSuggestedTag(tag)"
-                          matTooltip="Add this tag">
+                <mat-chip
+                  class="suggested-chip"
+                  (click)="addSuggestedTag(tag)"
+                  matTooltip="Add this tag"
+                >
                   <mat-icon matChipAvatar>add_circle_outline</mat-icon>
                   {{ tag }}
                 </mat-chip>
@@ -93,4 +106,3 @@
     }
   </div>
 </div>
-
