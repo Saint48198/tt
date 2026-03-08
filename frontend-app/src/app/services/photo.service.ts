@@ -2,41 +2,9 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { EntityPhotosResponse, MapPhotosResponse } from '@shared/types';
 
-export interface EntityPhoto {
-  id: number;
-  url: string;
-  caption?: string | null;
-  created_at: string;
-  photo_id: string;
-  tags: string[];
-}
-
-export interface EntityPhotosResponse {
-  photos: EntityPhoto[];
-  total: number;
-  page: number;
-  limit: number;
-}
-
-export interface MapPhoto {
-  id: number;
-  url: string;
-  caption: string | null;
-  latitude: number;
-  longitude: number;
-  city_name: string | null;
-  attraction_name: string | null;
-  country_name: string | null;
-  state_name: string | null;
-  photo_id: string | null;
-  created_at: string;
-}
-
-export interface MapPhotosResponse {
-  photos: MapPhoto[];
-  entityName?: string;
-}
+export type { EntityPhoto, EntityPhotosResponse, MapPhoto, MapPhotosResponse } from '@shared/types';
 
 @Injectable({
   providedIn: 'root',

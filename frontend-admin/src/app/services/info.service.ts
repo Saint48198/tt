@@ -1,12 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { InfoResult } from '@shared/types';
 
-export interface InfoResult {
-  title: string;
-  intro: string;
-  url: string;
-}
+export type { InfoResult } from '@shared/types';
 
 @Injectable({
   providedIn: 'root',

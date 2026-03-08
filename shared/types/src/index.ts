@@ -2,5 +2,14 @@ export * from './lib/types';
 export * from './lib/user';
 export * from './lib/role';
 export * from './lib/token';
-export * from './lib/records'
-export * from './lib/auth'
+export * from './lib/records';
+export * from './lib/auth';
+export * from './lib/country';
+export * from './lib/state';
+export * from './lib/city';
+export * from './lib/attraction';
+export * from './lib/photo';
+export * from './lib/trip';
+export * from './lib/geocode';
+export * from './lib/wikipedia';
+export * from './lib/dashboard';

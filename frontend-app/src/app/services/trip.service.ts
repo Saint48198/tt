@@ -1,23 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Trip, PlanItem } from '@shared/types';
 
-export interface PlanItem {
-  id: number;
-  type: string;
-  startDate: string;
-  endDate: string;
-  [key: string]: unknown;
-}
-
-export interface Trip {
-  id: number;
-  name: string;
-  notes?: string;
-  plan: PlanItem[];
-  created_date?: string;
-  updated_date?: string;
-}
+export type { Trip, PlanItem } from '@shared/types';
 
 @Injectable({
   providedIn: 'root',

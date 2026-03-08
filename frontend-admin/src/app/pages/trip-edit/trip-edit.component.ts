@@ -28,6 +28,7 @@ import {
   Trip,
   Country,
   City,
+  PlanItem,
   AnyPlanItem,
   PlanItemType,
   PlanFlight,
@@ -126,8 +127,8 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   private nextLocalId = -1;
 
   /** Sort plan items by startDate (earliest first) */
-  private sortPlanItemsByDate(items: AnyPlanItem[]): AnyPlanItem[] {
-    return [...items].sort((a, b) => {
+  private sortPlanItemsByDate(items: PlanItem[]): AnyPlanItem[] {
+    return ([...items] as AnyPlanItem[]).sort((a, b) => {
       const dateA = a.startDate ? new Date(a.startDate).getTime() : Infinity;
       const dateB = b.startDate ? new Date(b.startDate).getTime() : Infinity;
       return dateA - dateB;

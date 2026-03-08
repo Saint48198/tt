@@ -3,7 +3,22 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, EMPTY } from 'rxjs';
 import { map, catchError, switchMap, tap, finalize } from 'rxjs/operators';
 import * as GeoJSON from 'geojson';
-import { PhotoService, EntityPhoto } from './photo.service';
+import {
+  Country,
+  State,
+  City,
+  Attraction,
+  WikipediaContent,
+  EntityPhoto,
+} from '@shared/types';
+import { PhotoService } from './photo.service';
+
+/** Re-export as aliases for backward compatibility */
+export type ExploreCountry = Country;
+export type ExploreState = State;
+export type ExploreCity = City;
+export type ExploreAttraction = Attraction;
+export type { WikipediaContent } from '@shared/types';
 
 // ...existing code...
 
@@ -15,62 +30,6 @@ const STATE_GEOJSON_FILES: Record<string, string> = {
   CAN: '/data/canada-provinces.geojson',
 };
 
-export interface WikipediaContent {
-  title: string;
-  extract: string;
-  thumbnail?: string;
-  url: string;
-}
-
-export interface ExploreCountry {
-  id: number;
-  name: string;
-  abbreviation?: string;
-  lat?: number;
-  lng?: number;
-  slug?: string;
-  last_visited?: string;
-  geo_map_id?: string;
-}
-
-export interface ExploreState {
-  id: number;
-  name: string;
-  abbr?: string;
-  country_id: number;
-  country_name?: string;
-  last_visited?: string;
-}
-
-export interface ExploreCity {
-  id: number;
-  name: string;
-  lat: number;
-  lng: number;
-  country_id?: number;
-  country_name?: string;
-  state_id?: number;
-  state_name?: string;
-  last_visited?: string;
-  wiki_term?: string;
-  created_date?: string;
-  updated_date?: string;
-}
-
-export interface ExploreAttraction {
-  id: number;
-  name: string;
-  lat: number;
-  lng: number;
-  is_unesco?: boolean;
-  is_national_park?: boolean;
-  country_id?: number;
-  country_name?: string;
-  last_visited?: string;
-  wiki_term?: string;
-  created_date?: string;
-  updated_date?: string;
-}
 
 @Injectable({
   providedIn: 'root',

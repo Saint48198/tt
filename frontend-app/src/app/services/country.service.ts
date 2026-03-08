@@ -3,20 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import * as GeoJSON from 'geojson';
+import { Country } from '@shared/types';
 
-export interface Country {
-  id: number;
-  name: string;
-  abbreviation?: string;
-  lat?: number;
-  lng?: number;
-  slug?: string;
-  last_visited?: string;
-  geo_map_id?: string;
-  created_date?: string;
-  updated_date?: string;
-  disabled_date?: string;
-}
+export type { Country } from '@shared/types';
 
 /**
  * Maps DB country names to GeoJSON feature names where they differ.

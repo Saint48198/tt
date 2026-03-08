@@ -1,15 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { DashboardStats } from '@shared/types';
 
-export interface DashboardStats {
-  totalUsers: number;
-  totalCountries: number;
-  totalStates: number;
-  totalCities: number;
-  totalAttractions: number;
-  totalPhotos: number;
-}
+export type { DashboardStats } from '@shared/types';
 
 @Injectable({
   providedIn: 'root',
