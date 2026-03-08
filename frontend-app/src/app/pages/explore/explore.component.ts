@@ -69,8 +69,17 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   // Photos
   photos = signal<EntityPhoto[]>([]);
   photosLoading = signal(false);
+  photosPage = signal(1);
+  photosTotal = signal(0);
+  readonly photosPerPage = 15;
   lightboxOpen = signal(false);
   lightboxIndex = signal(0);
+  lightboxImageLoading = signal(false);
+  lightboxImageSize = signal<{ width: number; height: number } | null>(null);
+
+  totalPhotoPages = computed(() =>
+    Math.max(1, Math.ceil(this.photosTotal() / this.photosPerPage))
+  );
 
   countries = signal<ExploreCountry[]>([]);
   states = signal<ExploreState[]>([]);
@@ -824,32 +833,41 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   // --- Photo Loading ---
 
+  /** Current photo entity context for server-side pagination */
+  private photoEntityType: 'cities' | 'attractions' | null = null;
+  private photoEntityId: number | null = null;
+
   private loadPhotosForCity(cityId: number): void {
-    this.photosLoading.set(true);
-    this.photoService
-      .getCityPhotos(cityId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (photos) => {
-          this.photos.set(photos);
-          this.photosLoading.set(false);
-        },
-        error: () => this.photosLoading.set(false),
-      });
+    this.photoEntityType = 'cities';
+    this.photoEntityId = cityId;
+    this.photosPage.set(1);
+    this.fetchPhotosPage(1);
   }
 
   private loadPhotosForAttraction(attractionId: number): void {
+    this.photoEntityType = 'attractions';
+    this.photoEntityId = attractionId;
+    this.photosPage.set(1);
+    this.fetchPhotosPage(1);
+  }
+
+  private fetchPhotosPage(page: number): void {
+    if (!this.photoEntityType || !this.photoEntityId) return;
     this.photosLoading.set(true);
-    this.photoService
-      .getAttractionPhotos(attractionId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (photos) => {
-          this.photos.set(photos);
-          this.photosLoading.set(false);
-        },
-        error: () => this.photosLoading.set(false),
-      });
+
+    const fetch$ = this.photoEntityType === 'cities'
+      ? this.photoService.getCityPhotos(this.photoEntityId, page, this.photosPerPage)
+      : this.photoService.getAttractionPhotos(this.photoEntityId, page, this.photosPerPage);
+
+    fetch$.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res) => {
+        this.photos.set(res.photos);
+        this.photosTotal.set(res.total);
+        this.photosPage.set(res.page);
+        this.photosLoading.set(false);
+      },
+      error: () => this.photosLoading.set(false),
+    });
   }
 
   // --- Lightbox ---
@@ -864,9 +882,11 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   openLightbox(index: number): void {
     this.lightboxTriggerEl = document.activeElement as HTMLElement | null;
+    this.lightboxImageLoading.set(true);
     this.lightboxIndex.set(index);
     this.lightboxOpen.set(true);
     this.lightboxNeedsFocus = true;
+    this.preloadAdjacentImages(index);
   }
 
   closeLightbox(): void {
@@ -881,13 +901,74 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   lightboxPrev(): void {
     const total = this.photos().length;
     if (total === 0) return;
-    this.lightboxIndex.set((this.lightboxIndex() - 1 + total) % total);
+    this.navigateLightbox((this.lightboxIndex() - 1 + total) % total);
   }
 
   lightboxNext(): void {
     const total = this.photos().length;
     if (total === 0) return;
-    this.lightboxIndex.set((this.lightboxIndex() + 1) % total);
+    this.navigateLightbox((this.lightboxIndex() + 1) % total);
+  }
+
+  private navigateLightbox(newIndex: number): void {
+    if (newIndex === this.lightboxIndex()) return;
+    this.lightboxImageLoading.set(true);
+    this.lightboxIndex.set(newIndex);
+    this.preloadAdjacentImages(newIndex);
+  }
+
+  /** Preload the next and previous images so they display instantly */
+  private preloadAdjacentImages(currentIndex: number): void {
+    const all = this.photos();
+    const total = all.length;
+    if (total <= 1) return;
+
+    const indices = [
+      (currentIndex + 1) % total,
+      (currentIndex - 1 + total) % total,
+    ];
+    for (const i of indices) {
+      const img = new Image();
+      img.src = all[i].url;
+    }
+  }
+
+  // --- Photo Pagination ---
+
+  photosPagePrev(): void {
+    const prev = this.photosPage() - 1;
+    if (prev >= 1) {
+      this.fetchPhotosPage(prev);
+    }
+  }
+
+  photosPageNext(): void {
+    const next = this.photosPage() + 1;
+    if (next <= this.totalPhotoPages()) {
+      this.fetchPhotosPage(next);
+    }
+  }
+
+  photosGoToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPhotoPages() && page !== this.photosPage()) {
+      this.fetchPhotosPage(page);
+    }
+  }
+
+  onLightboxImageLoad(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    const natW = img.naturalWidth;
+    const natH = img.naturalHeight;
+
+    const maxW = window.innerWidth * 0.85;
+    const maxH = window.innerHeight * 0.78;
+    const scale = Math.min(1, maxW / natW, maxH / natH);
+
+    this.lightboxImageSize.set({
+      width: Math.round(natW * scale),
+      height: Math.round(natH * scale),
+    });
+    this.lightboxImageLoading.set(false);
   }
 
   onLightboxKeydown(event: KeyboardEvent): void {
@@ -905,11 +986,11 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
         event.preventDefault();
         break;
       case 'Home':
-        this.lightboxIndex.set(0);
+        this.navigateLightbox(0);
         event.preventDefault();
         break;
       case 'End':
-        this.lightboxIndex.set(Math.max(0, this.photos().length - 1));
+        this.navigateLightbox(Math.max(0, this.photos().length - 1));
         event.preventDefault();
         break;
       case 'Tab':
@@ -948,6 +1029,13 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {
     if (this.lightboxOpen()) {
+      // Avoid double-handling: the lightbox overlay already listens for
+      // keydown via the template binding. Only handle here if the event
+      // originated outside the lightbox dialog (e.g. focus escaped).
+      const dialog = this.lightboxDialogRef?.nativeElement;
+      if (dialog && dialog.contains(event.target as Node)) {
+        return;
+      }
       this.onLightboxKeydown(event);
     }
   }

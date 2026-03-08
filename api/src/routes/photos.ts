@@ -47,13 +47,17 @@ router.get('/api/photos/all', async (req: Request, res: Response) => {
 router.get('/api/photos/:entityType/:entityId', async (req: Request, res: Response) => {
 
   const { entityType, entityId } = req.params;
+  const { page, limit } = req.query;
 
   if (!entityType || !entityId || Number.isNaN(Number(entityId))) {
     return res.status(400).json({ error: 'Invalid entityType or entityId' });
   }
 
+  const pageNum = page !== undefined ? Number(Array.isArray(page) ? page[0] : page) : 1;
+  const limitNum = limit !== undefined ? Number(Array.isArray(limit) ? limit[0] : limit) : 15;
+
   try {
-    const result = await photoService.getPhotosByEntity(entityType, entityId);
+    const result = await photoService.getPhotosByEntity(entityType, entityId, pageNum, limitNum);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch photos:', error);

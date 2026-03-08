@@ -507,8 +507,10 @@
 }
 
 .photos-icon {
-  font-size: 1.35rem;
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
+  color: #64748b;
 }
 
 .photos-count {
@@ -595,6 +597,51 @@
 
   p {
     margin: 0;
+  }
+}
+
+// Photo Pagination
+.photos-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+
+.pagination-btn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 500;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.pagination-btn-active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #2563eb;
+    border-color: #2563eb;
   }
 }
 
@@ -687,12 +734,39 @@
   right: -60px;
 }
 
-.lightbox-image {
-  max-width: 85vw;
-  max-height: 78vh;
-  object-fit: contain;
+.lightbox-image-wrapper {
+  position: relative;
+  background: white;
   border-radius: 8px;
+  overflow: hidden;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.lightbox-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.lightbox-spinner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.85);
+  z-index: 2;
+}
+
+.lightbox-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
 .lightbox-footer {
@@ -775,11 +849,6 @@
   .lightbox-close {
     top: -36px;
     right: 0;
-  }
-
-  .lightbox-image {
-    max-width: 95vw;
-    max-height: 70vh;
   }
 }
 

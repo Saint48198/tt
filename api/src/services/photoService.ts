@@ -24,6 +24,9 @@ interface BulkAddPhotosRequest { entityType: string; entityId: string | number; 
 interface BulkRemovePhotosRequest { entityType: string; entityId: string | number; photos: { url: string }[]; userId: string; }
 interface PhotosByEntityResponse {
   photos: Array<{ id: number; url: string; user_id: string; entity_id: number; caption?: string | null; created_at: string; photo_id: string; tags: string[]; }>;
+  total: number;
+  page: number;
+  limit: number;
 }
 
 
@@ -357,14 +360,22 @@ class PhotoService {
     return { success: true };
   }
 
-  public async getPhotosByEntity(entityType: string, entityId: string | number): Promise<PhotosByEntityResponse> {
+  public async getPhotosByEntity(entityType: string, entityId: string | number, page = 1, limit = 15): Promise<PhotosByEntityResponse> {
     if (!['cities', 'attractions'].includes(entityType)) throw new Error('Invalid entityType. Must be "cities" or "attractions".');
     const column = entityType === 'cities' ? 'city_id' : 'attraction_id';
     await this.ensureTable();
 
-    const rows = await db.all<any>(
-      `SELECT id, url, user_id, ${column} AS entity_id, caption, created_at, photo_id, latitude, longitude, created_date, updated_date, disabled_date FROM photos WHERE ${column} = $1 AND disabled_date IS NULL`,
+    const offset = (page - 1) * limit;
+
+    const countRow = await db.get<{ count: number }>(
+      `SELECT COUNT(*) as count FROM photos WHERE ${column} = $1 AND disabled_date IS NULL`,
       [Number(entityId)]
+    );
+    const total = countRow?.count ?? 0;
+
+    const rows = await db.all<any>(
+      `SELECT id, url, user_id, ${column} AS entity_id, caption, created_at, photo_id, latitude, longitude, created_date, updated_date, disabled_date FROM photos WHERE ${column} = $1 AND disabled_date IS NULL ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
+      [Number(entityId), limit, offset]
     );
     const photos = [];
     for (const row of rows) {
@@ -372,7 +383,7 @@ class PhotoService {
       const url = row.photo_id ? this.getPublicUrl(row.photo_id) : row.url;
       photos.push({ ...row, url, tags: await this.getTagsForPhoto(row.id) });
     }
-    return { photos };
+    return { photos, total, page, limit };
   }
 
   public async searchPhotos(request: SearchPhotosRequest): Promise<SearchPhotosResponse> {

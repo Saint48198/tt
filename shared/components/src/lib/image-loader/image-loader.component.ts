@@ -3,6 +3,9 @@ import { Component, input, signal, OnChanges, SimpleChanges } from '@angular/cor
 @Component({
   selector: 'lib-image-loader',
   standalone: true,
+  host: {
+    '[class.cover-mode]': 'cover()',
+  },
   template: `
     <div class="image-loader-wrapper" [style.border-radius]="borderRadius()">
       @if (!loaded() && !errored()) {
@@ -43,6 +46,20 @@ import { Component, input, signal, OnChanges, SimpleChanges } from '@angular/cor
     :host {
       display: block;
       line-height: 0;
+    }
+
+    :host.cover-mode {
+      width: 100%;
+      height: 100%;
+    }
+
+    :host.cover-mode .image-loader-wrapper {
+      height: 100%;
+    }
+
+    :host.cover-mode img {
+      height: 100%;
+      object-fit: cover;
     }
 
     .image-loader-wrapper {
@@ -113,6 +130,8 @@ export class ImageLoaderComponent implements OnChanges {
   imgClass = input<string>('');
   borderRadius = input<string>('0');
   lazy = input<boolean>(false);
+  /** When true, the image fills its parent container using object-fit: cover */
+  cover = input<boolean>(false);
 
   loaded = signal(false);
   errored = signal(false);
