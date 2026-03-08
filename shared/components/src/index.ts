@@ -5,3 +5,5 @@ export * from './lib/footer/footer.component';
 export * from './lib/map/map.component';
 export * from './lib/map/map-example/map-example.component';
 export * from './lib/image-loader/image-loader.component';
+export * from './lib/lightbox/lightbox.component';
+export * from './lib/lightbox/lightbox.types';

@@ -1,8 +1,9 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable, of, EMPTY } from 'rxjs';
+import { map, catchError, switchMap, tap, finalize } from 'rxjs/operators';
 import * as GeoJSON from 'geojson';
+import { PhotoService, EntityPhoto } from './photo.service';
 
 // ...existing code...
 
@@ -175,6 +176,160 @@ export class ExploreService {
       })),
       catchError(() => of(null))
     );
+  }
+}
+
+export type EntityType = 'city' | 'attraction';
+
+/**
+ * Manages the state for city/attraction detail views —
+ * wiki content, photos (paginated), and lightbox.
+ */
+@Injectable({
+  providedIn: 'root',
+})
+export class ExploreDetailService {
+  private readonly exploreService = inject(ExploreService);
+  private readonly photoService = inject(PhotoService);
+
+  // --- Entity ---
+  readonly entityType = signal<EntityType | null>(null);
+  readonly city = signal<ExploreCity | null>(null);
+  readonly attraction = signal<ExploreAttraction | null>(null);
+
+  readonly entity = computed(() =>
+    this.entityType() === 'city' ? this.city() : this.attraction()
+  );
+
+  // --- Wiki ---
+  readonly wikiContent = signal<WikipediaContent | null>(null);
+  readonly wikiLoading = signal(false);
+
+  // --- Photos ---
+  readonly photos = signal<EntityPhoto[]>([]);
+  readonly photosLoading = signal(false);
+  readonly photosPage = signal(1);
+  readonly photosTotal = signal(0);
+  readonly photosPerPage = 15;
+
+  readonly totalPhotoPages = computed(() =>
+    Math.max(1, Math.ceil(this.photosTotal() / this.photosPerPage))
+  );
+
+
+  private photoEntityType: 'cities' | 'attractions' | null = null;
+  private photoEntityId: number | null = null;
+
+  loadCityDetail$(city: ExploreCity): Observable<void> {
+    this.reset();
+    this.entityType.set('city');
+    return this.exploreService.getCityById(city.id).pipe(
+      catchError(() => [city]),
+      tap((fullCity) => {
+        this.city.set(fullCity);
+        this.loadWikiContent(fullCity.wiki_term || fullCity.name);
+        this.loadPhotos('cities', fullCity.id);
+      }),
+      switchMap(() => EMPTY),
+    );
+  }
+
+  loadAttractionDetail$(attraction: ExploreAttraction): Observable<void> {
+    this.reset();
+    this.entityType.set('attraction');
+    return this.exploreService.getAttractionById(attraction.id).pipe(
+      catchError(() => [attraction]),
+      tap((full) => {
+        this.attraction.set(full);
+        if (full.wiki_term) {
+          this.loadWikiContent(full.wiki_term);
+        }
+        this.loadPhotos('attractions', full.id);
+      }),
+      switchMap(() => EMPTY),
+    );
+  }
+
+  private loadWikiContent(term: string): void {
+    this.wikiLoading.set(true);
+    this.exploreService
+      .getWikipediaContent(term)
+      .pipe(
+        tap((content) => this.wikiContent.set(content)),
+        catchError(() => {
+          this.wikiContent.set(null);
+          return EMPTY;
+        }),
+        finalize(() => this.wikiLoading.set(false)),
+      )
+      .subscribe();
+  }
+
+  private loadPhotos(type: 'cities' | 'attractions', id: number): void {
+    this.photoEntityType = type;
+    this.photoEntityId = id;
+    this.photosPage.set(1);
+    this.fetchPhotosPage(1);
+  }
+
+  fetchPhotosPage(page: number): void {
+    if (!this.photoEntityType || !this.photoEntityId) return;
+    this.photosLoading.set(true);
+
+    const fetch$ =
+      this.photoEntityType === 'cities'
+        ? this.photoService.getCityPhotos(this.photoEntityId, page, this.photosPerPage)
+        : this.photoService.getAttractionPhotos(this.photoEntityId, page, this.photosPerPage);
+
+    fetch$
+      .pipe(
+        tap((res) => {
+          this.photos.set(res.photos);
+          this.photosTotal.set(res.total);
+          this.photosPage.set(res.page);
+        }),
+        catchError(() => {
+          this.photos.set([]);
+          return EMPTY;
+        }),
+        finalize(() => this.photosLoading.set(false)),
+      )
+      .subscribe();
+  }
+
+
+  photosPagePrev(): void {
+    const prev = this.photosPage() - 1;
+    if (prev >= 1) {
+      this.fetchPhotosPage(prev);
+    }
+  }
+
+  photosPageNext(): void {
+    const next = this.photosPage() + 1;
+    if (next <= this.totalPhotoPages()) {
+      this.fetchPhotosPage(next);
+    }
+  }
+
+  photosGoToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPhotoPages() && page !== this.photosPage()) {
+      this.fetchPhotosPage(page);
+    }
+  }
+
+  reset(): void {
+    this.entityType.set(null);
+    this.city.set(null);
+    this.attraction.set(null);
+    this.wikiContent.set(null);
+    this.wikiLoading.set(false);
+    this.photos.set([]);
+    this.photosLoading.set(false);
+    this.photosPage.set(1);
+    this.photosTotal.set(0);
+    this.photoEntityType = null;
+    this.photoEntityId = null;
   }
 }
 

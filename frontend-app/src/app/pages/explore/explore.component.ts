@@ -3,28 +3,24 @@ import {
   inject,
   OnInit,
   OnDestroy,
-  AfterViewChecked,
   ChangeDetectorRef,
-  HostListener,
-  ViewChild,
-  ElementRef,
   signal,
   computed,
 } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Observable, Subject, EMPTY, of } from 'rxjs';
-import { takeUntil, switchMap, tap, finalize, catchError } from 'rxjs/operators';
-import { MapComponent, MapMarker, MapOverlay, OverlayClickEvent, ImageLoaderComponent } from '@shared/components';
+import { Observable, Subject, EMPTY } from 'rxjs';
+import { takeUntil, switchMap, tap, finalize } from 'rxjs/operators';
+import { MapComponent, MapMarker, MapOverlay, OverlayClickEvent } from '@shared/components';
 import {
   ExploreService,
+  ExploreDetailService,
   ExploreCountry,
   ExploreState,
   ExploreCity,
   ExploreAttraction,
-  WikipediaContent,
 } from '../../services/explore.service';
-import { PhotoService, EntityPhoto } from '../../services/photo.service';
+import { EntityDetailComponent } from './entity-detail/entity-detail.component';
 
 type ExploreLevel = 'countries' | 'states' | 'cities' | 'city' | 'attractions' | 'attraction';
 
@@ -35,25 +31,19 @@ interface BreadcrumbItem {
 
 @Component({
   selector: 'app-explore',
-  imports: [MapComponent, ImageLoaderComponent, RouterLink],
+  imports: [MapComponent, RouterLink, EntityDetailComponent],
   templateUrl: './explore.component.html',
   styleUrl: './explore.component.scss',
 })
-export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
-  @ViewChild('lightboxDialog') lightboxDialogRef?: ElementRef<HTMLElement>;
+export class ExploreComponent implements OnInit, OnDestroy {
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
   private exploreService = inject(ExploreService);
-  private photoService = inject(PhotoService);
+  readonly detailService = inject(ExploreDetailService);
   private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
-
-  /** Element that triggered lightbox open — restored on close */
-  private lightboxTriggerEl: HTMLElement | null = null;
-  /** Whether the lightbox needs initial focus after rendering */
-  private lightboxNeedsFocus = false;
 
   username = signal<string>('');
   level = signal<ExploreLevel>('countries');
@@ -61,25 +51,10 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   selectedCountry = signal<ExploreCountry | null>(null);
   selectedState = signal<ExploreState | null>(null);
-  selectedCity = signal<ExploreCity | null>(null);
-  selectedAttraction = signal<ExploreAttraction | null>(null);
-  wikiContent = signal<WikipediaContent | null>(null);
-  wikiLoading = signal(false);
 
-  // Photos
-  photos = signal<EntityPhoto[]>([]);
-  photosLoading = signal(false);
-  photosPage = signal(1);
-  photosTotal = signal(0);
-  readonly photosPerPage = 15;
-  lightboxOpen = signal(false);
-  lightboxIndex = signal(0);
-  lightboxImageLoading = signal(false);
-  lightboxImageSize = signal<{ width: number; height: number } | null>(null);
-
-  totalPhotoPages = computed(() =>
-    Math.max(1, Math.ceil(this.photosTotal() / this.photosPerPage))
-  );
+  /** Delegated to detail service */
+  selectedCity = computed(() => this.detailService.city());
+  selectedAttraction = computed(() => this.detailService.attraction());
 
   countries = signal<ExploreCountry[]>([]);
   states = signal<ExploreState[]>([]);
@@ -157,28 +132,6 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (abbr === 'US' || abbr === 'USA' || name.includes('united states')) return 3;
     if (abbr === 'CA' || abbr === 'CAN' || name.includes('canada')) return 3;
     return 5;
-  });
-
-  cityMapMarkers = computed<MapMarker[]>(() => {
-    const c = this.selectedCity();
-    if (!c) return [];
-    return [{ lat: c.lat, lng: c.lng, title: c.name, popup: `<strong>${c.name}</strong>` }];
-  });
-
-  cityMapCenter = computed<[number, number]>(() => {
-    const c = this.selectedCity();
-    return c ? [c.lat, c.lng] : [0, 0];
-  });
-
-  attractionMapMarkers = computed<MapMarker[]>(() => {
-    const a = this.selectedAttraction();
-    if (!a) return [];
-    return [{ lat: a.lat, lng: a.lng, title: a.name, popup: `<strong>${a.name}</strong>` }];
-  });
-
-  attractionMapCenter = computed<[number, number]>(() => {
-    const a = this.selectedAttraction();
-    return a ? [a.lat, a.lng] : [0, 0];
   });
 
   breadcrumbs = computed<BreadcrumbItem[]>(() => {
@@ -462,29 +415,8 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private loadCityDetail$(city: ExploreCity): Observable<void> {
-    this.wikiContent.set(null);
-    this.photos.set([]);
-    return this.exploreService.getCityById(city.id).pipe(
-      catchError(() => of(city)),
-      tap((fullCity) => {
-        this.selectedCity.set(fullCity);
-        this.level.set('city');
-        this.loadWikiContent(fullCity.wiki_term || fullCity.name);
-        this.loadPhotosForCity(fullCity.id);
-      }),
-      switchMap(() => EMPTY),
-    );
-  }
-
-  private loadWikiContent(term: string): void {
-    this.wikiLoading.set(true);
-    this.exploreService
-      .getWikipediaContent(term)
-      .pipe(
-        takeUntil(this.destroy$),
-        tap((content) => this.wikiContent.set(content)),
-        finalize(() => this.wikiLoading.set(false)),
-      ).subscribe();
+    this.level.set('city');
+    return this.detailService.loadCityDetail$(city);
   }
 
   private loadAttractionsForUrl$(country: ExploreCountry, attractionName?: string): Observable<void> {
@@ -504,20 +436,8 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private loadAttractionDetail$(attraction: ExploreAttraction): Observable<void> {
-    this.wikiContent.set(null);
-    this.photos.set([]);
-    return this.exploreService.getAttractionById(attraction.id).pipe(
-      catchError(() => of(attraction)),
-      tap((full) => {
-        this.selectedAttraction.set(full);
-        this.level.set('attraction');
-        if (full.wiki_term) {
-          this.loadWikiContent(full.wiki_term);
-        }
-        this.loadPhotosForAttraction(full.id);
-      }),
-      switchMap(() => EMPTY),
-    );
+    this.level.set('attraction');
+    return this.detailService.loadAttractionDetail$(attraction);
   }
 
   // --- Navigation (updates URL without re-routing) ---
@@ -537,13 +457,6 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   /** Match a slug against a name: "new-york" matches "New York" */
   private matchesSlug(name: string, slug: string): boolean {
     return this.toSlug(name) === slug.toLowerCase();
-  }
-
-  scrollTo(id: string): void {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
   }
 
   onCountryClick(country: ExploreCountry): void {
@@ -657,15 +570,13 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
       // Back to countries list
       this.selectedCountry.set(null);
       this.selectedState.set(null);
-      this.selectedCity.set(null);
-      this.selectedAttraction.set(null);
+      this.detailService.reset();
       this.countryMapOverlays = [];
       this.level.set('countries');
     } else if (segments.length === 1) {
       // Back to country level (states or cities)
       this.selectedState.set(null);
-      this.selectedCity.set(null);
-      this.selectedAttraction.set(null);
+      this.detailService.reset();
       if (this.states().length > 0) {
         this.level.set('states');
       } else {
@@ -673,12 +584,11 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
       }
     } else if (segments.length === 2 && segments[1].toLowerCase() === 'attractions') {
       // Back to attractions list
-      this.selectedAttraction.set(null);
+      this.detailService.reset();
       this.level.set('attractions');
     } else if (segments.length === 2) {
       // Back to state's cities list
-      this.selectedCity.set(null);
-      this.selectedAttraction.set(null);
+      this.detailService.reset();
       this.level.set('cities');
     }
   }
@@ -689,12 +599,11 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
     const countryAbbr = country ? (country.abbreviation || country.name) : '';
 
     if (lvl === 'attraction') {
-      this.selectedAttraction.set(null);
-      this.wikiContent.set(null);
+      this.detailService.reset();
       this.updateUrl(`${this.baseUrl()}/${countryAbbr}/attractions`);
       this.level.set('attractions');
     } else if (lvl === 'city') {
-      this.selectedCity.set(null);
+      this.detailService.reset();
       const state = this.selectedState();
       if (state) {
         const stateAbbr = state.abbr || state.name;
@@ -742,214 +651,6 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
     );
   }
 
-  // --- Photo Loading ---
-
-  /** Current photo entity context for server-side pagination */
-  private photoEntityType: 'cities' | 'attractions' | null = null;
-  private photoEntityId: number | null = null;
-
-  private loadPhotosForCity(cityId: number): void {
-    this.photoEntityType = 'cities';
-    this.photoEntityId = cityId;
-    this.photosPage.set(1);
-    this.fetchPhotosPage(1);
-  }
-
-  private loadPhotosForAttraction(attractionId: number): void {
-    this.photoEntityType = 'attractions';
-    this.photoEntityId = attractionId;
-    this.photosPage.set(1);
-    this.fetchPhotosPage(1);
-  }
-
-  private fetchPhotosPage(page: number): void {
-    if (!this.photoEntityType || !this.photoEntityId) return;
-    this.photosLoading.set(true);
-
-    const fetch$ = this.photoEntityType === 'cities'
-      ? this.photoService.getCityPhotos(this.photoEntityId, page, this.photosPerPage)
-      : this.photoService.getAttractionPhotos(this.photoEntityId, page, this.photosPerPage);
-
-    fetch$.pipe(
-      takeUntil(this.destroy$),
-      tap((res) => {
-        this.photos.set(res.photos);
-        this.photosTotal.set(res.total);
-        this.photosPage.set(res.page);
-      }),
-      finalize(() => this.photosLoading.set(false)),
-    ).subscribe();
-  }
-
-  // --- Lightbox ---
-
-  ngAfterViewChecked(): void {
-    // Auto-focus the lightbox dialog once it renders
-    if (this.lightboxNeedsFocus && this.lightboxDialogRef) {
-      this.lightboxDialogRef.nativeElement.focus();
-      this.lightboxNeedsFocus = false;
-    }
-  }
-
-  openLightbox(index: number): void {
-    this.lightboxTriggerEl = document.activeElement as HTMLElement | null;
-    this.lightboxImageLoading.set(true);
-    this.lightboxIndex.set(index);
-    this.lightboxOpen.set(true);
-    this.lightboxNeedsFocus = true;
-    this.preloadAdjacentImages(index);
-  }
-
-  closeLightbox(): void {
-    this.lightboxOpen.set(false);
-    // Restore focus to the element that opened the lightbox
-    if (this.lightboxTriggerEl) {
-      setTimeout(() => this.lightboxTriggerEl?.focus());
-      this.lightboxTriggerEl = null;
-    }
-  }
-
-  lightboxPrev(): void {
-    const total = this.photos().length;
-    if (total === 0) return;
-    this.navigateLightbox((this.lightboxIndex() - 1 + total) % total);
-  }
-
-  lightboxNext(): void {
-    const total = this.photos().length;
-    if (total === 0) return;
-    this.navigateLightbox((this.lightboxIndex() + 1) % total);
-  }
-
-  private navigateLightbox(newIndex: number): void {
-    if (newIndex === this.lightboxIndex()) return;
-    this.lightboxImageLoading.set(true);
-    this.lightboxIndex.set(newIndex);
-    this.preloadAdjacentImages(newIndex);
-  }
-
-  /** Preload the next and previous images so they display instantly */
-  private preloadAdjacentImages(currentIndex: number): void {
-    const all = this.photos();
-    const total = all.length;
-    if (total <= 1) return;
-
-    const indices = [
-      (currentIndex + 1) % total,
-      (currentIndex - 1 + total) % total,
-    ];
-    for (const i of indices) {
-      const img = new Image();
-      img.src = all[i].url;
-    }
-  }
-
-  // --- Photo Pagination ---
-
-  photosPagePrev(): void {
-    const prev = this.photosPage() - 1;
-    if (prev >= 1) {
-      this.fetchPhotosPage(prev);
-    }
-  }
-
-  photosPageNext(): void {
-    const next = this.photosPage() + 1;
-    if (next <= this.totalPhotoPages()) {
-      this.fetchPhotosPage(next);
-    }
-  }
-
-  photosGoToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPhotoPages() && page !== this.photosPage()) {
-      this.fetchPhotosPage(page);
-    }
-  }
-
-  onLightboxImageLoad(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    const natW = img.naturalWidth;
-    const natH = img.naturalHeight;
-
-    const maxW = window.innerWidth * 0.85;
-    const maxH = window.innerHeight * 0.78;
-    const scale = Math.min(1, maxW / natW, maxH / natH);
-
-    this.lightboxImageSize.set({
-      width: Math.round(natW * scale),
-      height: Math.round(natH * scale),
-    });
-    this.lightboxImageLoading.set(false);
-  }
-
-  onLightboxKeydown(event: KeyboardEvent): void {
-    switch (event.key) {
-      case 'Escape':
-        this.closeLightbox();
-        event.preventDefault();
-        break;
-      case 'ArrowLeft':
-        this.lightboxPrev();
-        event.preventDefault();
-        break;
-      case 'ArrowRight':
-        this.lightboxNext();
-        event.preventDefault();
-        break;
-      case 'Home':
-        this.navigateLightbox(0);
-        event.preventDefault();
-        break;
-      case 'End':
-        this.navigateLightbox(Math.max(0, this.photos().length - 1));
-        event.preventDefault();
-        break;
-      case 'Tab':
-        // Trap focus within the lightbox
-        this.trapFocus(event);
-        break;
-    }
-  }
-
-  /** Keep Tab / Shift+Tab cycling within the lightbox dialog */
-  private trapFocus(event: KeyboardEvent): void {
-    const dialog = this.lightboxDialogRef?.nativeElement;
-    if (!dialog) return;
-
-    const focusable = dialog.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    if (focusable.length === 0) return;
-
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-
-    if (event.shiftKey) {
-      if (document.activeElement === first || document.activeElement === dialog) {
-        last.focus();
-        event.preventDefault();
-      }
-    } else {
-      if (document.activeElement === last) {
-        first.focus();
-        event.preventDefault();
-      }
-    }
-  }
-
-  @HostListener('document:keydown', ['$event'])
-  onDocumentKeydown(event: KeyboardEvent): void {
-    if (this.lightboxOpen()) {
-      // Avoid double-handling: the lightbox overlay already listens for
-      // keydown via the template binding. Only handle here if the event
-      // originated outside the lightbox dialog (e.g. focus escaped).
-      const dialog = this.lightboxDialogRef?.nativeElement;
-      if (dialog && dialog.contains(event.target as Node)) {
-        return;
-      }
-      this.onLightboxKeydown(event);
-    }
-  }
 
   formatDate(dateStr?: string): string {
     if (!dateStr) return '';
