@@ -1,0 +1,44 @@
+@if (loading()) {
+  <div class="photos-loading">
+    <div class="loading-spinner"></div>
+    <p>Loading photos...</p>
+  </div>
+} @else if (total() > 0) {
+  <div class="photos-grid">
+    @for (photo of photos(); track photo.id; let i = $index) {
+      <button class="photo-thumb" (click)="openLightbox(i)">
+        <lib-image-loader [src]="photo.url" [alt]="photo.caption || 'Photo'" [lazy]="true" [cover]="true" borderRadius="8px"></lib-image-loader>
+        @if (photo.caption) {
+          <span class="photo-caption">{{ photo.caption }}</span>
+        }
+      </button>
+    }
+  </div>
+  @if (totalPages() > 1) {
+    <nav class="photos-pagination" aria-label="Photo pagination">
+      <button class="pagination-btn" [disabled]="page() === 1" (click)="prevPage()">‹</button>
+      @for (p of [].constructor(totalPages()); track $index) {
+        <button
+          class="pagination-btn"
+          [class.pagination-btn-active]="page() === $index + 1"
+          (click)="goToPage($index + 1)">
+          {{ $index + 1 }}
+        </button>
+      }
+      <button class="pagination-btn" [disabled]="page() === totalPages()" (click)="nextPage()">›</button>
+    </nav>
+  }
+} @else {
+  <div class="photos-empty">
+    <p>No photos yet.</p>
+  </div>
+}
+
+<lib-lightbox
+  [photos]="lightboxPhotos"
+  [open]="lightboxOpen()"
+  [currentIndex]="lightboxIndex()"
+  (closed)="onLightboxClose()"
+  (indexChange)="onLightboxIndexChange($event)">
+</lib-lightbox>
+

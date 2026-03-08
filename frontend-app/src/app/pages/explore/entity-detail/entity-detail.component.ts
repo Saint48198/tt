@@ -2,15 +2,14 @@ import {
   Component,
   inject,
   input,
-  signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MapComponent, MapMarker, ImageLoaderComponent, LightboxComponent, LightboxPhoto } from '@shared/components';
+import { MapComponent, MapMarker, ImageLoaderComponent, PhotoGridComponent } from '@shared/components';
 import { ExploreDetailService } from '../../../services/explore.service';
 
 @Component({
   selector: 'app-entity-detail',
-  imports: [MapComponent, ImageLoaderComponent, RouterLink, LightboxComponent],
+  imports: [MapComponent, ImageLoaderComponent, RouterLink, PhotoGridComponent],
   templateUrl: './entity-detail.component.html',
   styleUrl: './entity-detail.component.scss',
 })
@@ -19,9 +18,6 @@ export class EntityDetailComponent {
 
   /** Link to the photo-map page, e.g. '/user/explore/photo-map' */
   photoMapLink = input.required<string>();
-
-  readonly lightboxOpen = signal(false);
-  readonly lightboxIndex = signal(0);
 
   // --- Computed map data ---
 
@@ -38,10 +34,6 @@ export class EntityDetailComponent {
 
   get idPrefix(): string {
     return this.detail.entityType() === 'city' ? 'city' : 'attr';
-  }
-
-  get lightboxPhotos(): LightboxPhoto[] {
-    return this.detail.photos().map(p => ({ url: p.url, caption: p.caption ?? undefined }));
   }
 
   // --- Helpers ---
@@ -65,19 +57,7 @@ export class EntityDetailComponent {
     }
   }
 
-  // --- Lightbox ---
-
-  openLightbox(index: number): void {
-    this.lightboxIndex.set(index);
-    this.lightboxOpen.set(true);
-  }
-
-  onLightboxClose(): void {
-    this.lightboxOpen.set(false);
-  }
-
-  onLightboxIndexChange(index: number): void {
-    this.lightboxIndex.set(index);
+  onPhotoPageChange(page: number): void {
+    this.detail.fetchPhotosPage(page);
   }
 }
-

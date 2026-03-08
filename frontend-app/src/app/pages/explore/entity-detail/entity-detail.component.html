@@ -226,51 +226,16 @@
         </a>
         <span class="photos-count">Showing {{ detail.photos().length }} of {{ detail.photosTotal() }}</span>
       </div>
-      @if (detail.photosLoading()) {
-        <div class="photos-loading">
-          <div class="loading-spinner"></div>
-          <p>Loading photos...</p>
-        </div>
-      } @else if (detail.photosTotal() > 0) {
-        <div class="photos-grid">
-          @for (photo of detail.photos(); track photo.id; let i = $index) {
-            <button class="photo-thumb" (click)="openLightbox(i)">
-              <lib-image-loader [src]="photo.url" [alt]="photo.caption || 'Photo'" [lazy]="true" [cover]="true" borderRadius="8px"></lib-image-loader>
-              @if (photo.caption) {
-                <span class="photo-caption">{{ photo.caption }}</span>
-              }
-            </button>
-          }
-        </div>
-        @if (detail.totalPhotoPages() > 1) {
-          <nav class="photos-pagination" aria-label="Photo pagination">
-            <button class="pagination-btn" [disabled]="detail.photosPage() === 1" (click)="detail.photosPagePrev()">‹</button>
-            @for (p of [].constructor(detail.totalPhotoPages()); track $index) {
-              <button
-                class="pagination-btn"
-                [class.pagination-btn-active]="detail.photosPage() === $index + 1"
-                (click)="detail.photosGoToPage($index + 1)">
-                {{ $index + 1 }}
-              </button>
-            }
-            <button class="pagination-btn" [disabled]="detail.photosPage() === detail.totalPhotoPages()" (click)="detail.photosPageNext()">›</button>
-          </nav>
-        }
-      } @else {
-        <div class="photos-empty">
-          <p>No photos yet.</p>
-        </div>
-      }
+      <lib-photo-grid
+        [photos]="detail.photos()"
+        [loading]="detail.photosLoading()"
+        [total]="detail.photosTotal()"
+        [page]="detail.photosPage()"
+        [totalPages]="detail.totalPhotoPages()"
+        (pageChange)="onPhotoPageChange($event)">
+      </lib-photo-grid>
     </section>
   </div>
 }
 
-<!-- Lightbox -->
-<lib-lightbox
-  [photos]="lightboxPhotos"
-  [open]="lightboxOpen()"
-  [currentIndex]="lightboxIndex()"
-  (closed)="onLightboxClose()"
-  (indexChange)="onLightboxIndexChange($event)">
-</lib-lightbox>
 
