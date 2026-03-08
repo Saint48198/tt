@@ -12,9 +12,9 @@ import {
   computed,
 } from '@angular/core';
 import { Location } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Observable, Subject, EMPTY, of } from 'rxjs';
+import { takeUntil, switchMap, tap, finalize, catchError } from 'rxjs/operators';
 import { MapComponent, MapMarker, MapOverlay, OverlayClickEvent, ImageLoaderComponent } from '@shared/components';
 import {
   ExploreService,
@@ -35,7 +35,7 @@ interface BreadcrumbItem {
 
 @Component({
   selector: 'app-explore',
-  imports: [MapComponent, ImageLoaderComponent],
+  imports: [MapComponent, ImageLoaderComponent, RouterLink],
   templateUrl: './explore.component.html',
   styleUrl: './explore.component.scss',
 })
@@ -113,6 +113,7 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   ];
 
   private baseUrl = computed(() => `/${this.username()}/explore`);
+  photoMapLink = computed(() => `/${this.username()}/explore/photo-map`);
 
   /** Map markers for the country page — show cities as pins when on states or cities level */
   countryMapMarkers = computed<MapMarker[]>(() => {
@@ -289,94 +290,88 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   private loadFromUrl(segments: string[]): void {
     this.loading.set(true);
 
-    this.exploreService
-      .getVisitedCountries(this.username())
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (countries) => {
-          this.countries.set(countries);
+    this.loadCountries$().pipe(
+      switchMap((countries) => {
+        if (segments.length === 0) {
+          this.level.set('countries');
+          return EMPTY;
+        }
 
-          if (segments.length === 0) {
-            this.level.set('countries');
-            this.loading.set(false);
-            return;
-          }
+        const countryAbbr = segments[0];
+        const country = countries.find(
+          (c) => (c.abbreviation || c.name).toLowerCase() === countryAbbr.toLowerCase()
+        );
 
-          // Find country by abbreviation (case-insensitive)
-          const countryAbbr = segments[0];
-          const country = countries.find(
-            (c) => (c.abbreviation || c.name).toLowerCase() === countryAbbr.toLowerCase()
-          );
+        if (!country) {
+          this.level.set('countries');
+          return EMPTY;
+        }
 
-          if (!country) {
-            this.level.set('countries');
-            this.loading.set(false);
-            return;
-          }
+        this.selectedCountry.set(country);
 
-          this.selectedCountry.set(country);
-
-          if (segments.length >= 2 && segments[1].toLowerCase() === 'attractions') {
-            if (segments.length >= 3) {
-              this.loadAttractionsForUrl(country, segments[2]);
-            } else {
-              this.loadAttractionsForUrl(country);
-            }
-          } else if (segments.length >= 3) {
-            // country/state/city or country/state/city (3 segments)
-            this.loadStatesForUrl(country, segments[1], segments[2]);
-          } else if (segments.length >= 2) {
-            this.loadStatesForUrl(country, segments[1]);
-          } else {
-            this.loadCountryDrillDown(country);
-          }
-        },
-        error: () => this.loading.set(false),
-      });
+        if (segments.length >= 2 && segments[1].toLowerCase() === 'attractions') {
+          return this.loadAttractionsForUrl$(country, segments[2]);
+        } else if (segments.length >= 3) {
+          return this.loadStatesForUrl$(country, segments[1], segments[2]);
+        } else if (segments.length >= 2) {
+          return this.loadStatesForUrl$(country, segments[1]);
+        } else {
+          return this.loadCountryDrillDown$(country);
+        }
+      }),
+      takeUntil(this.destroy$),
+      finalize(() => this.loading.set(false)),
+    ).subscribe();
   }
 
-  private loadCountryDrillDown(country: ExploreCountry): void {
+  private loadCountries$(): Observable<ExploreCountry[]> {
+    return this.exploreService.getVisitedCountries(this.username()).pipe(
+      tap((countries) => this.countries.set(countries)),
+    );
+  }
+
+  private loadCountryDrillDown$(country: ExploreCountry): Observable<void> {
     this.countryMapOverlays = [];
-    this.exploreService
-      .getStates(country.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (states) => {
-          if (states.length > 0) {
-            this.states.set(states);
-            this.level.set('states');
-            this.loading.set(false);
-            this.loadStateOverlays(country, states);
-          } else {
-            this.loadCitiesForCountry(country.id);
-          }
-        },
-        error: () => this.loading.set(false),
-      });
+    if (!this.isStateCountry(country)) {
+      return this.loadCitiesForCountry$(country.id);
+    }
+    return this.exploreService.getStates(country.id).pipe(
+      switchMap((states) => {
+        if (states.length > 0) {
+          this.states.set(states);
+          this.level.set('states');
+          this.loadStateOverlays(country, states);
+          return EMPTY;
+        }
+        return this.loadCitiesForCountry$(country.id);
+      }),
+    );
+  }
+
+  /** Check if a country uses states/provinces (US or Canada) */
+  private isStateCountry(country: ExploreCountry): boolean {
+    const abbr = (country.abbreviation || '').toUpperCase();
+    const name = country.name.toLowerCase();
+    return abbr === 'US' || abbr === 'USA' || name.includes('united states')
+      || abbr === 'CA' || abbr === 'CAN' || name.includes('canada');
   }
 
   /** Load GeoJSON overlays for visited states (US and Canada only) */
   private loadStateOverlays(country: ExploreCountry, states: ExploreState[]): void {
+    if (!this.isStateCountry(country)) return;
+
     const abbr = (country.abbreviation || '').toUpperCase();
     const name = country.name.toLowerCase();
-
-    // Determine which GeoJSON key to use
-    let geoKey: string | null = null;
-    if (abbr === 'US' || abbr === 'USA' || name.includes('united states')) {
-      geoKey = 'US';
-    } else if (abbr === 'CA' || abbr === 'CAN' || name.includes('canada')) {
-      geoKey = 'CA';
-    }
-    if (!geoKey) return;
+    const geoKey = (abbr === 'CA' || abbr === 'CAN' || name.includes('canada')) ? 'CA' : 'US';
 
     const stateNames = states.map((s) => s.name);
     if (stateNames.length === 0) return;
 
     this.exploreService
       .getStateOutlines(geoKey, stateNames)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (geoJson) => {
+      .pipe(
+        takeUntil(this.destroy$),
+        tap((geoJson) => {
           if (geoJson.features.length > 0) {
             const countryAbbr = country.abbreviation || country.name;
             this.countryMapOverlays = geoJson.features.map((feature, i) => {
@@ -405,169 +400,124 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
             });
             this.cdr.detectChanges();
           }
-        },
-        error: () => {
-          // Silently fail — map will show without overlays
-        },
-      });
+        }),
+      ).subscribe();
   }
 
-  private loadStatesForUrl(country: ExploreCountry, stateAbbr: string, cityName?: string): void {
+  private loadStatesForUrl$(country: ExploreCountry, stateAbbr: string, cityName?: string): Observable<void> {
     this.countryMapOverlays = [];
-    this.exploreService
-      .getStates(country.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (states) => {
-          this.states.set(states);
-          this.loadStateOverlays(country, states);
-          const state = states.find(
-            (s) => (s.abbr || s.name).toLowerCase() === stateAbbr.toLowerCase()
+
+    // For non-state countries, the segment is a city name, not a state abbreviation
+    if (!this.isStateCountry(country)) {
+      return this.loadCitiesAndFindCity$(country.id, stateAbbr);
+    }
+
+    return this.exploreService.getStates(country.id).pipe(
+      tap((states) => {
+        this.states.set(states);
+        this.loadStateOverlays(country, states);
+      }),
+      switchMap((states) => {
+        const state = states.find(
+          (s) => (s.abbr || s.name).toLowerCase() === stateAbbr.toLowerCase()
+        );
+        if (state) {
+          this.selectedState.set(state);
+          return this.exploreService.getCities(state.country_id, state.id).pipe(
+            switchMap((cities) => {
+              this.cities.set(cities);
+              if (cityName) {
+                const city = cities.find((c) => this.matchesSlug(c.name, cityName));
+                if (city) {
+                  return this.loadCityDetail$(city);
+                }
+              }
+              this.level.set('cities');
+              return EMPTY;
+            }),
           );
-          if (state) {
-            this.selectedState.set(state);
-            this.exploreService
-              .getCities(state.country_id, state.id)
-              .pipe(takeUntil(this.destroy$))
-              .subscribe({
-                next: (cities) => {
-                  this.cities.set(cities);
-                  if (cityName) {
-                    const city = cities.find(
-                      (c) => this.matchesSlug(c.name, cityName)
-                    );
-                    if (city) {
-                      this.loadCityDetail(city);
-                      return;
-                    }
-                  }
-                  this.level.set('cities');
-                  this.loading.set(false);
-                },
-                error: () => this.loading.set(false),
-              });
-          } else {
-            // stateAbbr might actually be a city name for countries without states
-            if (!cityName) {
-              this.loadCitiesAndFindCity(country.id, stateAbbr);
-            } else {
-              this.level.set('states');
-              this.loading.set(false);
-            }
-          }
-        },
-        error: () => this.loading.set(false),
-      });
+        }
+        // stateAbbr might actually be a city name for countries without states
+        if (!cityName) {
+          return this.loadCitiesAndFindCity$(country.id, stateAbbr);
+        }
+        this.level.set('states');
+        return EMPTY;
+      }),
+    );
   }
 
-  private loadCitiesAndFindCity(countryId: number, cityName: string): void {
-    this.exploreService
-      .getCities(countryId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (cities) => {
-          this.cities.set(cities);
-          const city = cities.find(
-            (c) => this.matchesSlug(c.name, cityName)
-          );
-          if (city) {
-            this.loadCityDetail(city);
-          } else {
-            this.level.set('cities');
-            this.loading.set(false);
-          }
-        },
-        error: () => this.loading.set(false),
-      });
+  private loadCitiesAndFindCity$(countryId: number, cityName: string): Observable<void> {
+    return this.exploreService.getCities(countryId).pipe(
+      switchMap((cities) => {
+        this.cities.set(cities);
+        const city = cities.find((c) => this.matchesSlug(c.name, cityName));
+        if (city) {
+          return this.loadCityDetail$(city);
+        }
+        this.level.set('cities');
+        return EMPTY;
+      }),
+    );
   }
 
-  private loadCityDetail(city: ExploreCity): void {
+  private loadCityDetail$(city: ExploreCity): Observable<void> {
     this.wikiContent.set(null);
     this.photos.set([]);
-    this.exploreService
-      .getCityById(city.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (fullCity) => {
-          this.selectedCity.set(fullCity);
-          this.level.set('city');
-          this.loading.set(false);
-          this.loadWikiContent(fullCity.wiki_term || fullCity.name);
-          this.loadPhotosForCity(fullCity.id);
-        },
-        error: () => {
-          this.selectedCity.set(city);
-          this.level.set('city');
-          this.loading.set(false);
-          this.loadWikiContent(city.wiki_term || city.name);
-          this.loadPhotosForCity(city.id);
-        },
-      });
+    return this.exploreService.getCityById(city.id).pipe(
+      catchError(() => of(city)),
+      tap((fullCity) => {
+        this.selectedCity.set(fullCity);
+        this.level.set('city');
+        this.loadWikiContent(fullCity.wiki_term || fullCity.name);
+        this.loadPhotosForCity(fullCity.id);
+      }),
+      switchMap(() => EMPTY),
+    );
   }
 
   private loadWikiContent(term: string): void {
     this.wikiLoading.set(true);
     this.exploreService
       .getWikipediaContent(term)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (content) => {
-          this.wikiContent.set(content);
-          this.wikiLoading.set(false);
-        },
-        error: () => this.wikiLoading.set(false),
-      });
+      .pipe(
+        takeUntil(this.destroy$),
+        tap((content) => this.wikiContent.set(content)),
+        finalize(() => this.wikiLoading.set(false)),
+      ).subscribe();
   }
 
-  private loadAttractionsForUrl(country: ExploreCountry, attractionName?: string): void {
-    this.exploreService
-      .getAttractions(country.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (attractions) => {
-          this.attractions.set(attractions);
-          if (attractionName) {
-            const attraction = attractions.find(
-              (a) => this.matchesSlug(a.name, attractionName)
-            );
-            if (attraction) {
-              this.loadAttractionDetail(attraction);
-              return;
-            }
+  private loadAttractionsForUrl$(country: ExploreCountry, attractionName?: string): Observable<void> {
+    return this.exploreService.getAttractions(country.id).pipe(
+      switchMap((attractions) => {
+        this.attractions.set(attractions);
+        if (attractionName) {
+          const attraction = attractions.find((a) => this.matchesSlug(a.name, attractionName));
+          if (attraction) {
+            return this.loadAttractionDetail$(attraction);
           }
-          this.level.set('attractions');
-          this.loading.set(false);
-        },
-        error: () => this.loading.set(false),
-      });
+        }
+        this.level.set('attractions');
+        return EMPTY;
+      }),
+    );
   }
 
-  private loadAttractionDetail(attraction: ExploreAttraction): void {
+  private loadAttractionDetail$(attraction: ExploreAttraction): Observable<void> {
     this.wikiContent.set(null);
     this.photos.set([]);
-    this.exploreService
-      .getAttractionById(attraction.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (full) => {
-          this.selectedAttraction.set(full);
-          this.level.set('attraction');
-          this.loading.set(false);
-          if (full.wiki_term) {
-            this.loadWikiContent(full.wiki_term);
-          }
-          this.loadPhotosForAttraction(full.id);
-        },
-        error: () => {
-          this.selectedAttraction.set(attraction);
-          this.level.set('attraction');
-          this.loading.set(false);
-          if (attraction.wiki_term) {
-            this.loadWikiContent(attraction.wiki_term);
-          }
-          this.loadPhotosForAttraction(attraction.id);
-        },
-      });
+    return this.exploreService.getAttractionById(attraction.id).pipe(
+      catchError(() => of(attraction)),
+      tap((full) => {
+        this.selectedAttraction.set(full);
+        this.level.set('attraction');
+        if (full.wiki_term) {
+          this.loadWikiContent(full.wiki_term);
+        }
+        this.loadPhotosForAttraction(full.id);
+      }),
+      switchMap(() => EMPTY),
+    );
   }
 
   // --- Navigation (updates URL without re-routing) ---
@@ -577,7 +527,7 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   /** Convert a name to a URL-safe slug: "New York" → "new-york" */
-  private toSlug(name: string): string {
+  toSlug(name: string): string {
     return name
       .toLowerCase()
       .replace(/\s+/g, '-')
@@ -589,6 +539,13 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
     return this.toSlug(name) === slug.toLowerCase();
   }
 
+  scrollTo(id: string): void {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   onCountryClick(country: ExploreCountry): void {
     const abbr = country.abbreviation || country.name;
     this.updateUrl(`${this.baseUrl()}/${abbr}`);
@@ -596,7 +553,11 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.selectedCountry.set(country);
     this.selectedState.set(null);
     this.loading.set(true);
-    this.loadCountryDrillDown(country);
+
+    this.loadCountryDrillDown$(country).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loading.set(false)),
+    ).subscribe();
   }
 
   onOverlayClick(event: OverlayClickEvent): void {
@@ -625,17 +586,14 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.selectedState.set(state);
     this.loading.set(true);
 
-    this.exploreService
-      .getCities(state.country_id, state.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (cities) => {
-          this.cities.set(cities);
-          this.level.set('cities');
-          this.loading.set(false);
-        },
-        error: () => this.loading.set(false),
-      });
+    this.exploreService.getCities(state.country_id, state.id).pipe(
+      tap((cities) => {
+        this.cities.set(cities);
+        this.level.set('cities');
+      }),
+      takeUntil(this.destroy$),
+      finalize(() => this.loading.set(false)),
+    ).subscribe();
   }
 
   onViewAttractions(): void {
@@ -645,17 +603,14 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.updateUrl(`${this.baseUrl()}/${countryAbbr}/attractions`);
 
     this.loading.set(true);
-    this.exploreService
-      .getAttractions(country.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (attractions) => {
-          this.attractions.set(attractions);
-          this.level.set('attractions');
-          this.loading.set(false);
-        },
-        error: () => this.loading.set(false),
-      });
+    this.exploreService.getAttractions(country.id).pipe(
+      tap((attractions) => {
+        this.attractions.set(attractions);
+        this.level.set('attractions');
+      }),
+      takeUntil(this.destroy$),
+      finalize(() => this.loading.set(false)),
+    ).subscribe();
   }
 
   onCityClick(city: ExploreCity): void {
@@ -671,30 +626,11 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
     segments.push(citySlug);
     this.updateUrl(segments.join('/'));
 
-    // Load full city details
     this.loading.set(true);
-    this.wikiContent.set(null);
-    this.photos.set([]);
-    this.exploreService
-      .getCityById(city.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (fullCity) => {
-          this.selectedCity.set(fullCity);
-          this.level.set('city');
-          this.loading.set(false);
-          this.loadWikiContent(fullCity.wiki_term || fullCity.name);
-          this.loadPhotosForCity(fullCity.id);
-        },
-        error: () => {
-          // Fallback: use the city data we already have
-          this.selectedCity.set(city);
-          this.level.set('city');
-          this.loading.set(false);
-          this.loadWikiContent(city.wiki_term || city.name);
-          this.loadPhotosForCity(city.id);
-        },
-      });
+    this.loadCityDetail$(city).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loading.set(false)),
+    ).subscribe();
   }
 
   onAttractionClick(attraction: ExploreAttraction): void {
@@ -705,31 +641,10 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
     this.updateUrl(`${this.baseUrl()}/${countryAbbr}/attractions/${attractionSlug}`);
 
     this.loading.set(true);
-    this.wikiContent.set(null);
-    this.photos.set([]);
-    this.exploreService
-      .getAttractionById(attraction.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (full) => {
-          this.selectedAttraction.set(full);
-          this.level.set('attraction');
-          this.loading.set(false);
-          if (full.wiki_term) {
-            this.loadWikiContent(full.wiki_term);
-          }
-          this.loadPhotosForAttraction(full.id);
-        },
-        error: () => {
-          this.selectedAttraction.set(attraction);
-          this.level.set('attraction');
-          this.loading.set(false);
-          if (attraction.wiki_term) {
-            this.loadWikiContent(attraction.wiki_term);
-          }
-          this.loadPhotosForAttraction(attraction.id);
-        },
-      });
+    this.loadAttractionDetail$(attraction).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loading.set(false)),
+    ).subscribe();
   }
 
   onBreadcrumbClick(crumb: BreadcrumbItem): void {
@@ -817,18 +732,14 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   // --- Data Loading ---
 
-  private loadCitiesForCountry(countryId: number): void {
-    this.exploreService
-      .getCities(countryId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (cities) => {
-          this.cities.set(cities);
-          this.level.set('cities');
-          this.loading.set(false);
-        },
-        error: () => this.loading.set(false),
-      });
+  private loadCitiesForCountry$(countryId: number): Observable<void> {
+    return this.exploreService.getCities(countryId).pipe(
+      tap((cities) => {
+        this.cities.set(cities);
+        this.level.set('cities');
+      }),
+      switchMap(() => EMPTY),
+    );
   }
 
   // --- Photo Loading ---
@@ -859,15 +770,15 @@ export class ExploreComponent implements OnInit, OnDestroy, AfterViewChecked {
       ? this.photoService.getCityPhotos(this.photoEntityId, page, this.photosPerPage)
       : this.photoService.getAttractionPhotos(this.photoEntityId, page, this.photosPerPage);
 
-    fetch$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res) => {
+    fetch$.pipe(
+      takeUntil(this.destroy$),
+      tap((res) => {
         this.photos.set(res.photos);
         this.photosTotal.set(res.total);
         this.photosPage.set(res.page);
-        this.photosLoading.set(false);
-      },
-      error: () => this.photosLoading.set(false),
-    });
+      }),
+      finalize(() => this.photosLoading.set(false)),
+    ).subscribe();
   }
 
   // --- Lightbox ---

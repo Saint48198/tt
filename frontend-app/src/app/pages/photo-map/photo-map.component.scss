@@ -1,0 +1,164 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100vh;
+}
+
+.photo-map-page {
+  width: 100%;
+  height: 100%;
+  position: relative;
+
+  lib-map {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  ::ng-deep .map-wrapper {
+    height: 100%;
+    width: 100%;
+  }
+
+  ::ng-deep .map-container {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    height: 100% !important;
+    width: 100% !important;
+  }
+}
+
+.map-banner {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  .banner-back {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: auto;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+
+    .banner-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      color: #667eea;
+    }
+  }
+
+  .photo-count {
+    font-size: 0.8rem;
+    color: #6b7280;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+}
+
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 0.5rem;
+  color: #6b7280;
+  text-align: center;
+
+  .error-icon {
+    font-size: 3rem;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1f2937;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .back-link {
+    margin-top: 1rem;
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// Leaflet popup photo styling
+::ng-deep .leaflet-popup-content {
+  margin: 8px 10px;
+}
+
+::ng-deep .leaflet-popup-content img {
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .map-banner {
+    top: 70px;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+  }
+}
+

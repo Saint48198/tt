@@ -19,6 +19,25 @@ export interface EntityPhotosResponse {
   limit: number;
 }
 
+export interface MapPhoto {
+  id: number;
+  url: string;
+  caption: string | null;
+  latitude: number;
+  longitude: number;
+  city_name: string | null;
+  attraction_name: string | null;
+  country_name: string | null;
+  state_name: string | null;
+  photo_id: string | null;
+  created_at: string;
+}
+
+export interface MapPhotosResponse {
+  photos: MapPhoto[];
+  entityName?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -50,6 +69,25 @@ export class PhotoService {
       .get<EntityPhotosResponse>(`/api/photos/attractions/${attractionId}`, { params })
       .pipe(
         catchError(() => of({ photos: [], total: 0, page, limit }))
+      );
+  }
+
+  /**
+   * Get photos with location data for map display.
+   * Optionally filter by city or attraction slug name.
+   */
+  getPhotosForMap(opts?: { city?: string; attraction?: string }): Observable<MapPhotosResponse> {
+    let params = new HttpParams();
+    if (opts?.city) {
+      params = params.set('city', opts.city);
+    }
+    if (opts?.attraction) {
+      params = params.set('attraction', opts.attraction);
+    }
+    return this.http
+      .get<MapPhotosResponse>('/api/photos/map', { params })
+      .pipe(
+        catchError(() => of({ photos: [] }))
       );
   }
 }

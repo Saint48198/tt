@@ -32,6 +32,11 @@ export const appRoutes: Route[] = [
           import('./pages/explore/explore.component').then((m) => m.ExploreComponent)
       },
       {
+        path: 'photo-map',
+        loadComponent: () =>
+          import('./pages/photo-map/photo-map.component').then((m) => m.PhotoMapComponent)
+      },
+      {
         path: '**',
         loadComponent: () =>
           import('./pages/explore/explore.component').then((m) => m.ExploreComponent)

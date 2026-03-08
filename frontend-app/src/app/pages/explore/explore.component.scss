@@ -285,6 +285,23 @@
   margin-bottom: 1.5rem;
 }
 
+// Photos on Map Card
+.photo-map-card {
+  text-decoration: none;
+  color: inherit;
+  border: 1px dashed #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.04) 0%, rgba(118, 75, 162, 0.04) 100%);
+
+  &:hover {
+    border-color: #764ba2;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.10) 0%, rgba(118, 75, 162, 0.08) 100%);
+  }
+
+  .card-content h3 {
+    color: #667eea;
+  }
+}
+
 // City Detail
 .city-detail {
   margin-top: 0.5rem;
@@ -292,9 +309,7 @@
 
 .city-header {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
+  flex-direction: column;
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -303,6 +318,14 @@
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.city-header-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem 0.75rem;
 }
 
 .city-header-info {
@@ -320,6 +343,49 @@
   margin: 0.15rem 0 0;
   font-size: 0.9rem;
   color: #64748b;
+}
+
+// Jump Link Navigation
+.jump-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 1rem 0.6rem;
+  border-top: 1px solid #f1f5f9;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.jump-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #475569;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+
+  .jump-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+  }
+
+  &:active {
+    background: #e2e8f0;
+  }
 }
 
 .city-map-section {
@@ -520,6 +586,26 @@
   background: #f1f5f9;
   padding: 0.15rem 0.6rem;
   border-radius: 12px;
+}
+
+.photos-map-link {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #667eea;
+  text-decoration: none;
+  margin-left: 0.25rem;
+
+  &:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
 }
 
 .photos-loading {

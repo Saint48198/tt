@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { photoService } from '../services/photoService';
+import { db } from '../db';
 import { authenticateRequest } from '../utils/authUtil';
 import formidable from 'formidable';
 
@@ -21,6 +22,49 @@ router.get('/api/photos', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Failed to fetch photos:', error);
     return res.status(500).json({ error: 'Failed to fetch photos' });
+  }
+});
+
+// GET /api/photos/map — photos with resolved location coordinates for map display
+router.get('/api/photos/map', async (req: Request, res: Response) => {
+  try {
+    let cityId: number | undefined;
+    let attractionId: number | undefined;
+    let entityName: string | undefined;
+
+    // Resolve city slug to city ID
+    const citySlug = req.query.city as string | undefined;
+    if (citySlug) {
+      const cityName = citySlug.replace(/-/g, ' ');
+      const city = await db.get<{ id: number; name: string }>(
+        'SELECT id, name FROM cities WHERE LOWER(name) = LOWER($1) AND disabled_date IS NULL',
+        [cityName]
+      );
+      if (city) {
+        cityId = city.id;
+        entityName = city.name;
+      }
+    }
+
+    // Resolve attraction slug to attraction ID
+    const attractionSlug = req.query.attraction as string | undefined;
+    if (attractionSlug) {
+      const attractionName = attractionSlug.replace(/-/g, ' ');
+      const attraction = await db.get<{ id: number; name: string }>(
+        'SELECT id, name FROM attractions WHERE LOWER(name) = LOWER($1) AND disabled_date IS NULL',
+        [attractionName]
+      );
+      if (attraction) {
+        attractionId = attraction.id;
+        entityName = attraction.name;
+      }
+    }
+
+    const photos = await photoService.getPhotosForMap({ cityId, attractionId });
+    return res.status(200).json({ photos, entityName });
+  } catch (error) {
+    console.error('Failed to fetch photos for map:', error);
+    return res.status(500).json({ error: 'Failed to fetch photos for map' });
   }
 });
 

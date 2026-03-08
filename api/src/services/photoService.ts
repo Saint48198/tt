@@ -783,6 +783,67 @@ class PhotoService {
     return { success: true };
   }
 
+  /**
+   * Get all photos that have location data (own lat/lng or from their associated city/attraction).
+   * Returns photos with resolved coordinates for map display.
+   */
+  public async getPhotosForMap(opts?: { cityId?: number; attractionId?: number }): Promise<Array<{
+    id: number; url: string; caption: string | null;
+    latitude: number; longitude: number;
+    city_name: string | null; attraction_name: string | null;
+    country_name: string | null; state_name: string | null;
+    photo_id: string | null; created_at: string;
+  }>> {
+    await this.ensureTable();
+
+    const conditions = ['p.disabled_date IS NULL'];
+    const params: (number)[] = [];
+
+    if (opts?.cityId) {
+      params.push(opts.cityId);
+      conditions.push(`p.city_id = $${params.length}`);
+    }
+    if (opts?.attractionId) {
+      params.push(opts.attractionId);
+      conditions.push(`p.attraction_id = $${params.length}`);
+    }
+
+    const rows = await db.all<any>(
+      `SELECT p.id, p.url, p.photo_id, p.caption, p.created_at,
+              p.latitude AS photo_lat, p.longitude AS photo_lng,
+              c.name AS city_name, c.lat AS city_lat, c.lng AS city_lng,
+              a.name AS attraction_name, a.lat AS attraction_lat, a.lng AS attraction_lng,
+              s.name AS state_name, co.name AS country_name
+       FROM photos p
+       LEFT JOIN cities c ON p.city_id = c.id
+       LEFT JOIN attractions a ON p.attraction_id = a.id
+       LEFT JOIN states s ON p.state_id = s.id
+       LEFT JOIN countries co ON p.country_id = co.id
+       WHERE ${conditions.join(' AND ')}
+       ORDER BY p.created_at DESC`,
+      params
+    );
+    const result = [];
+    for (const row of rows) {
+      // Resolve lat/lng: prefer photo's own coordinates, fallback to city, then attraction
+      const lat = row.photo_lat || row.city_lat || row.attraction_lat;
+      const lng = row.photo_lng || row.city_lng || row.attraction_lng;
+      if (!lat || !lng) continue; // skip photos without any location
+      const url = row.photo_id ? this.getPublicUrl(row.photo_id) : row.url;
+      result.push({
+        id: row.id, url, caption: row.caption || null,
+        latitude: lat, longitude: lng,
+        city_name: row.city_name || null,
+        attraction_name: row.attraction_name || null,
+        country_name: row.country_name || null,
+        state_name: row.state_name || null,
+        photo_id: row.photo_id || null,
+        created_at: row.created_at,
+      });
+    }
+    return result;
+  }
+
   public async deletePhotoById(id: number): Promise<{ success: boolean }> {
     const photo = await db.get<{ id: number; photo_id: string }>('SELECT id, photo_id FROM photos WHERE id = $1', [id]);
     if (!photo) throw new Error('Photo not found.');

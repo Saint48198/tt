@@ -11,6 +11,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import * as L from 'leaflet';
+import 'leaflet.markercluster';
 import * as GeoJSON from 'geojson';
 
 export interface MapMarker {
@@ -55,11 +56,13 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() enableDrag = true;
   @Input() fitBounds = false; // Auto-fit to markers/overlays
   @Input() showAttribution = true;
+  @Input() enableClustering = false;
 
   @Output() overlayClick = new EventEmitter<OverlayClickEvent>();
 
   private map!: L.Map;
   private markerLayers: L.Marker[] = [];
+  private clusterGroup: L.MarkerClusterGroup | null = null;
   private overlayLayers: L.GeoJSON[] = [];
   private initialized = false;
   private lastOverlaysRef: MapOverlay[] | null = null;
@@ -147,11 +150,16 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   private updateMarkers(): void {
     if (!this.map) return;
 
-    // Clear existing markers
+    // Clear existing markers and cluster group
+    if (this.clusterGroup) {
+      this.map.removeLayer(this.clusterGroup);
+      this.clusterGroup = null;
+    }
     this.markerLayers.forEach(marker => marker.remove());
     this.markerLayers = [];
 
-    // Add new markers
+    // Build marker instances
+    const markers: L.Marker[] = [];
     this.markers.forEach(markerData => {
       const markerOptions: L.MarkerOptions = {};
 
@@ -180,9 +188,35 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
         marker.bindPopup(markerData.popup);
       }
 
-      marker.addTo(this.map);
-      this.markerLayers.push(marker);
+      markers.push(marker);
     });
+
+    if (this.enableClustering && markers.length > 0) {
+      this.clusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 50,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        iconCreateFunction: (cluster) => {
+          const count = cluster.getChildCount();
+          return L.divIcon({
+            html: `<div class="cluster-pin">
+              <img src="https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png" />
+              <span class="cluster-count">${count}</span>
+            </div>`,
+            className: 'cluster-pin-wrapper',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+          });
+        },
+      });
+      this.clusterGroup.addLayers(markers);
+      this.map.addLayer(this.clusterGroup);
+    } else {
+      markers.forEach(m => m.addTo(this.map));
+    }
+
+    this.markerLayers = markers;
 
     if (this.fitBounds) {
       this.fitMapBounds();
@@ -253,8 +287,11 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
 
     const bounds: L.LatLngBounds[] = [];
 
-    // Add marker bounds
-    if (this.markerLayers.length > 0) {
+    // Add marker bounds (from cluster group or individual markers)
+    if (this.clusterGroup) {
+      const b = this.clusterGroup.getBounds();
+      if (b.isValid()) bounds.push(b);
+    } else if (this.markerLayers.length > 0) {
       const markerGroup = L.featureGroup(this.markerLayers);
       bounds.push(markerGroup.getBounds());
     }

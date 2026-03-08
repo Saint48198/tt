@@ -75,8 +75,10 @@ export class App implements OnInit {
     // Root "/" or single-segment "/:username" paths use the full-screen map layout
     // Multi-segment paths like "/:username/explore" use the standard layout
     // Known static routes (e.g. /about) are excluded so the header doesn't overlay content
+    // Photo map page also uses full-screen layout
     const basePath = url.split('?')[0];
     if (App.STATIC_ROUTES.has(basePath)) return false;
+    if (/^\/[^/]+\/explore\/photo-map$/.test(basePath)) return true;
     return url === '/' || /^\/[^/]+$/.test(url);
   }
 }

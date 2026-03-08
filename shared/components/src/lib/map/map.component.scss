@@ -112,5 +112,40 @@
   .leaflet-container {
     font-family: inherit;
   }
+
+  // Cluster pin styles — looks like the default marker with a count badge
+  .cluster-pin-wrapper {
+    background: none !important;
+    border: none !important;
+  }
+
+  .cluster-pin {
+    position: relative;
+    width: 25px;
+    height: 41px;
+
+    img {
+      width: 25px;
+      height: 41px;
+      display: block;
+    }
+  }
+
+  .cluster-count {
+    position: absolute;
+    top: 3px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2A81CB;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    min-width: 18px;
+    padding: 2px 4px;
+    border-radius: 9px;
+    text-align: center;
+    pointer-events: none;
+  }
 }
 
