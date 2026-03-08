@@ -97,12 +97,12 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
   private initForm(): void {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(255)]],
-      abbreviation: ['', [Validators.maxLength(10)]],
-      lat: [null],
-      lng: [null],
-      slug: ['', [Validators.maxLength(255)]],
+      abbreviation: ['', [Validators.required, Validators.maxLength(10)]],
+      lat: [null, [Validators.required]],
+      lng: [null, [Validators.required]],
+      slug: ['', [Validators.required, Validators.maxLength(255)]],
       last_visited: [null as Date | null],
-      geo_map_id: ['', [Validators.maxLength(255)]],
+      geo_map_id: ['', [Validators.required, Validators.maxLength(255)]],
     });
   }
 
@@ -186,7 +186,7 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
 
     const payload = {
       name: formValue.name,
-      abbreviation: formValue.abbreviation || undefined,
+      abbreviation: formValue.abbreviation ?? '',
       lat: formValue.lat != null && formValue.lat !== '' ? +formValue.lat : undefined,
       lng: formValue.lng != null && formValue.lng !== '' ? +formValue.lng : undefined,
       slug: formValue.slug || undefined,
@@ -210,7 +210,7 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
       },
       error: (err) => {
         this.snackBar.open(
-          err?.error?.message || `Failed to ${this.isEditMode() ? 'update' : 'create'} country`,
+          err?.error?.error || `Failed to ${this.isEditMode() ? 'update' : 'create'} country`,
           'Close',
           { duration: 5000, panelClass: 'error-snackbar' }
         );

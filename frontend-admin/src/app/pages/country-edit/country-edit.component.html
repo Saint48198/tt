@@ -29,6 +29,9 @@
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Abbreviation</mat-label>
           <input matInput formControlName="abbreviation" placeholder="e.g. US" />
+          @if (form.get('abbreviation')?.hasError('required') && form.get('abbreviation')?.touched) {
+            <mat-error>Abbreviation is required</mat-error>
+          }
           @if (form.get('abbreviation')?.hasError('maxlength')) {
             <mat-error>Abbreviation must be 10 characters or less</mat-error>
           }
@@ -37,6 +40,9 @@
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Slug</mat-label>
           <input matInput formControlName="slug" placeholder="e.g. united-states" />
+          @if (form.get('slug')?.hasError('required') && form.get('slug')?.touched) {
+            <mat-error>Slug is required</mat-error>
+          }
           @if (form.get('slug')?.hasError('maxlength')) {
             <mat-error>Slug must be 255 characters or less</mat-error>
           }
@@ -48,11 +54,17 @@
           <mat-form-field appearance="outline" class="form-field">
             <mat-label>Latitude</mat-label>
             <input matInput type="number" formControlName="lat" placeholder="e.g. 37.0902" />
+            @if (form.get('lat')?.hasError('required') && form.get('lat')?.touched) {
+              <mat-error>Latitude is required</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="form-field">
             <mat-label>Longitude</mat-label>
             <input matInput type="number" formControlName="lng" placeholder="e.g. -95.7129" />
+            @if (form.get('lng')?.hasError('required') && form.get('lng')?.touched) {
+              <mat-error>Longitude is required</mat-error>
+            }
           </mat-form-field>
         </div>
         <button
@@ -82,6 +94,9 @@
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Geo Map ID</mat-label>
           <input matInput formControlName="geo_map_id" placeholder="Geo Map ID" />
+          @if (form.get('geo_map_id')?.hasError('required') && form.get('geo_map_id')?.touched) {
+            <mat-error>Geo Map ID is required</mat-error>
+          }
         </mat-form-field>
       </div>
 
