@@ -8,6 +8,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { AdminPhoto } from '../../interfaces';
 import { PhotosService } from '../../services/photos.service';
+import { StatesService } from '../../services/states.service';
 import { AuthService, UserPayload } from '@shared/services';
 import { DetailsTabComponent } from './details-tab/details-tab.component';
 import { EntityTabComponent } from './entity-tab/entity-tab.component';
@@ -47,6 +48,7 @@ export class PhotoEditDialogComponent implements OnInit {
   private readonly dialogRef = inject(MatDialogRef<PhotoEditDialogComponent>);
   private readonly data: PhotoEditDialogData = inject(MAT_DIALOG_DATA);
   private readonly photosService = inject(PhotosService);
+  private readonly statesService = inject(StatesService);
   private readonly authService = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
@@ -64,6 +66,45 @@ export class PhotoEditDialogComponent implements OnInit {
     this.authService.currentUser$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((u) => (this.currentUser = u));
+
+    // Auto-populate state from keywords if state is not already set
+    this.autoPopulateStateFromKeywords();
+  }
+
+  /**
+   * Parse the photo's tags/keywords looking for a match against known states.
+   * If found and stateId is not already set, populate it automatically.
+   */
+  private autoPopulateStateFromKeywords(): void {
+    if (this.state.stateId() != null) return;
+
+    const tags = this.state.tags();
+    if (!tags || tags.length === 0) return;
+
+    this.statesService
+      .getAllStates('name')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((res) => {
+        // Filter by country if one is set
+        const countryId = this.state.countryId();
+        const states = countryId
+          ? res.states.filter((s) => Number(s.country_id) === Number(countryId))
+          : res.states;
+
+        // Normalize tags for comparison
+        const normalizedTags = tags.map((t) => t.trim().toLowerCase());
+
+        // Try to find a state whose name or abbreviation matches a keyword
+        const match = states.find(
+          (s) =>
+            normalizedTags.includes(s.name.toLowerCase()) ||
+            (s.abbr && normalizedTags.includes(s.abbr.toLowerCase()))
+        );
+
+        if (match && this.state.stateId() == null) {
+          this.state.stateId.set(match.id);
+        }
+      });
   }
 
   // ── Save ──
