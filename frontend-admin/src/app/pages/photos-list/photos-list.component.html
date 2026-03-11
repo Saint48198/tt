@@ -115,29 +115,31 @@
         No Tags
       </mat-slide-toggle>
 
-      <mat-button-toggle-group
-        [value]="dateSortField()"
-        (change)="dateSortField.set($event.value); onFilterChange()"
-        hideSingleSelectionIndicator
-        class="date-field-toggle"
-      >
-        <mat-button-toggle value="created_date" matTooltip="Sort by capture date">
-          Capture
-        </mat-button-toggle>
-        <mat-button-toggle value="updated_date" matTooltip="Sort by updated date">
-          Updated
-        </mat-button-toggle>
-      </mat-button-toggle-group>
-
-      <button
-        mat-stroked-button
-        (click)="toggleDateSort()"
-        matTooltip="{{ dateSortOrder() === 'asc' ? 'Oldest first' : 'Newest first' }}"
-        class="date-sort-btn"
-      >
-        Date
-        <mat-icon>{{ dateSortOrder() === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
-      </button>
+      <div class="date-sort-group">
+        <mat-button-toggle-group
+          [value]="dateSortField()"
+          (change)="dateSortField.set($event.value); onFilterChange()"
+          hideSingleSelectionIndicator
+          class="date-field-toggle"
+        >
+          <mat-button-toggle value="created_date" matTooltip="Sort by capture date">
+            Capture
+          </mat-button-toggle>
+          <mat-button-toggle value="updated_date" matTooltip="Sort by updated date">
+            Updated
+          </mat-button-toggle>
+          <mat-button-toggle value="created_at" matTooltip="Sort by upload date">
+            Uploaded
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+        <button
+          class="sort-dir-btn"
+          (click)="toggleDateSort()"
+          matTooltip="{{ dateSortOrder() === 'asc' ? 'Oldest first' : 'Newest first' }}"
+        >
+          <i class="fa-solid {{ dateSortOrder() === 'asc' ? 'fa-arrow-up-1-9' : 'fa-arrow-down-1-9' }}"></i>
+        </button>
+      </div>
 
       @if (hasActiveFilters()) {
         <button mat-stroked-button (click)="clearFilters()" matTooltip="Clear all filters">

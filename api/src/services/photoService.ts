@@ -1122,6 +1122,11 @@ class PhotoService {
         const bDate = b.updated_date ? new Date(b.updated_date).getTime() : 0;
         return (aDate - bDate) * order;
       });
+    } else if (sortBy === 'created_at') {
+      photos.sort(
+        (a, b) =>
+          (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * order
+      );
     } else {
       photos.sort(
         (a, b) =>
