@@ -1,7 +1,7 @@
 import { Component, DestroyRef, inject, signal, computed, OnInit } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { forkJoin } from 'rxjs';
-import { switchMap, tap } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
+import { switchMap, tap, skip } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -95,11 +95,21 @@ export class EntityTabComponent implements OnInit {
         tap(() => this.loadingEntities.set(true)),
         switchMap((stateId) => {
           const countryId = this.state.countryId();
-          const cityParams: { country_id?: number; state_id?: number; page: number; limit: number } = {
+          const cityParams: {
+            country_id?: number;
+            state_id?: number;
+            page: number;
+            limit: number;
+          } = {
             page: 1,
             limit: 500,
           };
-          const attractionParams: { country_id?: number; state_id?: number; page: number; limit: number } = {
+          const attractionParams: {
+            country_id?: number;
+            state_id?: number;
+            page: number;
+            limit: number;
+          } = {
             page: 1,
             limit: 500,
           };
@@ -128,9 +138,7 @@ export class EntityTabComponent implements OnInit {
               state_name: c.state_name,
             }))
           );
-          this.allAttractions.set(
-            attractions.attractions.map((a) => ({ id: a.id, name: a.name }))
-          );
+          this.allAttractions.set(attractions.attractions.map((a) => ({ id: a.id, name: a.name })));
           this.syncInputValues();
           this.loadingEntities.set(false);
         },
@@ -139,6 +147,32 @@ export class EntityTabComponent implements OnInit {
           this.allAttractions.set([]);
           this.loadingEntities.set(false);
         },
+      });
+
+    // Sync cityInputValue when cityId changes externally (e.g. from location tab)
+    toObservable(this.state.cityId)
+      .pipe(
+        skip(1), // skip initial emission; ngOnInit handles the initial value
+        switchMap((cityId) => {
+          if (cityId == null) {
+            this.cityInputValue.set('');
+            return of(null);
+          }
+          // Try to find in already-loaded cities first
+          const existing = this.allCities().find((c) => c.id === cityId);
+          if (existing) {
+            this.cityInputValue.set(existing.name);
+            return of(null);
+          }
+          // Fetch from API if not in the list
+          return this.citiesService.getCity(cityId);
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((city) => {
+        if (city) {
+          this.cityInputValue.set(city.name);
+        }
       });
   }
 
