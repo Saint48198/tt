@@ -66,6 +66,38 @@
     gap: 1rem;
   }
 
+  .date-sort-btn {
+    ::ng-deep {
+      .mdc-button__label {
+        order: 0;
+      }
+
+      mat-icon,
+      .mat-icon {
+        order: 1 !important;
+        margin-left: 4px !important;
+        margin-right: 0 !important;
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  .date-field-toggle {
+    ::ng-deep {
+      .mat-button-toggle-label-content {
+        padding: 0 10px;
+        line-height: 34px;
+        font-size: 0.8rem;
+      }
+
+      .mat-pseudo-checkbox {
+        display: none !important;
+      }
+    }
+  }
+
   .filter-field {
     flex: 1;
     min-width: 160px;

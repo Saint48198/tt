@@ -1061,8 +1061,19 @@ class PhotoService {
     noTags?: boolean;
     entityType?: string;
     entityId?: number;
+    sortBy?: string;
+    sortOrder?: string;
   }): Promise<{ photos: any[]; total: number }> {
-    const { page = 1, limit = 25, search, noTags, entityType, entityId } = params;
+    const {
+      page = 1,
+      limit = 25,
+      search,
+      noTags,
+      entityType,
+      entityId,
+      sortBy,
+      sortOrder,
+    } = params;
 
     // All photos are now in the database — S3 is just storage, DB is the source of truth
     let photos = await this.getAllDbPhotos();
@@ -1098,7 +1109,26 @@ class PhotoService {
       );
     }
 
-    photos.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const order = sortOrder === 'asc' ? 1 : -1;
+    if (sortBy === 'created_date') {
+      photos.sort((a, b) => {
+        const aDate = a.created_date ? new Date(a.created_date).getTime() : 0;
+        const bDate = b.created_date ? new Date(b.created_date).getTime() : 0;
+        return (aDate - bDate) * order;
+      });
+    } else if (sortBy === 'updated_date') {
+      photos.sort((a, b) => {
+        const aDate = a.updated_date ? new Date(a.updated_date).getTime() : 0;
+        const bDate = b.updated_date ? new Date(b.updated_date).getTime() : 0;
+        return (aDate - bDate) * order;
+      });
+    } else {
+      photos.sort(
+        (a, b) =>
+          (new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) *
+          (sortOrder === 'asc' ? -1 : 1)
+      );
+    }
 
     const total = photos.length;
     const offset = (page - 1) * limit;

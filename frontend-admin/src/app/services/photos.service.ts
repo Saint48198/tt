@@ -21,6 +21,8 @@ export class PhotosService {
       noTags?: boolean;
       entityType?: string;
       entityId?: number;
+      sortBy?: string;
+      sortOrder?: string;
     } = {}
   ): Observable<AllPhotosResponse> {
     const queryParams: Record<string, string> = {};
@@ -30,6 +32,8 @@ export class PhotosService {
     if (params.entityId) queryParams['entityId'] = String(params.entityId);
     if (params.search) queryParams['search'] = params.search;
     if (params.noTags === true) queryParams['noTags'] = 'true';
+    if (params.sortBy) queryParams['sortBy'] = params.sortBy;
+    if (params.sortOrder) queryParams['sortOrder'] = params.sortOrder;
     return this.http.get<AllPhotosResponse>(`${this.apiUrl}/all`, { params: queryParams });
   }
 

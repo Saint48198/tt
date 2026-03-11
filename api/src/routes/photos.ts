@@ -77,6 +77,8 @@ router.get('/api/photos/all', async (req: Request, res: Response) => {
     const noTags = req.query.noTags === 'true';
     const entityType = req.query.entityType as string | undefined;
     const entityId = req.query.entityId ? Number(req.query.entityId) : undefined;
+    const sortBy = req.query.sortBy as string | undefined;
+    const sortOrder = req.query.sortOrder as string | undefined;
 
     const result = await photoService.getAllPhotosMerged({
       page,
@@ -85,6 +87,8 @@ router.get('/api/photos/all', async (req: Request, res: Response) => {
       noTags,
       entityType,
       entityId,
+      sortBy,
+      sortOrder,
     });
     return res.status(200).json(result);
   } catch (error) {

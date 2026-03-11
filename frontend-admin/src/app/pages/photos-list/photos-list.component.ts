@@ -88,6 +88,8 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
   attractionFilter = signal<number | null>(null);
   unassignedFilter = signal(false);
   tagsFilter = signal(false);
+  dateSortOrder = signal<'asc' | 'desc'>('desc');
+  dateSortField = signal<'created_date' | 'updated_date'>('created_date');
 
   // Entity option lists
   countryOptions = signal<Array<{ id: number; name: string }>>([]);
@@ -185,6 +187,8 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
         entityType: this.activeEntityType,
         entityId: this.activeEntityId,
         noTags: this.tagsFilter(),
+        sortBy: this.dateSortField(),
+        sortOrder: this.dateSortOrder(),
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -217,6 +221,8 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
         entityType: this.activeEntityType,
         entityId: this.activeEntityId,
         noTags: this.tagsFilter(),
+        sortBy: this.dateSortField(),
+        sortOrder: this.dateSortOrder(),
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -272,6 +278,11 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
       this.cityFilter.set(null);
       this.attractionFilter.set(null);
     }
+    this.onFilterChange();
+  }
+
+  toggleDateSort(): void {
+    this.dateSortOrder.update((current) => (current === 'asc' ? 'desc' : 'asc'));
     this.onFilterChange();
   }
 
