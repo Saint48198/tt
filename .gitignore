@@ -40,6 +40,9 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Logs
+logs/
+
 .nx/
 
 .angular
