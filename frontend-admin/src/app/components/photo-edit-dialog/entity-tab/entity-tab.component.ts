@@ -1,5 +1,7 @@
-import { Component, DestroyRef, effect, inject, signal, computed, OnInit } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, inject, signal, computed, OnInit } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { forkJoin } from 'rxjs';
+import { switchMap, tap } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -28,6 +30,8 @@ interface CityOption extends EntityOption {
   state_name?: string;
 }
 
+const COUNTRIES_WITH_STATES = ['United States', 'United States of America', 'Canada'];
+
 @Component({
   selector: 'app-entity-tab',
   imports: [
@@ -55,7 +59,6 @@ export class EntityTabComponent implements OnInit {
   // City combobox
   cityInputValue = signal('');
   private allCities = signal<CityOption[]>([]);
-  loadingCities = signal(false);
   filteredCities = computed(() => {
     const q = this.cityInputValue().toLowerCase();
     const all = this.allCities();
@@ -76,59 +79,67 @@ export class EntityTabComponent implements OnInit {
   // Attraction combobox
   attractionInputValue = signal('');
   private allAttractions = signal<EntityOption[]>([]);
-  loadingAttractions = signal(false);
   filteredAttractions = computed(() => {
     const q = this.attractionInputValue().toLowerCase();
     const all = this.allAttractions();
     return q ? all.filter((a) => a.name.toLowerCase().includes(q)) : all;
   });
 
+  // Loading indicator for the combined cities+attractions load
+  loadingEntities = signal(false);
+
   constructor() {
-    let lastReloadedForCityId: number | null = null;
-    effect(() => {
-      const id = this.state.cityId();
-      const cities = this.allCities();
-      if (id != null && cities.length > 0) {
-        const match = cities.find((c) => c.id === id);
-        if (match) {
-          if (this.cityInputValue() !== match.name) {
-            this.cityInputValue.set(match.name);
+    // Reactive pipeline: whenever stateId changes, reload cities + attractions
+    toObservable(this.state.stateId)
+      .pipe(
+        tap(() => this.loadingEntities.set(true)),
+        switchMap((stateId) => {
+          const countryId = this.state.countryId();
+          const cityParams: { country_id?: number; state_id?: number; page: number; limit: number } = {
+            page: 1,
+            limit: 500,
+          };
+          const attractionParams: { country_id?: number; state_id?: number; page: number; limit: number } = {
+            page: 1,
+            limit: 500,
+          };
+          if (countryId) {
+            cityParams.country_id = countryId;
+            attractionParams.country_id = countryId;
           }
-          lastReloadedForCityId = null;
-        } else if (lastReloadedForCityId !== id) {
-          lastReloadedForCityId = id;
-          this.loadCities();
-        }
-      }
-    });
-
-    let lastReloadedForStateId: number | null = null;
-    effect(() => {
-      const id = this.state.stateId();
-      const states = this.allStates();
-      if (id != null && states.length > 0) {
-        const match = states.find((s) => s.id === id);
-        if (match) {
-          if (this.stateInputValue() !== match.name) {
-            this.stateInputValue.set(match.name);
+          if (stateId) {
+            cityParams.state_id = stateId;
+            attractionParams.state_id = stateId;
           }
-          lastReloadedForStateId = null;
-        } else if (lastReloadedForStateId !== id) {
-          lastReloadedForStateId = id;
-          this.loadStates();
-        }
-      }
-    });
-
-    // Reload attractions when state selection changes
-    let lastStateIdForAttractions: number | null | undefined = undefined;
-    effect(() => {
-      const stateId = this.state.stateId();
-      if (lastStateIdForAttractions !== undefined && lastStateIdForAttractions !== stateId) {
-        this.loadAttractions();
-      }
-      lastStateIdForAttractions = stateId;
-    });
+          return forkJoin({
+            cities: this.citiesService.getCities(cityParams),
+            attractions: this.attractionsService.getAttractions(attractionParams),
+          });
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: ({ cities, attractions }) => {
+          this.allCities.set(
+            cities.cities.map((c) => ({
+              id: c.id,
+              name: c.name,
+              state_id: c.state_id,
+              state_name: c.state_name,
+            }))
+          );
+          this.allAttractions.set(
+            attractions.attractions.map((a) => ({ id: a.id, name: a.name }))
+          );
+          this.syncInputValues();
+          this.loadingEntities.set(false);
+        },
+        error: () => {
+          this.allCities.set([]);
+          this.allAttractions.set([]);
+          this.loadingEntities.set(false);
+        },
+      });
   }
 
   ngOnInit(): void {
@@ -136,69 +147,45 @@ export class EntityTabComponent implements OnInit {
     this.cityInputValue.set(photo.city_name || '');
     this.attractionInputValue.set(photo.attraction_name || '');
     this.stateInputValue.set(photo.state_name || '');
-    this.loadCities();
-    this.loadAttractions();
     this.loadStates();
   }
 
-  private loadCities(): void {
-    this.loadingCities.set(true);
-    const countryId = this.state.countryId();
-    const params = countryId
-      ? { country_id: countryId, page: 1, limit: 500 }
-      : { page: 1, limit: 500 };
-    this.citiesService
-      .getCities(params)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.allCities.set(
-            res.cities.map((c) => ({
-              id: c.id,
-              name: c.name,
-              state_id: c.state_id,
-              state_name: c.state_name,
-            }))
-          );
-          this.loadingCities.set(false);
-        },
-        error: () => {
-          this.allCities.set([]);
-          this.loadingCities.set(false);
-        },
-      });
-  }
-
-  private loadAttractions(): void {
-    this.loadingAttractions.set(true);
-    const countryId = this.state.countryId();
+  /**
+   * After cities/attractions load, sync input values to match any selected IDs.
+   * Handles the case where stateId was set (e.g. from keyword auto-populate)
+   * after initial input values were already set from the photo.
+   */
+  private syncInputValues(): void {
+    const cityId = this.state.cityId();
+    if (cityId != null) {
+      const match = this.allCities().find((c) => c.id === cityId);
+      if (match && this.cityInputValue() !== match.name) {
+        this.cityInputValue.set(match.name);
+      }
+    }
+    const attractionId = this.state.attractionId();
+    if (attractionId != null) {
+      const match = this.allAttractions().find((a) => a.id === attractionId);
+      if (match && this.attractionInputValue() !== match.name) {
+        this.attractionInputValue.set(match.name);
+      }
+    }
     const stateId = this.state.stateId();
-    const params: { country_id?: number; state_id?: number; page: number; limit: number } = {
-      page: 1,
-      limit: 500,
-    };
-    if (countryId) {
-      params.country_id = countryId;
+    if (stateId != null) {
+      const match = this.allStates().find((s) => s.id === stateId);
+      if (match && this.stateInputValue() !== match.name) {
+        this.stateInputValue.set(match.name);
+      }
     }
-    if (stateId) {
-      params.state_id = stateId;
-    }
-    this.attractionsService
-      .getAttractions(params)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.allAttractions.set(res.attractions.map((a) => ({ id: a.id, name: a.name })));
-          this.loadingAttractions.set(false);
-        },
-        error: () => {
-          this.allAttractions.set([]);
-          this.loadingAttractions.set(false);
-        },
-      });
   }
 
   private loadStates(): void {
+    const countryName = this.state.countryName();
+    if (!COUNTRIES_WITH_STATES.includes(countryName)) {
+      this.allStates.set([]);
+      return;
+    }
+
     this.loadingStates.set(true);
     this.statesService
       .getAllStates('name')
@@ -211,6 +198,7 @@ export class EntityTabComponent implements OnInit {
             : res.states;
           this.allStates.set(states.map((s) => ({ id: s.id, name: s.name })));
           this.loadingStates.set(false);
+          this.syncInputValues();
         },
         error: () => {
           this.allStates.set([]);
@@ -297,16 +285,13 @@ export class EntityTabComponent implements OnInit {
         if (result?.changed && result.countryId != null && result.countryName) {
           this.state.countryId.set(result.countryId);
           this.state.countryName.set(result.countryName);
-          // Clear dependent entity selections since country changed
+          // Clear dependent entity selections — stateId change triggers cities+attractions reload
           this.state.cityId.set(null);
-          this.state.stateId.set(null);
           this.state.attractionId.set(null);
           this.cityInputValue.set('');
-          this.stateInputValue.set('');
           this.attractionInputValue.set('');
-          // Reload entity lists for the new country
-          this.loadCities();
-          this.loadAttractions();
+          this.stateInputValue.set('');
+          this.state.stateId.set(null);
           this.loadStates();
         }
       });

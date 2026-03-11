@@ -25,6 +25,9 @@ export class CitiesService {
     if (params?.country_id) {
       httpParams = httpParams.set('country_id', params.country_id.toString());
     }
+    if (params?.state_id) {
+      httpParams = httpParams.set('state_id', params.state_id.toString());
+    }
     if (params?.search) {
       httpParams = httpParams.set('search', params.search);
     }

@@ -42,10 +42,10 @@
           {{ city.name }}
         </mat-option>
       }
-      @if (!loadingCities() && filteredCities().length === 0) {
+      @if (!loadingEntities() && filteredCities().length === 0) {
         <mat-option disabled>No cities found</mat-option>
       }
-      @if (loadingCities()) {
+      @if (loadingEntities()) {
         <mat-option disabled>
           <mat-spinner diameter="18" class="option-spinner"></mat-spinner>
           Loading...
@@ -130,10 +130,10 @@
           {{ attraction.name }}
         </mat-option>
       }
-      @if (!loadingAttractions() && filteredAttractions().length === 0) {
+      @if (!loadingEntities() && filteredAttractions().length === 0) {
         <mat-option disabled>No attractions found</mat-option>
       }
-      @if (loadingAttractions()) {
+      @if (loadingEntities()) {
         <mat-option disabled>
           <mat-spinner diameter="18" class="option-spinner"></mat-spinner>
           Loading...

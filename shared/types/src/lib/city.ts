@@ -23,6 +23,7 @@ export interface CityListResponse {
 
 export interface CityListParams {
   country_id?: number;
+  state_id?: number;
   search?: string;
   page?: number;
   limit?: number;
