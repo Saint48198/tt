@@ -46,10 +46,10 @@
             <span class="geo-label">Detected Location</span>
             <span class="geo-value">
               {{ geo.city || 'Unknown city' }}
-              @if (geo.state) {
+              @if (geo.state && geo.state !== 'Unknown State') {
                 , {{ geo.state }}
               }
-              @if (geo.country) {
+              @if (geo.country && geo.country !== 'Unknown Country') {
                 , {{ geo.country }}
               }
             </span>

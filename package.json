@@ -16,7 +16,8 @@
     "lint": "npx nx run-many -t lint --all",
     "lint:fix": "npx nx run-many -t lint --all -- --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,html,scss,css,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,html,scss,css,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,html,scss,css,md}\"",
+    "prepare": "husky"
   },
   "private": true,
   "devDependencies": {
@@ -57,8 +58,9 @@
     "esbuild": "^0.19.2",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
-    "eslint-plugin-prettier": "^5.2.0",
     "eslint-plugin-playwright": "^1.6.2",
+    "eslint-plugin-prettier": "^5.2.0",
+    "husky": "^9.1.7",
     "jest": "^30.0.2",
     "jest-environment-jsdom": "^30.0.2",
     "jest-environment-node": "^30.0.2",
@@ -66,6 +68,7 @@
     "jest-util": "^30.0.2",
     "jsdom": "^27.1.0",
     "jsonc-eslint-parser": "^2.1.0",
+    "lint-staged": "^16.3.3",
     "nx": "22.3.3",
     "prettier": "~3.6.2",
     "ts-jest": "^29.4.0",
@@ -108,5 +111,8 @@
     "rxjs": "~7.8.0",
     "sharp": "^0.34.5",
     "validator": "^13.15.26"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,html,scss,css,md}": "prettier --write"
   }
 }
