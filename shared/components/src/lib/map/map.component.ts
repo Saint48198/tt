@@ -57,8 +57,10 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   @Input() fitBounds = false; // Auto-fit to markers/overlays
   @Input() showAttribution = true;
   @Input() enableClustering = false;
+  @Input() enableClick = false;
 
   @Output() overlayClick = new EventEmitter<OverlayClickEvent>();
+  @Output() mapClick = new EventEmitter<{ lat: number; lng: number }>();
 
   private map!: L.Map;
   private markerLayers: L.Marker[] = [];
@@ -133,6 +135,13 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     // Fit bounds if requested
     if (this.fitBounds) {
       this.fitMapBounds();
+    }
+
+    // Emit map click events if enabled
+    if (this.enableClick) {
+      this.map.on('click', (e: L.LeafletMouseEvent) => {
+        this.mapClick.emit({ lat: e.latlng.lat, lng: e.latlng.lng });
+      });
     }
 
     // Invalidate size after short delays to handle container sizing

@@ -1,5 +1,6 @@
 export type {
   Country,
+  CountryAlias,
   CountryListResponse,
   CountryListParams,
   CreateCountryRequest,

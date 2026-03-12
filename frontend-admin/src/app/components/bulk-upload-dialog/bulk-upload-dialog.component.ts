@@ -13,11 +13,11 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, firstValueFrom } from 'rxjs';
 import { PhotosService } from '../../services/photos.service';
 import { CountriesService } from '../../services/countries.service';
 import { GeocodeService } from '../../services/geocode.service';
-import { Country } from '../../interfaces';
+import type { Country } from '@shared/types';
 import ExifReader from 'exifreader';
 
 export interface BulkUploadDialogData {
@@ -50,6 +50,8 @@ interface ExifData {
   latitude?: number;
   longitude?: number;
   created_date?: string;
+  /** Country name from IPTC metadata (if available) */
+  iptcCountry?: string;
 }
 
 interface FilePreview {
@@ -124,15 +126,16 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
     this.files().forEach((f) => URL.revokeObjectURL(f.previewUrl));
   }
 
-  onFileSelected(event: Event): void {
+  async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     if (input.files) {
-      this.addFiles(Array.from(input.files));
+      const files = Array.from(input.files);
       input.value = '';
+      await this.addFiles(files);
     }
   }
 
-  onDrop(event: DragEvent): void {
+  async onDrop(event: DragEvent): Promise<void> {
     event.preventDefault();
     event.stopPropagation();
     this.dragOver.set(false);
@@ -141,7 +144,7 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
       const imageFiles = Array.from(event.dataTransfer.files).filter((f) =>
         f.type.startsWith('image/')
       );
-      this.addFiles(imageFiles);
+      await this.addFiles(imageFiles);
     }
   }
 
@@ -157,20 +160,87 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
     this.dragOver.set(false);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async extractExif(file: File): Promise<ExifData> {
     const exif: ExifData = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let tags: any;
+    let expandedLoadFailed = false;
     try {
       const buffer = await file.arrayBuffer();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const tags: any = ExifReader.load(buffer, { expanded: true });
+      tags = ExifReader.load(buffer, { expanded: true });
+    } catch (e) {
+      console.warn('[EXIF] Expanded load failed:', e);
+      expandedLoadFailed = true;
+    }
 
+    // If expanded load failed entirely, try non-expanded to get what we can
+    if (expandedLoadFailed) {
+      try {
+        const buffer = await file.arrayBuffer();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rawTags: any = ExifReader.load(buffer);
+
+        // Extract GPS from non-expanded
+        const rawLat = rawTags.GPSLatitude;
+        const rawLng = rawTags.GPSLongitude;
+        const latRef = rawTags.GPSLatitudeRef?.value?.[0] || rawTags.GPSLatitudeRef?.description;
+        const lngRef = rawTags.GPSLongitudeRef?.value?.[0] || rawTags.GPSLongitudeRef?.description;
+
+        if (rawLat?.description && rawLng?.description) {
+          let lat = parseFloat(String(rawLat.description));
+          let lng = parseFloat(String(rawLng.description));
+          if (!isNaN(lat) && !isNaN(lng)) {
+            if (latRef === 'S' || latRef === 'South') lat = -Math.abs(lat);
+            if (lngRef === 'W' || lngRef === 'West') lng = -Math.abs(lng);
+            exif.latitude = lat;
+            exif.longitude = lng;
+          }
+        }
+
+        const dateTag = rawTags.DateTimeOriginal;
+        if (dateTag?.description) {
+          const isoDate = dateTag.description.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
+          const parsed = new Date(isoDate + 'Z');
+          if (!isNaN(parsed.getTime())) {
+            exif.created_date = parsed.toISOString();
+          }
+        }
+
+        // Extract title from non-expanded
+        const titleTag = rawTags.ImageDescription || rawTags.XPTitle;
+        if (titleTag?.description) {
+          exif.title = titleTag.description;
+        }
+
+        // Extract keywords from non-expanded
+        const kwTag = rawTags.XPKeywords;
+        if (kwTag?.description && typeof kwTag.description === 'string') {
+          exif.keywords = kwTag.description
+            .split(/[;,]/)
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+        }
+
+        return exif;
+      } catch (e2) {
+        console.warn('[EXIF] Non-expanded load also failed:', e2);
+        return exif;
+      }
+    }
+
+    // Extract title
+    try {
       const xmpTitle = tags.xmp?.['dc:title']?.description || tags.xmp?.['title']?.description;
       const iptcTitle = tags.iptc?.['Object Name']?.description;
       const exifTitle =
         tags.exif?.['ImageDescription']?.description || tags.exif?.['XPTitle']?.description;
       exif.title = xmpTitle || iptcTitle || exifTitle || undefined;
+    } catch {
+      // title extraction failed
+    }
 
+    // Extract keywords
+    try {
       const xmpSubject = tags.xmp?.['dc:subject'] || tags.xmp?.['subject'];
       const iptcKeywords = tags.iptc?.['Keywords'];
       const exifKeywords = tags.exif?.['XPKeywords']?.description;
@@ -213,14 +283,125 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
           .map((s: string) => s.trim())
           .filter(Boolean);
       }
+    } catch {
+      // keywords extraction failed
+    }
 
-      const gps = tags.gps;
-      if (gps?.Latitude !== undefined && gps?.Longitude !== undefined) {
-        exif.latitude = gps.Latitude;
-        exif.longitude = gps.Longitude;
+    // Extract IPTC country name (more reliable than GPS reverse-geocode for country detection)
+    try {
+      const iptcCountry =
+        tags.iptc?.['Country-Primary Location Name']?.description ||
+        tags.iptc?.['Country/Primary Location Name']?.description;
+      if (iptcCountry && typeof iptcCountry === 'string' && iptcCountry.trim()) {
+        exif.iptcCountry = iptcCountry.trim();
       }
+    } catch {
+      // IPTC country extraction failed
+    }
 
-      // Extract original date taken from DateTimeOriginal
+    // Extract GPS coordinates
+    const isPng = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png');
+
+    // For PNG files, ExifReader expanded mode (tags.gps) returns unsigned lat/lng
+    // (no negative sign for W/S). Use non-expanded mode instead, which keeps the
+    // direction letter in the description (e.g. "46,48.159N" / "89,45.944W").
+    if (isPng) {
+      try {
+        const buf2 = await file.arrayBuffer();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const raw: any = ExifReader.load(buf2);
+        const rawLat = raw.GPSLatitude;
+        const rawLng = raw.GPSLongitude;
+        const latRefVal = raw.GPSLatitudeRef?.description || raw.GPSLatitudeRef?.value?.[0];
+        const lngRefVal = raw.GPSLongitudeRef?.description || raw.GPSLongitudeRef?.value?.[0];
+
+        if (rawLat?.description && rawLng?.description) {
+          // description may be a decimal string like "46.802654" or DMS like "46,48.159N"
+          let lat: number;
+          let lng: number;
+          const parseDmsOrDecimal = (s: string): { value: number; dir?: string } => {
+            // Try DMS with direction: "46,48.159N" or "89,45,56.6W"
+            const m = s.match(/^([\d.]+),([\d.]+)(?:,([\d.]+))?([NSEW])$/i);
+            if (m) {
+              const deg = parseFloat(m[1]);
+              const min = parseFloat(m[2]);
+              const sec = m[3] ? parseFloat(m[3]) : 0;
+              const dir = m[4].toUpperCase();
+              let val = deg + min / 60 + sec / 3600;
+              if (dir === 'S' || dir === 'W') val = -val;
+              return { value: val, dir };
+            }
+            // Try decimal with direction: "46.802654N" or "89.765732W"
+            const m2 = s.match(/^([\d.]+)([NSEW])$/i);
+            if (m2) {
+              const dir = m2[2].toUpperCase();
+              let val = parseFloat(m2[1]);
+              if (dir === 'S' || dir === 'W') val = -val;
+              return { value: val, dir };
+            }
+            return { value: parseFloat(s) };
+          };
+
+          const latParsed = parseDmsOrDecimal(rawLat.description);
+          const lngParsed = parseDmsOrDecimal(rawLng.description);
+          lat = latParsed.value;
+          lng = lngParsed.value;
+
+          // If description was plain decimal, apply ref direction
+          if (!latParsed.dir && (latRefVal === 'S' || latRefVal === 'South')) {
+            lat = -Math.abs(lat);
+          }
+          if (!lngParsed.dir && (lngRefVal === 'W' || lngRefVal === 'West')) {
+            lng = -Math.abs(lng);
+          }
+
+          if (!isNaN(lat) && !isNaN(lng)) {
+            exif.latitude = lat;
+            exif.longitude = lng;
+          }
+        }
+      } catch (e) {
+        console.warn('[EXIF GPS] PNG extraction error:', e);
+      }
+    }
+
+    // For non-PNG files (or if PNG extraction above didn't find GPS)
+    if (exif.latitude == null || exif.longitude == null) {
+      try {
+        const gps = tags.gps;
+        const latRef =
+          tags.exif?.GPSLatitudeRef?.value?.[0] || tags.exif?.GPSLatitudeRef?.description;
+        const lngRef =
+          tags.exif?.GPSLongitudeRef?.value?.[0] || tags.exif?.GPSLongitudeRef?.description;
+
+        if (gps?.Latitude !== undefined && gps?.Longitude !== undefined) {
+          let lat = gps.Latitude;
+          let lng = gps.Longitude;
+          if (latRef === 'S' || latRef === 'South') lat = -Math.abs(lat);
+          if (lngRef === 'W' || lngRef === 'West') lng = -Math.abs(lng);
+          exif.latitude = lat;
+          exif.longitude = lng;
+        } else {
+          const rawLat = tags.exif?.GPSLatitude;
+          const rawLng = tags.exif?.GPSLongitude;
+          if (rawLat?.description && rawLng?.description) {
+            let lat = parseFloat(rawLat.description);
+            let lng = parseFloat(rawLng.description);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              if (latRef === 'S' || latRef === 'South') lat = -Math.abs(lat);
+              if (lngRef === 'W' || lngRef === 'West') lng = -Math.abs(lng);
+              exif.latitude = lat;
+              exif.longitude = lng;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[EXIF GPS] extraction error:', e);
+      }
+    }
+
+    // Extract original date taken from DateTimeOriginal
+    try {
       const dateOriginal: string | undefined = tags.exif?.DateTimeOriginal?.description;
       if (dateOriginal) {
         // Append 'Z' to treat as UTC so the date doesn't shift due to local timezone
@@ -231,8 +412,9 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
         }
       }
     } catch {
-      // EXIF extraction is best-effort
+      // date extraction failed
     }
+
     return exif;
   }
 
@@ -271,17 +453,26 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Detect the country from GPS coordinates in EXIF data.
+   * Detect the country from photo metadata.
+   * Prefers IPTC country name (embedded in photo metadata) over GPS reverse-geocoding.
    * Auto-selects if all photos are from the same country and it's in the list.
    * Shows warnings for mismatches or missing countries.
    */
   private async detectCountryFromFiles(allFiles: FilePreview[]): Promise<void> {
-    // Only check files that have GPS data
+    // First try IPTC country metadata (most reliable, no network call needed)
+    const iptcCountries = new Set<string>();
+    for (const file of allFiles) {
+      if (file.exif?.iptcCountry) {
+        iptcCountries.add(file.exif.iptcCountry);
+      }
+    }
+
+    // Only check GPS for files that have GPS data
     const filesWithGps = allFiles.filter(
       (f) => f.exif?.latitude != null && f.exif?.longitude != null
     );
 
-    if (filesWithGps.length === 0) {
+    if (filesWithGps.length === 0 && iptcCountries.size === 0) {
       return;
     }
 
@@ -291,31 +482,45 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
     this.detectedCountryName.set('');
 
     try {
-      // Reverse geocode unique coordinates (deduplicate to avoid redundant calls)
-      const seen = new Set<string>();
-      const countryNames = new Set<string>();
+      // If we have IPTC country data, use it (no network calls needed)
+      const countryNames = new Set<string>(iptcCountries);
 
-      for (const file of filesWithGps) {
-        const lat = file.exif?.latitude;
-        const lng = file.exif?.longitude;
-        if (lat == null || lng == null) continue;
+      if (filesWithGps.length > 0 && iptcCountries.size === 0) {
+        // Only do reverse geocoding if we don't already have IPTC country data
+        const seen = new Set<string>();
 
-        const key = `${lat.toFixed(2)},${lng.toFixed(2)}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
+        for (const file of filesWithGps) {
+          const lat = file.exif?.latitude;
+          const lng = file.exif?.longitude;
+          if (lat == null || lng == null) continue;
 
-        try {
-          const result = await lastValueFrom(this.geocodeService.reverseGeocode(lat, lng));
-          if (result?.country) {
-            countryNames.add(result.country);
+          const key = `${lat.toFixed(2)},${lng.toFixed(2)}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+
+          try {
+            const result = await lastValueFrom(this.geocodeService.reverseGeocode(lat, lng));
+            if (result?.country) {
+              countryNames.add(result.country);
+            }
+          } catch {
+            // Skip files that fail geocoding
           }
-        } catch {
-          // Skip files that fail geocoding
         }
       }
 
       if (countryNames.size === 0) {
         return;
+      }
+
+      // Ensure countries list is loaded before matching
+      if (this.countries().length === 0) {
+        try {
+          const res = await firstValueFrom(this.countriesService.getAllCountries('name'));
+          this.countries.set(res.countries);
+        } catch {
+          // Countries load failed
+        }
       }
 
       if (countryNames.size > 1) {
@@ -329,12 +534,9 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
 
       // All photos are from the same country
       const detectedCountry = Array.from(countryNames)[0];
-      const matchedCountry = this.countries().find(
-        (c) => c.name.toLowerCase() === detectedCountry.toLowerCase()
-      );
+      const matchedCountry = this.matchCountryName(detectedCountry);
 
       if (matchedCountry) {
-        // Auto-select the country
         this.selectedCountry.set(matchedCountry.name);
       } else {
         // Country not in list
@@ -346,6 +548,53 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
     } finally {
       this.detectingCountry.set(false);
     }
+  }
+
+  /**
+   * Match a detected country name (from Nominatim or IPTC) to a country in the DB list.
+   * Uses the country's aliases from the database (country_aliases table).
+   * Tries exact match on name, then abbreviation, then DB aliases.
+   */
+  private matchCountryName(detectedName: string): Country | undefined {
+    const countries = this.countries();
+    const detected = detectedName.toLowerCase().trim();
+
+    // 1. Exact match on name
+    const exact = countries.find((c) => c.name.toLowerCase().trim() === detected);
+    if (exact) return exact;
+
+    // 2. Match on abbreviation (e.g. "US", "UK")
+    const abbrMatch = countries.find(
+      (c) => c.abbreviation && c.abbreviation.toLowerCase().trim() === detected
+    );
+    if (abbrMatch) return abbrMatch;
+
+    // 3. Check DB aliases (from country_aliases table)
+    for (const country of countries) {
+      if (country.aliases?.length) {
+        const aliasMatch = country.aliases.some((a) => a.alias.toLowerCase().trim() === detected);
+        if (aliasMatch) return country;
+      }
+    }
+
+    // 4. Word-boundary-aware matching: only match if one name is a complete
+    //    word-boundary prefix/suffix of the other (avoids "Niger" → "Nigeria")
+    const detectedWords = detected.split(/\s+/);
+    for (const country of countries) {
+      const countryLower = country.name.toLowerCase().trim();
+      const countryWords = countryLower.split(/\s+/);
+
+      if (detectedWords.length >= 2 || countryWords.length >= 2) {
+        const shorter = detectedWords.length <= countryWords.length ? detectedWords : countryWords;
+        const longer = detectedWords.length <= countryWords.length ? countryWords : detectedWords;
+        const allMatch = shorter.every((w, i) => longer[i] === w);
+        if (allMatch && shorter.length >= 2) {
+          return country;
+        }
+      }
+    }
+
+    return undefined;
   }
 
   /**
@@ -370,6 +619,7 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const ctx = canvas.getContext('2d')!;
         ctx.drawImage(img, 0, 0, width, height);
 
@@ -457,9 +707,9 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
             { duration: 4000 }
           );
           fileList.forEach((f) => URL.revokeObjectURL(f.previewUrl));
-          // Resolve country_id from selected country name
           const selectedName = this.selectedCountry();
           const matchedCountry = this.countries().find((c) => c.name === selectedName);
+
           this.dialogRef.close({
             uploaded: true,
             count,
@@ -481,7 +731,10 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
                   latitude: serverExif.latitude ?? clientExif.latitude ?? undefined,
                   longitude: serverExif.longitude ?? clientExif.longitude ?? undefined,
                   created_date:
-                    (img['created_date'] as string) || clientExif.created_date || undefined,
+                    serverExif.created_date ||
+                    (img['created_date'] as string) ||
+                    clientExif.created_date ||
+                    undefined,
                 },
               };
             }),

@@ -1,3 +1,10 @@
+export interface CountryAlias {
+  id: number;
+  country_id: number;
+  alias: string;
+  created_date?: string;
+}
+
 export interface Country {
   id: number;
   name: string;
@@ -10,6 +17,7 @@ export interface Country {
   created_date?: string;
   updated_date?: string;
   disabled_date?: string;
+  aliases?: CountryAlias[];
 }
 
 export interface CountryListResponse {

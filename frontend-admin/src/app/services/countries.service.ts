@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   Country,
+  CountryAlias,
   CountryListResponse,
   CountryListParams,
   CreateCountryRequest,
@@ -77,5 +78,26 @@ export class CountriesService {
    */
   deleteCountry(id: number): Observable<CountryResponse> {
     return this.http.delete<CountryResponse>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Get aliases for a country
+   */
+  getAliases(countryId: number): Observable<{ aliases: CountryAlias[] }> {
+    return this.http.get<{ aliases: CountryAlias[] }>(`${this.apiUrl}/${countryId}/aliases`);
+  }
+
+  /**
+   * Add an alias to a country
+   */
+  addAlias(countryId: number, alias: string): Observable<{ id: number }> {
+    return this.http.post<{ id: number }>(`${this.apiUrl}/${countryId}/aliases`, { alias });
+  }
+
+  /**
+   * Remove an alias from a country
+   */
+  removeAlias(countryId: number, aliasId: number): Observable<{ success: boolean }> {
+    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/${countryId}/aliases/${aliasId}`);
   }
 }

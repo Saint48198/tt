@@ -11,11 +11,13 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MapComponent, MapMarker } from '@shared/components';
 import { HasUnsavedChanges } from '@shared/services';
 import { CountriesService } from '../../services/countries.service';
 import { GeocodeService } from '../../services/geocode.service';
-import { Country } from '../../interfaces';
+import type { Country, CountryAlias } from '../../interfaces';
 
 const MONTH_YEAR_FORMATS = {
   parse: { dateInput: 'MM/YYYY' },
@@ -41,6 +43,8 @@ const MONTH_YEAR_FORMATS = {
     MatDatepickerModule,
     MatNativeDateModule,
     MatTooltipModule,
+    MatChipsModule,
+    MatDialogModule,
     MapComponent,
   ],
   templateUrl: './country-edit.component.html',
@@ -54,6 +58,7 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
   private readonly countriesService = inject(CountriesService);
   private readonly geocodeService = inject(GeocodeService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
@@ -66,6 +71,11 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
   mapCenter = signal<[number, number]>([39.8283, -98.5795]);
   hasCoordinates = signal(false);
   private saved = false;
+
+  // Alias management
+  aliases = signal<CountryAlias[]>([]);
+  newAlias = signal('');
+  addingAlias = signal(false);
 
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent): void {
@@ -144,6 +154,11 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
             last_visited: this.parseDate(country.last_visited),
             geo_map_id: country.geo_map_id || '',
           });
+          if (country.aliases) {
+            this.aliases.set(country.aliases);
+          } else {
+            this.loadAliases();
+          }
           this.loading.set(false);
           this.updateMapFromForm();
         },
@@ -261,4 +276,101 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
     this.form.get('last_visited')?.setValue(new Date(date.getFullYear(), date.getMonth(), 1));
     datepicker.close();
   }
+
+  // --- Alias Management ---
+
+  private loadAliases(): void {
+    if (!this.countryId) return;
+    this.countriesService
+      .getAliases(this.countryId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => this.aliases.set(res.aliases),
+      });
+  }
+
+  addAlias(): void {
+    const alias = this.newAlias().trim();
+    if (!alias || !this.countryId) return;
+
+    this.addingAlias.set(true);
+    this.countriesService
+      .addAlias(this.countryId, alias)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.newAlias.set('');
+          this.addingAlias.set(false);
+          this.loadAliases();
+          this.snackBar.open(`Alias "${alias}" added`, 'Close', { duration: 3000 });
+        },
+        error: (err) => {
+          this.addingAlias.set(false);
+          const msg = err?.error?.error || 'Failed to add alias';
+          this.snackBar.open(msg, 'Close', { duration: 5000, panelClass: 'error-snackbar' });
+        },
+      });
+  }
+
+  confirmDeleteAlias(alias: CountryAlias): void {
+    const { ConfirmDialogComponent } = this;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: { aliasName: alias.alias },
+    });
+
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((confirmed) => {
+        if (confirmed && this.countryId) {
+          this.countriesService
+            .removeAlias(this.countryId, alias.id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.aliases.update((list) => list.filter((a) => a.id !== alias.id));
+                this.snackBar.open(`Alias "${alias.alias}" removed`, 'Close', { duration: 3000 });
+              },
+              error: () => {
+                this.snackBar.open('Failed to remove alias', 'Close', {
+                  duration: 5000,
+                  panelClass: 'error-snackbar',
+                });
+              },
+            });
+        }
+      });
+  }
+
+  // Lazy-loaded reference to avoid circular import
+  private get ConfirmDialogComponent() {
+    return ConfirmDeleteAliasDialogComponent;
+  }
+
+  onAliasInputKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.addAlias();
+    }
+  }
+}
+
+@Component({
+  selector: 'app-confirm-delete-alias-dialog',
+  imports: [MatDialogModule, MatButtonModule],
+  template: `
+    <h2 mat-dialog-title>Delete Alias</h2>
+    <mat-dialog-content>
+      Are you sure you want to delete the alias
+      <strong>"{{ data.aliasName }}"</strong>?
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button [mat-dialog-close]="false">Cancel</button>
+      <button mat-raised-button color="warn" [mat-dialog-close]="true">Delete</button>
+    </mat-dialog-actions>
+  `,
+})
+export class ConfirmDeleteAliasDialogComponent {
+  readonly data: { aliasName: string } = inject(MAT_DIALOG_DATA);
 }

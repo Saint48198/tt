@@ -69,6 +69,7 @@ interface ExifMetadata {
   keywords?: string[];
   latitude?: number;
   longitude?: number;
+  created_date?: string;
 }
 interface RemovePhotoRequest {
   entityType: string;
@@ -672,20 +673,116 @@ class PhotoService {
     return { photos, next_cursor: rows.length >= max_results ? lastId : null };
   }
 
-  private async extractExifMetadata(
-    filePath: string
-  ): Promise<ExifMetadata & { created_date?: string }> {
-    const metadata: ExifMetadata & { created_date?: string } = {};
+  private async extractExifMetadata(filePath: string): Promise<ExifMetadata> {
+    const metadata: ExifMetadata = {};
+    let tags: any;
+    let expandedLoadFailed = false;
     try {
       const buffer = fs.readFileSync(filePath);
-      const tags = ExifReader.load(buffer, { expanded: true });
+      tags = ExifReader.load(buffer, { expanded: true });
+    } catch (err) {
+      console.warn('Failed to load EXIF data (expanded):', err);
+      expandedLoadFailed = true;
+    }
 
+    // If expanded mode failed, try non-expanded as fallback
+    if (expandedLoadFailed) {
+      try {
+        const buffer = fs.readFileSync(filePath);
+        const rawTags = ExifReader.load(buffer);
+        console.log(
+          '[EXIF fallback] Non-expanded GPS keys:',
+          Object.keys(rawTags).filter((k) => k.includes('GPS'))
+        );
+
+        // Extract GPS
+        const rawLat = rawTags.GPSLatitude;
+        const rawLng = rawTags.GPSLongitude;
+        const latRef = rawTags.GPSLatitudeRef;
+        const lngRef = rawTags.GPSLongitudeRef;
+
+        if (rawLat && rawLng) {
+          let lat: number | undefined;
+          let lng: number | undefined;
+
+          if (Array.isArray(rawLat.value) && rawLat.value.length >= 3) {
+            const v = rawLat.value;
+            if (Array.isArray(v[0])) {
+              lat = v[0][0] / v[0][1] + v[1][0] / v[1][1] / 60 + v[2][0] / v[2][1] / 3600;
+            } else {
+              lat = parseFloat(String(rawLat.description));
+            }
+          } else if (rawLat.description) {
+            lat = parseFloat(String(rawLat.description));
+          }
+
+          if (Array.isArray(rawLng.value) && rawLng.value.length >= 3) {
+            const v = rawLng.value;
+            if (Array.isArray(v[0])) {
+              lng = v[0][0] / v[0][1] + v[1][0] / v[1][1] / 60 + v[2][0] / v[2][1] / 3600;
+            } else {
+              lng = parseFloat(String(rawLng.description));
+            }
+          } else if (rawLng.description) {
+            lng = parseFloat(String(rawLng.description));
+          }
+
+          if (lat != null && lng != null && !isNaN(lat) && !isNaN(lng)) {
+            const latRefVal = latRef?.value?.[0] ?? latRef?.description ?? 'N';
+            const lngRefVal = lngRef?.value?.[0] ?? lngRef?.description ?? 'E';
+            if (latRefVal === 'S' || latRefVal === 'South') lat = -Math.abs(lat);
+            if (lngRefVal === 'W' || lngRefVal === 'West') lng = -Math.abs(lng);
+            metadata.latitude = lat;
+            metadata.longitude = lng;
+          }
+        }
+
+        // Extract date
+        const dateTag = rawTags.DateTimeOriginal;
+        if (dateTag?.description) {
+          const isoDate = dateTag.description.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
+          const parsed = new Date(isoDate + 'Z');
+          if (!isNaN(parsed.getTime())) {
+            metadata.created_date = parsed.toISOString();
+          }
+        }
+
+        // Extract title
+        const titleTag = rawTags.ImageDescription || rawTags.XPTitle;
+        if (titleTag?.description) {
+          metadata.title = titleTag.description;
+        }
+
+        // Extract keywords
+        const kwTag = rawTags.XPKeywords;
+        if (kwTag?.description && typeof kwTag.description === 'string') {
+          metadata.keywords = kwTag.description
+            .split(/[;,]/)
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+        }
+
+        console.log('[EXIF fallback] Result:', JSON.stringify(metadata));
+        return metadata;
+      } catch (err2) {
+        console.warn('Failed to load EXIF data (non-expanded):', err2);
+        return metadata;
+      }
+    }
+
+    // Extract title
+    try {
       const xmpTitle = tags.xmp?.['dc:title']?.description || tags.xmp?.title?.description;
       const iptcTitle = tags.iptc?.['Object Name']?.description;
       const exifTitle =
         tags.exif?.ImageDescription?.description || tags.exif?.['XPTitle']?.description;
       metadata.title = xmpTitle || iptcTitle || exifTitle || undefined;
+    } catch (err) {
+      console.warn('Failed to extract title from EXIF:', err);
+    }
 
+    // Extract keywords
+    try {
       const xmpSubject = tags.xmp?.['dc:subject'] || tags.xmp?.subject;
       const iptcKeywords = tags.iptc?.Keywords;
       const exifKeywords = tags.exif?.['XPKeywords']?.description;
@@ -724,14 +821,59 @@ class PhotoService {
           .map((s: string) => s.trim())
           .filter(Boolean);
       }
+    } catch (err) {
+      console.warn('Failed to extract keywords from EXIF:', err);
+    }
 
+    // Extract GPS coordinates
+    try {
       const gps = tags.gps;
-      if (gps?.Latitude !== undefined && gps?.Longitude !== undefined) {
-        metadata.latitude = gps.Latitude;
-        metadata.longitude = gps.Longitude;
-      }
+      // Read direction references so we can validate/fix the sign
+      const latRef =
+        tags.exif?.GPSLatitudeRef?.value?.[0] || tags.exif?.GPSLatitudeRef?.description;
+      const lngRef =
+        tags.exif?.GPSLongitudeRef?.value?.[0] || tags.exif?.GPSLongitudeRef?.description;
 
-      // Extract original date taken from DateTimeOriginal
+      if (gps?.Latitude !== undefined && gps?.Longitude !== undefined) {
+        let lat = gps.Latitude;
+        let lng = gps.Longitude;
+
+        // ExifReader expanded mode sometimes returns unsigned (positive) values
+        // even for S/W coordinates. Cross-check with the reference direction.
+        if (latRef === 'S' || latRef === 'South') {
+          lat = -Math.abs(lat);
+        } else if (latRef === 'N' || latRef === 'North') {
+          lat = Math.abs(lat);
+        }
+        if (lngRef === 'W' || lngRef === 'West') {
+          lng = -Math.abs(lng);
+        } else if (lngRef === 'E' || lngRef === 'East') {
+          lng = Math.abs(lng);
+        }
+
+        metadata.latitude = lat;
+        metadata.longitude = lng;
+      } else {
+        // Fallback: try raw EXIF GPS tags (non-expanded)
+        const rawLat = tags.exif?.GPSLatitude;
+        const rawLng = tags.exif?.GPSLongitude;
+        if (rawLat?.description && rawLng?.description) {
+          let lat = parseFloat(rawLat.description);
+          let lng = parseFloat(rawLng.description);
+          if (!isNaN(lat) && !isNaN(lng)) {
+            if (latRef === 'S' || latRef === 'South') lat = -Math.abs(lat);
+            if (lngRef === 'W' || lngRef === 'West') lng = -Math.abs(lng);
+            metadata.latitude = lat;
+            metadata.longitude = lng;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to extract GPS from EXIF:', err);
+    }
+
+    // Extract original date taken from DateTimeOriginal
+    try {
       const dateOriginal = tags.exif?.DateTimeOriginal?.description;
       if (dateOriginal) {
         // EXIF date format is "YYYY:MM:DD HH:MM:SS" — convert to ISO
@@ -743,8 +885,9 @@ class PhotoService {
         }
       }
     } catch (err) {
-      console.warn('Failed to extract EXIF metadata:', err);
+      console.warn('Failed to extract date from EXIF:', err);
     }
+
     return metadata;
   }
 
@@ -778,6 +921,22 @@ class PhotoService {
       // Merge with client-provided EXIF (client data is fallback when server extraction returns empty,
       // e.g. after canvas resize in the browser strips metadata)
       const clientExif = clientExifData?.[i] || {};
+      console.log(
+        '[EXIF] Server extracted:',
+        JSON.stringify({
+          lat: serverExif.latitude,
+          lng: serverExif.longitude,
+          date: serverExif.created_date,
+        })
+      );
+      console.log(
+        '[EXIF] Client provided:',
+        JSON.stringify({
+          lat: clientExif.latitude,
+          lng: clientExif.longitude,
+          date: clientExif.created_date,
+        })
+      );
       const exif: ExifMetadata = {
         title: serverExif.title || clientExif.title || undefined,
         keywords: serverExif.keywords?.length
@@ -785,8 +944,9 @@ class PhotoService {
           : clientExif.keywords || undefined,
         latitude: serverExif.latitude ?? clientExif.latitude ?? undefined,
         longitude: serverExif.longitude ?? clientExif.longitude ?? undefined,
+        created_date: serverExif.created_date || clientExif.created_date || undefined,
       };
-      const dateTaken = serverExif.created_date || clientExif.created_date || undefined;
+      const dateTaken = exif.created_date;
       console.log(
         '[EXIF] Merged metadata for',
         file.newFilename,
@@ -1124,8 +1284,7 @@ class PhotoService {
       });
     } else if (sortBy === 'created_at') {
       photos.sort(
-        (a, b) =>
-          (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * order
+        (a, b) => (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * order
       );
     } else {
       photos.sort(

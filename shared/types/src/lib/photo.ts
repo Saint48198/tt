@@ -83,6 +83,7 @@ export interface ExifMetadata {
   keywords?: string[];
   latitude?: number;
   longitude?: number;
+  created_date?: string;
 }
 
 export interface UploadedPhoto {

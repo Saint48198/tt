@@ -1,5 +1,12 @@
 import { db } from '../db';
 
+interface CountryAlias {
+  id: number;
+  country_id: number;
+  alias: string;
+  created_date?: string;
+}
+
 interface Country {
   id: number;
   name: string;
@@ -12,6 +19,7 @@ interface Country {
   created_date?: string;
   updated_date?: string;
   disabled_date?: string;
+  aliases?: CountryAlias[];
 }
 
 interface ListCountriesOptions {
@@ -78,6 +86,7 @@ class CountryService {
       const countries = await db.all<Country>(
         `SELECT * FROM countries ${disabledFilter} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`
       );
+      await this.attachAliases(countries);
       return { total: countries.length, countries };
     }
 
@@ -89,12 +98,23 @@ class CountryService {
       `SELECT * FROM countries ${disabledFilter} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT $1 OFFSET $2`,
       [limit, offset]
     );
+    await this.attachAliases(countries);
 
     return { total: Number(totalRow?.count ?? 0), countries, page, limit };
   }
 
   public async getCountryById(id: number | string): Promise<Country | undefined> {
-    return db.get<Country>('SELECT * FROM countries WHERE id = $1 AND disabled_date IS NULL', [id]);
+    const country = await db.get<Country>(
+      'SELECT * FROM countries WHERE id = $1 AND disabled_date IS NULL',
+      [id]
+    );
+    if (country) {
+      country.aliases = await db.all<CountryAlias>(
+        'SELECT * FROM country_aliases WHERE country_id = $1 ORDER BY alias',
+        [id]
+      );
+    }
+    return country;
   }
 
   public async createCountry(data: {
@@ -168,6 +188,79 @@ class CountryService {
        ORDER BY last_visited DESC`,
       [userId]
     );
+  }
+
+  /**
+   * Attach aliases to an array of countries in a single query.
+   */
+  private async attachAliases(countries: Country[]): Promise<void> {
+    if (countries.length === 0) return;
+    const ids = countries.map((c) => c.id);
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+    const aliases = await db.all<CountryAlias>(
+      `SELECT * FROM country_aliases WHERE country_id IN (${placeholders}) ORDER BY alias`,
+      ids
+    );
+    const aliasMap = new Map<number, CountryAlias[]>();
+    for (const a of aliases) {
+      if (!aliasMap.has(a.country_id)) aliasMap.set(a.country_id, []);
+      aliasMap.get(a.country_id)!.push(a);
+    }
+    for (const c of countries) {
+      c.aliases = aliasMap.get(c.id) || [];
+    }
+  }
+
+  // --- Country Alias CRUD ---
+
+  public async getAliases(countryId: number | string): Promise<CountryAlias[]> {
+    return db.all<CountryAlias>(
+      'SELECT * FROM country_aliases WHERE country_id = $1 ORDER BY alias',
+      [countryId]
+    );
+  }
+
+  public async addAlias(countryId: number | string, alias: string): Promise<{ id: number }> {
+    const result = await db.run(
+      'INSERT INTO country_aliases (country_id, alias) VALUES ($1, $2) RETURNING id',
+      [countryId, alias.trim()]
+    );
+    return { id: result.rows[0].id };
+  }
+
+  public async removeAlias(aliasId: number | string): Promise<{ success: boolean }> {
+    const result = await db.run('DELETE FROM country_aliases WHERE id = $1', [aliasId]);
+    return { success: result.rowCount > 0 };
+  }
+
+  /**
+   * Find a country by checking its name, abbreviation, or aliases.
+   * Used for reverse-geocode country matching.
+   */
+  public async findCountryByAlias(name: string): Promise<Country | undefined> {
+    const lower = name.toLowerCase().trim();
+
+    // Check name or abbreviation first
+    let country = await db.get<Country>(
+      `SELECT * FROM countries
+       WHERE disabled_date IS NULL
+         AND (LOWER(name) = $1 OR LOWER(abbreviation) = $1)`,
+      [lower]
+    );
+    if (country) return country;
+
+    // Check aliases table
+    const aliasRow = await db.get<{ country_id: number }>(
+      `SELECT country_id FROM country_aliases WHERE LOWER(alias) = $1`,
+      [lower]
+    );
+    if (aliasRow) {
+      country = await db.get<Country>(
+        'SELECT * FROM countries WHERE id = $1 AND disabled_date IS NULL',
+        [aliasRow.country_id]
+      );
+    }
+    return country;
   }
 }
 

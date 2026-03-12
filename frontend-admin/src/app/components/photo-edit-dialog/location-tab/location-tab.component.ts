@@ -16,6 +16,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 import { MapComponent, MapMarker } from '@shared/components';
 import { CitiesService } from '../../../services/cities.service';
 import { CountriesService } from '../../../services/countries.service';
@@ -40,10 +43,13 @@ export interface CitySelectedEvent {
 @Component({
   selector: 'app-location-tab',
   imports: [
+    FormsModule,
     MatIconModule,
     MatButtonModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatFormFieldModule,
+    MatInputModule,
     MapComponent,
   ],
   templateUrl: './location-tab.component.html',
@@ -70,6 +76,12 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
   matchedCities = signal<City[]>([]);
   matchingCities = signal(false);
   assigned = signal(false);
+
+  // Edit location state
+  editingLocation = signal(false);
+  placingPin = signal(false);
+  latInput = signal<string>('');
+  lngInput = signal<string>('');
 
   // Country / state lookup for creating city
   private resolvedCountry = signal<Country | null>(null);
@@ -223,6 +235,52 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
     this.snackBar.open(`City set to "${city.name}"${stateSuffix}`, 'Close', { duration: 3000 });
   }
 
+  /**
+   * Common aliases: maps Nominatim country names to DB country names.
+   */
+  private static readonly COUNTRY_ALIASES: Record<string, string[]> = {
+    'united states of america': ['united states', 'usa', 'us'],
+    'united states': ['united states of america', 'usa', 'us'],
+    'united kingdom of great britain and northern ireland': [
+      'united kingdom',
+      'uk',
+      'great britain',
+    ],
+    'united kingdom': [
+      'united kingdom of great britain and northern ireland',
+      'uk',
+      'great britain',
+    ],
+    'republic of korea': ['south korea', 'korea'],
+    'south korea': ['republic of korea', 'korea'],
+    czechia: ['czech republic'],
+    'czech republic': ['czechia'],
+    "côte d'ivoire": ['ivory coast'],
+    'ivory coast': ["côte d'ivoire"],
+    'russian federation': ['russia'],
+    russia: ['russian federation'],
+  };
+
+  private matchCountryByName(name: string, countries: Country[]): Country | undefined {
+    const detected = name.toLowerCase();
+
+    // 1. Exact match
+    const exact = countries.find((c) => c.name.toLowerCase() === detected);
+    if (exact) return exact;
+
+    // 2. Check aliases
+    const aliases = LocationTabComponent.COUNTRY_ALIASES[detected] || [];
+    for (const alias of aliases) {
+      const match = countries.find((c) => c.name.toLowerCase() === alias);
+      if (match) return match;
+    }
+
+    // 3. Contains-based match (one contains the other)
+    return countries.find(
+      (c) => detected.includes(c.name.toLowerCase()) || c.name.toLowerCase().includes(detected)
+    );
+  }
+
   private resolveCountryAndStates(countryName: string): void {
     forkJoin({
       countries: this.countriesService.getAllCountries('name'),
@@ -231,9 +289,7 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: ({ countries, states }) => {
-          const match = countries.countries.find(
-            (c) => c.name.toLowerCase() === countryName.toLowerCase()
-          );
+          const match = this.matchCountryByName(countryName, countries.countries);
           this.resolvedCountry.set(match || null);
           this.allStates.set(states.states);
 
@@ -321,5 +377,78 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
           this.creatingCity.set(false);
         },
       });
+  }
+
+  // ── Location editing ──
+
+  startEditLocation(): void {
+    const lat = this.state.latitude();
+    const lng = this.state.longitude();
+    this.latInput.set(lat != null ? lat.toFixed(6) : '');
+    this.lngInput.set(lng != null ? lng.toFixed(6) : '');
+    this.editingLocation.set(true);
+    this.placingPin.set(false);
+  }
+
+  cancelEditLocation(): void {
+    this.editingLocation.set(false);
+    this.placingPin.set(false);
+  }
+
+  applyManualCoords(): void {
+    const lat = parseFloat(this.latInput());
+    const lng = parseFloat(this.lngInput());
+    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      this.snackBar.open('Invalid coordinates. Lat: -90 to 90, Lng: -180 to 180.', 'Close', {
+        duration: 4000,
+      });
+      return;
+    }
+    this.state.latitude.set(lat);
+    this.state.longitude.set(lng);
+    this.editingLocation.set(false);
+    this.placingPin.set(false);
+    // Reset reverse geocode so it re-runs
+    this.reverseGeo.set(null);
+    this.reverseGeoError.set(null);
+    this.assigned.set(false);
+    this.matchedCities.set([]);
+    this.snackBar.open('Location updated', 'Close', { duration: 2000 });
+    // Trigger reverse geocode lookup
+    setTimeout(() => this.lookupLocation(), 300);
+  }
+
+  togglePlacePin(): void {
+    this.placingPin.update((v) => !v);
+  }
+
+  onMapClick(event: { lat: number; lng: number }): void {
+    if (!this.placingPin() && !this.editingLocation()) return;
+    this.latInput.set(event.lat.toFixed(6));
+    this.lngInput.set(event.lng.toFixed(6));
+    // Auto-apply when clicking on map
+    this.state.latitude.set(event.lat);
+    this.state.longitude.set(event.lng);
+    this.placingPin.set(false);
+    this.editingLocation.set(false);
+    // Reset reverse geocode
+    this.reverseGeo.set(null);
+    this.reverseGeoError.set(null);
+    this.assigned.set(false);
+    this.matchedCities.set([]);
+    this.snackBar.open('Location set from map', 'Close', { duration: 2000 });
+    setTimeout(() => this.lookupLocation(), 300);
+  }
+
+  clearLocation(): void {
+    this.state.latitude.set(null);
+    this.state.longitude.set(null);
+    this.reverseGeo.set(null);
+    this.reverseGeoError.set(null);
+    this.matchedCities.set([]);
+    this.assigned.set(false);
+    this.editingLocation.set(false);
+    this.placingPin.set(false);
+    this.snackBar.open('Location cleared', 'Close', { duration: 2000 });
   }
 }

@@ -15,6 +15,79 @@
   overflow: hidden;
   border: 1px solid var(--mat-sys-outline-variant, #cac4d0);
   margin-bottom: 12px;
+  position: relative;
+
+  &.clickable {
+    border-color: var(--mat-sys-primary, #6750a4);
+    cursor: crosshair;
+
+    ::ng-deep .leaflet-container {
+      cursor: crosshair !important;
+    }
+  }
+}
+
+.map-click-hint {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--mat-sys-primary, #6750a4);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.location-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.clear-btn {
+  color: var(--mat-sys-error, #b3261e);
+}
+
+.edit-coords-form {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  .coord-field {
+    flex: 1;
+  }
+}
+
+.edit-coords-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+
+  .active {
+    background: var(--mat-sys-primary-container, #eaddff);
+    color: var(--mat-sys-on-primary-container, #21005d);
+  }
+}
+
+.add-location-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 4px;
 }
 
 .location-coords {
