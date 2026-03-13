@@ -21,10 +21,36 @@ export class PhotoMapComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   username = signal('');
-  photos = signal<MapPhoto[]>([]);
+  private allPhotos = signal<MapPhoto[]>([]);
+  selectedYear = signal<number | null>(null);
   loading = signal(true);
   error = signal<string | null>(null);
   title = signal('Photos on Map');
+
+  /** Available years derived from loaded photos, sorted descending */
+  availableYears = computed<number[]>(() => {
+    const years = new Set<number>();
+    for (const photo of this.allPhotos()) {
+      const dateStr = photo.created_date || photo.created_at;
+      if (dateStr) {
+        const year = new Date(dateStr).getFullYear();
+        if (!isNaN(year)) years.add(year);
+      }
+    }
+    return Array.from(years).sort((a, b) => b - a);
+  });
+
+  /** Photos filtered by selected year */
+  photos = computed<MapPhoto[]>(() => {
+    const year = this.selectedYear();
+    const all = this.allPhotos();
+    if (!year) return all;
+    return all.filter((p) => {
+      const dateStr = p.created_date || p.created_at;
+      if (!dateStr) return false;
+      return new Date(dateStr).getFullYear() === year;
+    });
+  });
 
   markers = computed<MapMarker[]>(() => {
     const photos = this.photos();
@@ -67,6 +93,10 @@ export class PhotoMapComponent implements OnInit {
     this.location.back();
   }
 
+  onYearChange(year: number | null): void {
+    this.selectedYear.set(year);
+  }
+
   ngOnInit(): void {
     let currentRoute: ActivatedRoute | null = this.route;
     while (currentRoute) {
@@ -89,6 +119,8 @@ export class PhotoMapComponent implements OnInit {
           this.photoService.getPhotosForMap({
             city: params['city'] || undefined,
             attraction: params['attraction'] || undefined,
+            country: params['country'] || undefined,
+            state: params['state'] || undefined,
           })
         ),
         catchError(() => {
@@ -98,7 +130,8 @@ export class PhotoMapComponent implements OnInit {
         })
       )
       .subscribe((response) => {
-        this.photos.set(response.photos);
+        this.allPhotos.set(response.photos);
+        this.selectedYear.set(null);
         if (response.entityName) {
           this.title.set(`${response.entityName} — Photos`);
         } else {

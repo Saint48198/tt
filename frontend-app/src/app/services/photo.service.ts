@@ -40,13 +40,24 @@ export class PhotoService {
    * Get photos with location data for map display.
    * Optionally filter by city or attraction slug name.
    */
-  getPhotosForMap(opts?: { city?: string; attraction?: string }): Observable<MapPhotosResponse> {
+  getPhotosForMap(opts?: {
+    city?: string;
+    attraction?: string;
+    country?: string;
+    state?: string;
+  }): Observable<MapPhotosResponse> {
     let params = new HttpParams();
     if (opts?.city) {
       params = params.set('city', opts.city);
     }
     if (opts?.attraction) {
       params = params.set('attraction', opts.attraction);
+    }
+    if (opts?.country) {
+      params = params.set('country', opts.country);
+    }
+    if (opts?.state) {
+      params = params.set('state', opts.state);
     }
     return this.http
       .get<MapPhotosResponse>('/api/photos/map', { params })

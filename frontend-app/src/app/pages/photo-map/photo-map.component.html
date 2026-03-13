@@ -33,6 +33,20 @@
         </svg>
         {{ title() }}
       </h2>
+      @if (availableYears().length > 1) {
+        <select
+          class="year-filter"
+          [value]="selectedYear() ?? ''"
+          (change)="
+            onYearChange($any($event.target).value === '' ? null : +$any($event.target).value)
+          "
+        >
+          <option value="">All Years</option>
+          @for (year of availableYears(); track year) {
+            <option [value]="year">{{ year }}</option>
+          }
+        </select>
+      }
       <span class="photo-count">{{ photos().length }} photos</span>
     </div>
     <lib-map

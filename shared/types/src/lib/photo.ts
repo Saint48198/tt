@@ -33,6 +33,7 @@ export interface MapPhoto {
   state_name: string | null;
   photo_id: string | null;
   created_at: string;
+  created_date: string | null;
 }
 
 export interface MapPhotosResponse {

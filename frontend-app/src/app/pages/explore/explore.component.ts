@@ -89,6 +89,20 @@ export class ExploreComponent implements OnInit, OnDestroy {
   private baseUrl = computed(() => `/${this.username()}/explore`);
   photoMapLink = computed(() => `/${this.username()}/explore/photo-map`);
 
+  /** Query params to filter photo map by selected country/state */
+  photoMapQueryParams = computed<Record<string, string>>(() => {
+    const params: Record<string, string> = {};
+    const country = this.selectedCountry();
+    if (country) {
+      params['country'] = country.abbreviation || country.name;
+    }
+    const state = this.selectedState();
+    if (state) {
+      params['state'] = state.abbr || state.name;
+    }
+    return params;
+  });
+
   /** Map markers for the country page — show cities as pins when on states or cities level */
   countryMapMarkers = computed<MapMarker[]>(() => {
     const lvl = this.level();

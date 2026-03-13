@@ -30,7 +30,40 @@ router.get('/api/photos/map', async (req: Request, res: Response) => {
   try {
     let cityId: number | undefined;
     let attractionId: number | undefined;
+    let countryId: number | undefined;
+    let stateId: number | undefined;
     let entityName: string | undefined;
+
+    // Resolve country slug to country ID
+    const countrySlug = req.query.country as string | undefined;
+    if (countrySlug) {
+      const country = await db.get<{ id: number; name: string }>(
+        'SELECT id, name FROM countries WHERE (LOWER(abbreviation) = LOWER($1) OR LOWER(name) = LOWER($1)) AND disabled_date IS NULL',
+        [countrySlug]
+      );
+      if (country) {
+        countryId = country.id;
+        entityName = country.name;
+      }
+    }
+
+    // Resolve state slug to state ID
+    const stateSlug = req.query.state as string | undefined;
+    if (stateSlug) {
+      const stateName = stateSlug.replace(/-/g, ' ');
+      let stateQuery =
+        'SELECT id, name FROM states WHERE (LOWER(abbr) = LOWER($1) OR LOWER(name) = LOWER($1)) AND disabled_date IS NULL';
+      const stateParams: (string | number)[] = [stateName];
+      if (countryId) {
+        stateQuery += ' AND country_id = $2';
+        stateParams.push(countryId);
+      }
+      const state = await db.get<{ id: number; name: string }>(stateQuery, stateParams);
+      if (state) {
+        stateId = state.id;
+        entityName = state.name;
+      }
+    }
 
     // Resolve city slug to city ID
     const citySlug = req.query.city as string | undefined;
@@ -60,7 +93,7 @@ router.get('/api/photos/map', async (req: Request, res: Response) => {
       }
     }
 
-    const photos = await photoService.getPhotosForMap({ cityId, attractionId });
+    const photos = await photoService.getPhotosForMap({ cityId, attractionId, countryId, stateId });
     return res.status(200).json({ photos, entityName });
   } catch (error) {
     console.error('Failed to fetch photos for map:', error);

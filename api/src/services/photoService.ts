@@ -1327,7 +1327,12 @@ class PhotoService {
    * Get all photos that have location data (own lat/lng or from their associated city/attraction).
    * Returns photos with resolved coordinates for map display.
    */
-  public async getPhotosForMap(opts?: { cityId?: number; attractionId?: number }): Promise<
+  public async getPhotosForMap(opts?: {
+    cityId?: number;
+    attractionId?: number;
+    countryId?: number;
+    stateId?: number;
+  }): Promise<
     Array<{
       id: number;
       url: string;
@@ -1340,6 +1345,7 @@ class PhotoService {
       state_name: string | null;
       photo_id: string | null;
       created_at: string;
+      created_date: string | null;
     }>
   > {
     await this.ensureTable();
@@ -1355,9 +1361,17 @@ class PhotoService {
       params.push(opts.attractionId);
       conditions.push(`p.attraction_id = $${params.length}`);
     }
+    if (opts?.countryId) {
+      params.push(opts.countryId);
+      conditions.push(`p.country_id = $${params.length}`);
+    }
+    if (opts?.stateId) {
+      params.push(opts.stateId);
+      conditions.push(`p.state_id = $${params.length}`);
+    }
 
     const rows = await db.all<any>(
-      `SELECT p.id, p.url, p.photo_id, p.caption, p.created_at,
+      `SELECT p.id, p.url, p.photo_id, p.caption, p.created_at, p.created_date,
               p.latitude AS photo_lat, p.longitude AS photo_lng,
               c.name AS city_name, c.lat AS city_lat, c.lng AS city_lng,
               a.name AS attraction_name, a.lat AS attraction_lat, a.lng AS attraction_lng,
@@ -1390,6 +1404,7 @@ class PhotoService {
         state_name: row.state_name || null,
         photo_id: row.photo_id || null,
         created_at: row.created_at,
+        created_date: row.created_date || null,
       });
     }
     return result;
