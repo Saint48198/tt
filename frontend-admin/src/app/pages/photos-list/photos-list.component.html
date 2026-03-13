@@ -9,7 +9,7 @@
     <div class="page-header-right">
       <mat-button-toggle-group
         [value]="viewMode()"
-        (change)="viewMode.set($event.value)"
+        (change)="onViewModeChange($event.value)"
         aria-label="View mode"
         hideSingleSelectionIndicator
       >
@@ -137,7 +137,11 @@
           (click)="toggleDateSort()"
           matTooltip="{{ dateSortOrder() === 'asc' ? 'Oldest first' : 'Newest first' }}"
         >
-          <i class="fa-solid {{ dateSortOrder() === 'asc' ? 'fa-arrow-up-1-9' : 'fa-arrow-down-1-9' }}"></i>
+          <i
+            class="fa-solid {{
+              dateSortOrder() === 'asc' ? 'fa-arrow-up-1-9' : 'fa-arrow-down-1-9'
+            }}"
+          ></i>
         </button>
       </div>
 

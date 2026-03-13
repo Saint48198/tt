@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { filter, switchMap, catchError } from 'rxjs/operators';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
@@ -74,6 +75,8 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   photos = signal<AdminPhoto[]>([]);
   total = signal(0);
@@ -140,13 +143,51 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
   @ViewChild('scrollSentinel') scrollSentinel!: ElementRef<HTMLDivElement>;
 
   ngOnInit(): void {
-    this.loadPhotos();
+    const params = this.route.snapshot.queryParamMap;
+
+    // Restore filters from URL
+    const country = params.get('country');
+    if (country) this.countryFilter.set(+country);
+    const state = params.get('state');
+    if (state) this.stateFilter.set(+state);
+    const city = params.get('city');
+    if (city) this.cityFilter.set(+city);
+    const attraction = params.get('attraction');
+    if (attraction) this.attractionFilter.set(+attraction);
+    if (params.get('unassigned') === '1') this.unassignedFilter.set(true);
+    if (params.get('noTags') === '1') this.tagsFilter.set(true);
+    const sortBy = params.get('sortBy');
+    if (sortBy === 'created_date' || sortBy === 'updated_date' || sortBy === 'created_at') {
+      this.dateSortField.set(sortBy);
+    }
+    const sortOrder = params.get('sortOrder');
+    if (sortOrder === 'asc' || sortOrder === 'desc') {
+      this.dateSortOrder.set(sortOrder);
+    }
+    const view = params.get('view');
+    if (view === 'masonry' || view === 'list') {
+      this.viewMode.set(view);
+    }
+
+    const pageParam = params.get('page');
+    const initialPage = pageParam ? Math.max(1, parseInt(pageParam, 10) || 1) : 1;
+
+    if (initialPage > 1) {
+      this.loadPhotosUpToPage(initialPage);
+    } else {
+      this.loadPhotos();
+    }
     this.loadAllEntityOptions();
   }
 
   ngAfterViewInit(): void {
     this.setupScrollObserver();
     this.destroyRef.onDestroy(() => this.scrollObserver?.disconnect());
+
+    // Sync paginator with the initial page from URL
+    if (this.paginator && this.currentPage > 1) {
+      this.paginator.pageIndex = this.currentPage - 1;
+    }
   }
 
   private setupScrollObserver(): void {
@@ -176,9 +217,66 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /** Sync all filter state and page number to URL query params */
+  private updateUrlParams(): void {
+    const page = this.currentPage;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        page: page > 1 ? page : null,
+        country: this.countryFilter() || null,
+        state: this.stateFilter() || null,
+        city: this.cityFilter() || null,
+        attraction: this.attractionFilter() || null,
+        unassigned: this.unassignedFilter() ? '1' : null,
+        noTags: this.tagsFilter() ? '1' : null,
+        sortBy: this.dateSortField() !== 'created_at' ? this.dateSortField() : null,
+        sortOrder: this.dateSortOrder() !== 'desc' ? this.dateSortOrder() : null,
+        view: this.viewMode() !== 'masonry' ? this.viewMode() : null,
+      },
+      replaceUrl: true,
+    });
+  }
+
+  /** Load all pages from 1..targetPage to restore masonry scroll position */
+  private loadPhotosUpToPage(targetPage: number): void {
+    this.loading.set(true);
+    const limit = this.pageSize;
+
+    this.photosService
+      .getAllPhotos({
+        page: 1,
+        limit: limit * targetPage,
+        entityType: this.activeEntityType,
+        entityId: this.activeEntityId,
+        noTags: this.tagsFilter(),
+        sortBy: this.dateSortField(),
+        sortOrder: this.dateSortOrder(),
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.currentPage = targetPage;
+          this.updateUrlParams();
+          this.photos.set(response.photos);
+          this.total.set(response.total);
+          this.hasMore.set(response.photos.length < response.total);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.snackBar.open(err?.error?.message || 'Failed to load photos', 'Close', {
+            duration: 5000,
+            panelClass: 'error-snackbar',
+          });
+          this.loading.set(false);
+        },
+      });
+  }
+
   loadPhotos(page = 1, limit = this.pageSize): void {
     this.loading.set(true);
     this.currentPage = page;
+    this.updateUrlParams();
 
     this.photosService
       .getAllPhotos({
@@ -228,6 +326,7 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (response) => {
           this.currentPage = nextPage;
+          this.updateUrlParams();
           this.photos.update((current) => [...current, ...response.photos]);
           this.total.set(response.total);
           this.hasMore.set(
@@ -284,6 +383,11 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
   toggleDateSort(): void {
     this.dateSortOrder.update((current) => (current === 'asc' ? 'desc' : 'asc'));
     this.onFilterChange();
+  }
+
+  onViewModeChange(mode: 'masonry' | 'list'): void {
+    this.viewMode.set(mode);
+    this.updateUrlParams();
   }
 
   clearFilters(): void {
