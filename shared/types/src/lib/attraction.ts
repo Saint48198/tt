@@ -1,3 +1,9 @@
+export interface AttractionType {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 export interface Attraction {
   id: number;
   name: string;
@@ -8,8 +14,7 @@ export interface Attraction {
   country_id?: number;
   state_id?: number | null;
   state_name?: string;
-  is_unesco?: boolean;
-  is_national_park?: boolean;
+  types?: AttractionType[];
   last_visited?: string;
   created_date?: string;
   updated_date?: string;
@@ -40,8 +45,7 @@ export interface CreateAttractionRequest {
   state_id?: number | null;
   lat: number;
   lng: number;
-  is_unesco?: boolean;
-  is_national_park?: boolean;
+  type_ids?: number[];
   last_visited?: string;
   wiki_term?: string;
 }

@@ -258,7 +258,7 @@
         @for (attraction of attractions(); track attraction.id) {
           <button class="explore-card" (click)="onAttractionClick(attraction)">
             <div class="card-icon">
-              @if (attraction.is_unesco) {
+              @if (hasType(attraction, 'unesco')) {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
                   <circle cx="16" cy="16" r="16" fill="#667eea" />
                   <path
@@ -266,8 +266,10 @@
                     fill="#fff"
                   />
                 </svg>
-              } @else if (attraction.is_national_park) {
+              } @else if (hasType(attraction, 'national-park')) {
                 🌲
+              } @else if (hasType(attraction, 'state-park')) {
+                🏞️
               } @else {
                 🏰
               }
@@ -275,11 +277,8 @@
             <div class="card-content">
               <h3>{{ attraction.name }}</h3>
               <div class="card-tags">
-                @if (attraction.is_unesco) {
-                  <span class="tag tag-unesco">UNESCO</span>
-                }
-                @if (attraction.is_national_park) {
-                  <span class="tag tag-park">National Park</span>
+                @for (type of attraction.types; track type.id) {
+                  <span class="tag tag-{{ type.slug }}">{{ type.name }}</span>
                 }
               </div>
               @if (attraction.last_visited) {

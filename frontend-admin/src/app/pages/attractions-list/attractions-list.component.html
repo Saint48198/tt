@@ -69,13 +69,11 @@
         <th mat-header-cell *matHeaderCellDef>Type</th>
         <td mat-cell *matCellDef="let attraction">
           <div class="tags">
-            @if (attraction.is_national_park) {
-              <mat-chip class="park-chip">National Park</mat-chip>
-            }
-            @if (attraction.is_unesco) {
-              <mat-chip class="unesco-chip">UNESCO</mat-chip>
-            }
-            @if (!attraction.is_national_park && !attraction.is_unesco) {
+            @if (attraction.types?.length) {
+              @for (type of attraction.types; track type.id) {
+                <mat-chip class="type-chip" [attr.data-slug]="type.slug">{{ type.name }}</mat-chip>
+              }
+            } @else {
               <span class="no-tags">-</span>
             }
           </div>

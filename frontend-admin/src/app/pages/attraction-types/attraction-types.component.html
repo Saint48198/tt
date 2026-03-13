@@ -1,0 +1,108 @@
+<div class="attraction-types-page">
+  <div class="page-header">
+    <h1>Attraction Types</h1>
+  </div>
+
+  <div class="add-type-section mat-elevation-z2">
+    <h2>Add New Type</h2>
+    <div class="add-type-form">
+      <mat-form-field appearance="outline" class="type-input">
+        <mat-label>Type Name</mat-label>
+        <input
+          matInput
+          [value]="newTypeName()"
+          (input)="newTypeName.set($any($event.target).value)"
+          (keyup.enter)="addType()"
+          placeholder="e.g. National Monument"
+        />
+      </mat-form-field>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="addType()"
+        [disabled]="!newTypeName().trim()"
+      >
+        <mat-icon>add</mat-icon>
+        Add Type
+      </button>
+    </div>
+  </div>
+
+  <div class="table-container mat-elevation-z2">
+    @if (loading()) {
+      <div class="loading-overlay">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
+
+    <table mat-table [dataSource]="dataSource">
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let type">
+          @if (editingId() === type.id) {
+            <mat-form-field appearance="outline" class="inline-edit">
+              <input
+                matInput
+                [value]="editingName()"
+                (input)="editingName.set($any($event.target).value)"
+                (keyup.enter)="saveEdit(type)"
+                (keyup.escape)="cancelEditing()"
+              />
+            </mat-form-field>
+          } @else {
+            {{ type.name }}
+          }
+        </td>
+      </ng-container>
+
+      <!-- Slug Column -->
+      <ng-container matColumnDef="slug">
+        <th mat-header-cell *matHeaderCellDef>Slug</th>
+        <td mat-cell *matCellDef="let type">
+          <code class="slug">{{ type.slug }}</code>
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let type">
+          @if (editingId() === type.id) {
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="saveEdit(type)"
+              matTooltip="Save"
+              [disabled]="!editingName().trim()"
+            >
+              <mat-icon>check</mat-icon>
+            </button>
+            <button mat-icon-button (click)="cancelEditing()" matTooltip="Cancel">
+              <mat-icon>close</mat-icon>
+            </button>
+          } @else {
+            <button mat-icon-button (click)="startEditing(type)" matTooltip="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteType(type)" matTooltip="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          }
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+      <!-- No Data Row -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell empty-state" [attr.colspan]="displayedColumns.length">
+          @if (!loading()) {
+            No attraction types found. Add one above.
+          }
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>

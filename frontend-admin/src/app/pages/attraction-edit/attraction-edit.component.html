@@ -106,13 +106,15 @@
         </button>
       </div>
 
-      <div class="form-row checkbox-row">
-        <mat-checkbox formControlName="is_unesco" color="primary"
-          >UNESCO World Heritage Site</mat-checkbox
-        >
-        <mat-checkbox formControlName="is_national_park" color="primary"
-          >National Park</mat-checkbox
-        >
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="form-field full-width">
+          <mat-label>Types</mat-label>
+          <mat-select formControlName="type_ids" multiple placeholder="Select types">
+            @for (type of attractionTypes(); track type.id) {
+              <mat-option [value]="type.id">{{ type.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
       </div>
 
       <div class="form-row">

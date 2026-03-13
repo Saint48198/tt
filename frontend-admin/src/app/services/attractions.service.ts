@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   Attraction,
+  AttractionType,
   AttractionListResponse,
   AttractionListParams,
   CreateAttractionRequest,
@@ -15,6 +16,34 @@ import {
 export class AttractionsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = '/api/attractions';
+
+  /**
+   * Get all attraction types
+   */
+  getAttractionTypes(): Observable<{ types: AttractionType[] }> {
+    return this.http.get<{ types: AttractionType[] }>('/api/attraction-types');
+  }
+
+  /**
+   * Create a new attraction type
+   */
+  createAttractionType(name: string): Observable<AttractionResponse> {
+    return this.http.post<AttractionResponse>('/api/attraction-types', { name });
+  }
+
+  /**
+   * Update an attraction type
+   */
+  updateAttractionType(id: number, name: string): Observable<AttractionResponse> {
+    return this.http.put<AttractionResponse>(`/api/attraction-types/${id}`, { name });
+  }
+
+  /**
+   * Delete an attraction type
+   */
+  deleteAttractionType(id: number): Observable<AttractionResponse> {
+    return this.http.delete<AttractionResponse>(`/api/attraction-types/${id}`);
+  }
 
   /**
    * Get paginated list of attractions with optional filtering and sorting

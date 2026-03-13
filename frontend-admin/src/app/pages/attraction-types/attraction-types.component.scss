@@ -1,4 +1,4 @@
-.attractions-list-page {
+.attraction-types-page {
   padding: 1.5rem;
 }
 
@@ -13,30 +13,33 @@
     font-size: 1.5rem;
     color: #1f2937;
   }
+}
 
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
+.add-type-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 
-  button mat-icon {
-    margin-right: 0.5rem;
+  h2 {
+    margin: 0 0 1rem 0;
+    font-size: 1.125rem;
+    color: #1f2937;
   }
 }
 
-.search-bar {
+.add-type-form {
   display: flex;
   gap: 1rem;
-  margin-bottom: 1rem;
+  align-items: flex-start;
 
-  .search-field {
+  .type-input {
     flex: 1;
+    max-width: 400px;
   }
 
-  .country-filter {
-    width: 240px;
-    flex-shrink: 0;
+  button {
+    margin-top: 4px;
   }
 }
 
@@ -87,44 +90,18 @@
   color: #9ca3af;
 }
 
-.mat-mdc-paginator {
-  border-top: 1px solid #e5e7eb;
+.slug {
+  background: #f3f4f6;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: #6b7280;
 }
 
-.tags {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+.inline-edit {
+  width: 100%;
 
-  .no-tags {
-    color: #9ca3af;
-  }
-}
-
-.type-chip {
-  font-size: 0.75rem;
-
-  &[data-slug='unesco'] {
-    --mdc-chip-elevated-container-color: #fef3c7;
-    --mdc-chip-label-text-color: #92400e;
-  }
-
-  &[data-slug='national-park'] {
-    --mdc-chip-elevated-container-color: #d1fae5;
-    --mdc-chip-label-text-color: #065f46;
-  }
-
-  &[data-slug='state-park'] {
-    --mdc-chip-elevated-container-color: #e0e7ff;
-    --mdc-chip-label-text-color: #3730a3;
-  }
-}
-
-.disabled-row {
-  opacity: 0.5;
-  background: #fef2f2;
-
-  &:hover {
-    background: #fee2e2;
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
   }
 }

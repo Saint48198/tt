@@ -119,8 +119,6 @@ async function init() {
         lng DOUBLE PRECISION NOT NULL,
         country_id INTEGER NOT NULL,
         state_id INTEGER,
-        is_unesco BOOLEAN DEFAULT FALSE,
-        is_national_park BOOLEAN DEFAULT FALSE,
         wiki_term TEXT,
         last_visited TIMESTAMP,
         created_date TIMESTAMP DEFAULT NOW(),
@@ -128,6 +126,35 @@ async function init() {
         disabled_date TIMESTAMP,
         FOREIGN KEY (country_id) REFERENCES countries(id),
         FOREIGN KEY (state_id) REFERENCES states(id)
+      );
+    `);
+
+    // attraction_types TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS attraction_types (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        slug TEXT NOT NULL UNIQUE
+      );
+    `);
+
+    // Seed default attraction types
+    await client.query(`
+      INSERT INTO attraction_types (name, slug) VALUES
+        ('UNESCO', 'unesco'),
+        ('National Park', 'national-park'),
+        ('State Park', 'state-park')
+      ON CONFLICT (slug) DO NOTHING;
+    `);
+
+    // attraction_type_assignments TABLE (many-to-many)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS attraction_type_assignments (
+        attraction_id INTEGER NOT NULL,
+        type_id INTEGER NOT NULL,
+        FOREIGN KEY (attraction_id) REFERENCES attractions(id) ON DELETE CASCADE,
+        FOREIGN KEY (type_id) REFERENCES attraction_types(id) ON DELETE CASCADE,
+        PRIMARY KEY (attraction_id, type_id)
       );
     `);
 

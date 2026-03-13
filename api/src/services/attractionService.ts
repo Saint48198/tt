@@ -1,10 +1,15 @@
 import { db } from '../db';
 
+interface AttractionType {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 interface Attraction {
   id: number;
   name: string;
-  is_unesco: boolean;
-  is_national_park: boolean;
+  types: AttractionType[];
   lat: number;
   lng: number;
   last_visited?: string;
@@ -33,8 +38,7 @@ interface CreateAttractionData {
   name: string;
   country_id: number;
   state_id?: number | null;
-  is_unesco?: boolean;
-  is_national_park?: boolean;
+  type_ids?: number[];
   lat: number;
   lng: number;
   last_visited?: string;
@@ -45,8 +49,7 @@ interface UpdateAttractionData {
   name?: string;
   country_id?: number;
   state_id?: number | null;
-  is_unesco?: boolean;
-  is_national_park?: boolean;
+  type_ids?: number[];
   lat?: number;
   lng?: number;
   last_visited?: string;
@@ -74,6 +77,103 @@ class AttractionService {
       AttractionService.instance = new AttractionService();
     }
     return AttractionService.instance;
+  }
+
+  /**
+   * Get all attraction types
+   */
+  public async getAttractionTypes(): Promise<AttractionType[]> {
+    return db.all<AttractionType>('SELECT id, name, slug FROM attraction_types ORDER BY name', []);
+  }
+
+  private slugify(name: string): string {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  /**
+   * Create a new attraction type
+   */
+  public async createAttractionType(name: string): Promise<{ id: number }> {
+    const slug = this.slugify(name);
+    const existing = await db.get<AttractionType>(
+      'SELECT id FROM attraction_types WHERE slug = $1',
+      [slug]
+    );
+    if (existing) throw new Error('Type with this name already exists.');
+    const result = await db.run(
+      'INSERT INTO attraction_types (name, slug) VALUES ($1, $2) RETURNING id',
+      [name, slug]
+    );
+    return { id: result.rows[0].id };
+  }
+
+  /**
+   * Update an attraction type
+   */
+  public async updateAttractionType(id: number, name: string): Promise<{ success: boolean }> {
+    const slug = this.slugify(name);
+    const existing = await db.get<AttractionType>(
+      'SELECT id FROM attraction_types WHERE slug = $1 AND id != $2',
+      [slug, id]
+    );
+    if (existing) throw new Error('Type with this name already exists.');
+    const result = await db.run('UPDATE attraction_types SET name = $1, slug = $2 WHERE id = $3', [
+      name,
+      slug,
+      id,
+    ]);
+    return { success: result.rowCount > 0 };
+  }
+
+  /**
+   * Delete an attraction type (and its assignments)
+   */
+  public async deleteAttractionType(id: number): Promise<{ success: boolean }> {
+    await db.run('DELETE FROM attraction_type_assignments WHERE type_id = $1', [id]);
+    const result = await db.run('DELETE FROM attraction_types WHERE id = $1', [id]);
+    return { success: result.rowCount > 0 };
+  }
+
+  /**
+   * Attach types array to each attraction by querying the junction table.
+   */
+  private async attachTypes(attractions: Attraction[]): Promise<void> {
+    if (attractions.length === 0) return;
+    const ids = attractions.map((a) => a.id);
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const rows = await db.all<{ attraction_id: number; id: number; name: string; slug: string }>(
+      `SELECT ata.attraction_id, at.id, at.name, at.slug
+       FROM attraction_type_assignments ata
+       JOIN attraction_types at ON ata.type_id = at.id
+       WHERE ata.attraction_id IN (${placeholders})`,
+      ids
+    );
+    const typeMap = new Map<number, AttractionType[]>();
+    for (const row of rows) {
+      if (!typeMap.has(row.attraction_id)) typeMap.set(row.attraction_id, []);
+      typeMap.get(row.attraction_id)!.push({ id: row.id, name: row.name, slug: row.slug });
+    }
+    for (const a of attractions) {
+      a.types = typeMap.get(a.id) || [];
+    }
+  }
+
+  /**
+   * Replace all type assignments for an attraction.
+   */
+  private async setTypes(attractionId: number, typeIds: number[]): Promise<void> {
+    await db.run('DELETE FROM attraction_type_assignments WHERE attraction_id = $1', [
+      attractionId,
+    ]);
+    for (const typeId of typeIds) {
+      await db.run(
+        'INSERT INTO attraction_type_assignments (attraction_id, type_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [attractionId, typeId]
+      );
+    }
   }
 
   public async getAttractions(options: ListAttractionsOptions): Promise<{
@@ -126,8 +226,7 @@ class AttractionService {
 
     const query = `
       SELECT attractions.id, attractions.name, attractions.lat, attractions.lng,
-             attractions.wiki_term, attractions.is_unesco, attractions.is_national_park,
-             attractions.state_id,
+             attractions.wiki_term, attractions.state_id,
              attractions.created_date, attractions.updated_date, attractions.disabled_date,
              countries.name AS country_name,
              states.name AS state_name
@@ -140,6 +239,7 @@ class AttractionService {
     params.push(limit, offset);
 
     const attractions = await db.all<Attraction>(query, params);
+    await this.attachTypes(attractions);
 
     const countParams: any[] = [];
     let countParamIdx = 1;
@@ -174,8 +274,8 @@ class AttractionService {
   }
 
   public async getAttractionById(id: number | string): Promise<Attraction | undefined> {
-    return db.get<Attraction>(
-      `SELECT attractions.id, attractions.name, attractions.is_unesco, attractions.is_national_park,
+    const attraction = await db.get<Attraction>(
+      `SELECT attractions.id, attractions.name,
               attractions.lat, attractions.lng, attractions.last_visited, attractions.wiki_term,
               attractions.state_id,
               attractions.created_date, attractions.updated_date, attractions.disabled_date,
@@ -187,69 +287,39 @@ class AttractionService {
        WHERE attractions.id = $1 AND attractions.disabled_date IS NULL`,
       [id]
     );
+    if (attraction) {
+      await this.attachTypes([attraction]);
+    }
+    return attraction;
   }
 
   public async createAttraction(data: CreateAttractionData): Promise<{ id: number }> {
-    const {
-      name,
-      country_id,
-      state_id,
-      is_unesco,
-      is_national_park,
-      lat,
-      lng,
-      last_visited,
-      wiki_term,
-    } = data;
+    const { name, country_id, state_id, type_ids, lat, lng, last_visited, wiki_term } = data;
     const result = await db.run(
-      `INSERT INTO attractions (name, country_id, state_id, is_unesco, is_national_park, lat, lng, last_visited, wiki_term)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id`,
-      [
-        name,
-        country_id,
-        state_id || null,
-        !!is_unesco,
-        !!is_national_park,
-        lat,
-        lng,
-        last_visited || null,
-        wiki_term,
-      ]
+      `INSERT INTO attractions (name, country_id, state_id, lat, lng, last_visited, wiki_term)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+      [name, country_id, state_id || null, lat, lng, last_visited || null, wiki_term]
     );
-    return { id: result.rows[0].id };
+    const attractionId = result.rows[0].id;
+    if (type_ids && type_ids.length > 0) {
+      await this.setTypes(attractionId, type_ids);
+    }
+    return { id: attractionId };
   }
 
   public async updateAttraction(
     id: number | string,
     data: UpdateAttractionData
   ): Promise<{ success: boolean; changes: number }> {
-    const {
-      name,
-      country_id,
-      state_id,
-      is_unesco,
-      is_national_park,
-      lat,
-      lng,
-      last_visited,
-      wiki_term,
-    } = data;
+    const { name, country_id, state_id, type_ids, lat, lng, last_visited, wiki_term } = data;
     const result = await db.run(
-      `UPDATE attractions SET name=$1, country_id=$2, state_id=$3, is_unesco=$4, is_national_park=$5,
-       lat=$6, lng=$7, last_visited=$8, wiki_term=$9, updated_date=NOW() WHERE id=$10`,
-      [
-        name,
-        country_id,
-        state_id ?? null,
-        !!is_unesco,
-        !!is_national_park,
-        lat,
-        lng,
-        last_visited || null,
-        wiki_term,
-        id,
-      ]
+      `UPDATE attractions SET name=$1, country_id=$2, state_id=$3,
+       lat=$4, lng=$5, last_visited=$6, wiki_term=$7, updated_date=NOW() WHERE id=$8`,
+      [name, country_id, state_id ?? null, lat, lng, last_visited || null, wiki_term, id]
     );
+    if (type_ids !== undefined) {
+      await this.setTypes(Number(id), type_ids);
+    }
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 

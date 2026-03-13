@@ -3,6 +3,68 @@ import { attractionService } from '../services/attractionService';
 
 const router = Router();
 
+// GET /api/attraction-types
+router.get('/api/attraction-types', async (_req: Request, res: Response) => {
+  try {
+    const types = await attractionService.getAttractionTypes();
+    return res.status(200).json({ types });
+  } catch (error) {
+    console.error('Failed to fetch attraction types:', error);
+    return res.status(500).json({ error: 'Failed to fetch attraction types.' });
+  }
+});
+
+// POST /api/attraction-types
+router.post('/api/attraction-types', async (req: Request, res: Response) => {
+  const { name } = req.body;
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Name is required.' });
+  }
+  try {
+    const result = await attractionService.createAttractionType(name.trim());
+    return res.status(201).json({ message: 'Type created.', id: result.id });
+  } catch (error) {
+    console.error('Failed to create attraction type:', error);
+    const msg = error instanceof Error ? error.message : 'Failed to create attraction type.';
+    return res.status(msg.includes('already exists') ? 409 : 500).json({ error: msg });
+  }
+});
+
+// PUT /api/attraction-types/:id
+router.put('/api/attraction-types/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name } = req.body;
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Name is required.' });
+  }
+  try {
+    const result = await attractionService.updateAttractionType(Number(id), name.trim());
+    if (!result.success) {
+      return res.status(404).json({ error: 'Type not found.' });
+    }
+    return res.status(200).json({ message: 'Type updated.' });
+  } catch (error) {
+    console.error('Failed to update attraction type:', error);
+    const msg = error instanceof Error ? error.message : 'Failed to update attraction type.';
+    return res.status(msg.includes('already exists') ? 409 : 500).json({ error: msg });
+  }
+});
+
+// DELETE /api/attraction-types/:id
+router.delete('/api/attraction-types/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const result = await attractionService.deleteAttractionType(Number(id));
+    if (!result.success) {
+      return res.status(404).json({ error: 'Type not found.' });
+    }
+    return res.status(200).json({ message: 'Type deleted.' });
+  } catch (error) {
+    console.error('Failed to delete attraction type:', error);
+    return res.status(500).json({ error: 'Failed to delete attraction type.' });
+  }
+});
+
 // GET /api/attractions
 router.get('/api/attractions', async (req: Request, res: Response) => {
   const { country_id, state_id, search, page, limit, sortBy, sortOrder, includeDisabled } =
@@ -49,17 +111,7 @@ router.get('/api/attractions', async (req: Request, res: Response) => {
 
 // POST /api/attractions
 router.post('/api/attractions', async (req: Request, res: Response) => {
-  const {
-    name,
-    country_id,
-    state_id,
-    is_unesco,
-    is_national_park,
-    lat,
-    lng,
-    last_visited,
-    wiki_term,
-  } = req.body;
+  const { name, country_id, state_id, type_ids, lat, lng, last_visited, wiki_term } = req.body;
 
   if (!name || !country_id || !lat || !lng) {
     return res.status(400).json({
@@ -72,8 +124,7 @@ router.post('/api/attractions', async (req: Request, res: Response) => {
       name,
       country_id: Number(country_id),
       state_id: state_id ? Number(state_id) : null,
-      is_unesco,
-      is_national_park,
+      type_ids: Array.isArray(type_ids) ? type_ids.map(Number) : [],
       lat: parseFloat(lat),
       lng: parseFloat(lng),
       last_visited,
@@ -111,17 +162,7 @@ router.get('/api/attractions/:id', async (req: Request, res: Response) => {
 // PUT /api/attractions/:id
 router.put('/api/attractions/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const {
-    name,
-    country_id,
-    state_id,
-    is_unesco,
-    is_national_park,
-    lat,
-    lng,
-    last_visited,
-    wiki_term,
-  } = req.body;
+  const { name, country_id, state_id, type_ids, lat, lng, last_visited, wiki_term } = req.body;
 
   if (!name || !country_id || !lat || !lng) {
     return res.status(400).json({
@@ -134,8 +175,7 @@ router.put('/api/attractions/:id', async (req: Request, res: Response) => {
       name,
       country_id: Number(country_id),
       state_id: state_id ? Number(state_id) : null,
-      is_unesco,
-      is_national_park,
+      type_ids: Array.isArray(type_ids) ? type_ids.map(Number) : [],
       lat: parseFloat(lat),
       lng: parseFloat(lng),
       last_visited,

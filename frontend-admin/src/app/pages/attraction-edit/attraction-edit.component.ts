@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -21,7 +21,7 @@ import { CountriesService } from '../../services/countries.service';
 import { StatesService } from '../../services/states.service';
 import { GeocodeService } from '../../services/geocode.service';
 import { InfoService, InfoResult } from '../../services/info.service';
-import { Country, State } from '../../interfaces';
+import { Country, State, AttractionType } from '../../interfaces';
 
 const MONTH_YEAR_FORMATS = {
   parse: { dateInput: 'MM/YYYY' },
@@ -41,7 +41,7 @@ const MONTH_YEAR_FORMATS = {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatCheckboxModule,
+    MatChipsModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -85,6 +85,7 @@ export class AttractionEditComponent implements OnInit {
   mapMarkers = signal<MapMarker[]>([]);
   mapCenter = signal<[number, number]>([39.8283, -98.5795]);
   hasCoordinates = signal(false);
+  attractionTypes = signal<AttractionType[]>([]);
 
   ngOnInit(): void {
     this.initForm();
@@ -115,8 +116,7 @@ export class AttractionEditComponent implements OnInit {
       state_id: [null as number | null],
       lat: [null, [Validators.required]],
       lng: [null, [Validators.required]],
-      is_unesco: [false],
-      is_national_park: [false],
+      type_ids: [[] as number[]],
       last_visited: [null as Date | null],
       wiki_term: ['', [Validators.maxLength(255)]],
     });
@@ -130,16 +130,18 @@ export class AttractionEditComponent implements OnInit {
     this.loading.set(true);
 
     const countries$ = this.countriesService.getAllCountries('name');
+    const types$ = this.attractionsService.getAttractionTypes();
     const attraction$ = this.attractionId
       ? this.attractionsService.getAttraction(this.attractionId)
       : of(null);
 
-    forkJoin({ countries: countries$, attraction: attraction$ })
+    forkJoin({ countries: countries$, types: types$, attraction: attraction$ })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         // After both load, populate countries and patch form
-        tap(({ countries, attraction }) => {
+        tap(({ countries, types, attraction }) => {
           this.countries.set(countries.countries);
+          this.attractionTypes.set(types.types);
 
           if (attraction) {
             this.form.patchValue({
@@ -147,8 +149,7 @@ export class AttractionEditComponent implements OnInit {
               country_id: attraction.country_id,
               lat: attraction.lat,
               lng: attraction.lng,
-              is_unesco: attraction.is_unesco ?? false,
-              is_national_park: attraction.is_national_park ?? false,
+              type_ids: attraction.types?.map((t) => t.id) ?? [],
               last_visited: this.parseDate(attraction.last_visited),
               wiki_term: attraction.wiki_term || '',
             });
@@ -368,8 +369,7 @@ export class AttractionEditComponent implements OnInit {
       state_id: formValue.state_id || null,
       lat: +formValue.lat,
       lng: +formValue.lng,
-      is_unesco: formValue.is_unesco || false,
-      is_national_park: formValue.is_national_park || false,
+      type_ids: formValue.type_ids || [],
       last_visited: this.formatDate(formValue.last_visited),
       wiki_term: formValue.wiki_term || undefined,
     };

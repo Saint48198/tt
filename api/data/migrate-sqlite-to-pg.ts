@@ -112,9 +112,6 @@ async function migrate() {
 
         const values = rowColumns.map((col) => {
           let v = row[col];
-          if ((col === 'is_unesco' || col === 'is_national_park') && (v === 0 || v === 1)) {
-            return v === 1;
-          }
           if (TIMESTAMP_COLUMNS.has(col)) {
             v = fixTimestamp(v);
           }

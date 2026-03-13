@@ -681,4 +681,8 @@ export class ExploreComponent implements OnInit, OnDestroy {
       month: 'short',
     });
   }
+
+  hasType(attraction: ExploreAttraction, slug: string): boolean {
+    return attraction.types?.some((t) => t.slug === slug) ?? false;
+  }
 }

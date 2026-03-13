@@ -96,6 +96,14 @@ export const appRoutes: Route[] = [
     canDeactivate: [unsavedChangesGuard],
   },
   {
+    path: 'attraction-types',
+    loadComponent: () =>
+      import('./pages/attraction-types/attraction-types.component').then(
+        (m) => m.AttractionTypesComponent
+      ),
+    canActivate: [adminGuard],
+  },
+  {
     path: 'attractions',
     loadComponent: () =>
       import('./pages/attractions-list/attractions-list.component').then(

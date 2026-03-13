@@ -17,11 +17,8 @@
                 {{ a.country_name }}
               }
               <div class="card-tags" style="margin-top: 0.35rem">
-                @if (a.is_unesco) {
-                  <span class="tag tag-unesco">UNESCO</span>
-                }
-                @if (a.is_national_park) {
-                  <span class="tag tag-park">National Park</span>
+                @for (type of a.types; track type.id) {
+                  <span class="tag tag-{{ type.slug }}">{{ type.name }}</span>
                 }
               </div>
             }
@@ -190,31 +187,34 @@
           }
         }
 
-        <!-- Attraction-specific: UNESCO / National Park -->
+        <!-- Attraction-specific: Types -->
         @if (detail.entityType() === 'attraction' && detail.attraction(); as a) {
-          @if (a.is_unesco) {
+          @for (type of a.types; track type.id) {
             <div class="detail-card">
               <span class="detail-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
-                  <circle cx="16" cy="16" r="16" fill="#667eea" />
-                  <path
-                    d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z"
-                    fill="#fff"
-                  />
-                </svg>
+                @if (type.slug === 'unesco') {
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 32 32"
+                    width="24"
+                    height="24"
+                  >
+                    <circle cx="16" cy="16" r="16" fill="#667eea" />
+                    <path
+                      d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z"
+                      fill="#fff"
+                    />
+                  </svg>
+                } @else if (type.slug === 'national-park') {
+                  🌲
+                } @else if (type.slug === 'state-park') {
+                  🏞️
+                } @else {
+                  🏷️
+                }
               </span>
               <div class="detail-info">
-                <span class="detail-label">UNESCO Site</span>
-                <span class="detail-value">World Heritage Site</span>
-              </div>
-            </div>
-          }
-          @if (a.is_national_park) {
-            <div class="detail-card">
-              <span class="detail-icon">🌲</span>
-              <div class="detail-info">
-                <span class="detail-label">National Park</span>
-                <span class="detail-value">Protected Area</span>
+                <span class="detail-label">{{ type.name }}</span>
               </div>
             </div>
           }
