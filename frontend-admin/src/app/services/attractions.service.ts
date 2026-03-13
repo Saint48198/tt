@@ -75,8 +75,20 @@ export class AttractionsService {
     if (params?.includeDisabled) {
       httpParams = httpParams.set('includeDisabled', 'true');
     }
+    if (params?.all) {
+      httpParams = httpParams.set('all', 'true');
+    }
 
     return this.http.get<AttractionListResponse>(this.apiUrl, { params: httpParams });
+  }
+
+  /**
+   * Get all attractions without pagination
+   */
+  getAllAttractions(
+    sortBy: AttractionListParams['sortBy'] = 'name'
+  ): Observable<AttractionListResponse> {
+    return this.getAttractions({ all: true, sortBy });
   }
 
   /**

@@ -34,6 +34,7 @@ export interface AttractionListParams {
   search?: string;
   page?: number;
   limit?: number;
+  all?: boolean;
   sortBy?: 'name' | 'lat' | 'lng' | 'wiki_term' | 'country_name';
   sortOrder?: 'asc' | 'desc';
   includeDisabled?: boolean;

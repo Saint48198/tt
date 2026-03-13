@@ -67,7 +67,7 @@ router.delete('/api/attraction-types/:id', async (req: Request, res: Response) =
 
 // GET /api/attractions
 router.get('/api/attractions', async (req: Request, res: Response) => {
-  const { country_id, state_id, search, page, limit, sortBy, sortOrder, includeDisabled } =
+  const { country_id, state_id, search, page, limit, all, sortBy, sortOrder, includeDisabled } =
     req.query;
 
   const pageNum = page !== undefined ? Number(Array.isArray(page) ? page[0] : page) : 1;
@@ -96,6 +96,7 @@ router.get('/api/attractions', async (req: Request, res: Response) => {
       search: searchStr,
       page: pageNum,
       limit: limitNum,
+      all: all === 'true',
       sortBy: sortByStr,
       sortOrder: sortOrderStr,
       includeDisabled: includeDisabled === 'true',

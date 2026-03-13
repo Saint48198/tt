@@ -29,6 +29,7 @@ interface ListAttractionsOptions {
   search?: string;
   page?: number;
   limit?: number;
+  all?: boolean;
   sortBy?: string;
   sortOrder?: string;
   includeDisabled?: boolean;
@@ -188,6 +189,7 @@ class AttractionService {
       search,
       page = 1,
       limit = 25,
+      all = false,
       sortBy = 'attractions.name',
       sortOrder = 'asc',
       includeDisabled = false,
@@ -199,7 +201,6 @@ class AttractionService {
     if (!this.validColumns.includes(sortByStr)) throw new Error('Invalid sort column.');
     if (!['asc', 'desc'].includes(sortOrderStr)) throw new Error('Invalid sort order.');
 
-    const offset = (page - 1) * limit;
     const params: any[] = [];
     let paramIdx = 1;
     const whereClauses: string[] = includeDisabled ? [] : ['attractions.disabled_date IS NULL'];
@@ -224,7 +225,7 @@ class AttractionService {
 
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
-    const query = `
+    const baseSelect = `
       SELECT attractions.id, attractions.name, attractions.lat, attractions.lng,
              attractions.wiki_term, attractions.state_id,
              attractions.created_date, attractions.updated_date, attractions.disabled_date,
@@ -234,8 +235,16 @@ class AttractionService {
       JOIN countries ON attractions.country_id = countries.id
       LEFT JOIN states ON attractions.state_id = states.id
       ${whereClause}
-      ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}
-      LIMIT $${paramIdx++} OFFSET $${paramIdx++}`;
+      ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`;
+
+    if (all) {
+      const attractions = await db.all<Attraction>(baseSelect, params);
+      await this.attachTypes(attractions);
+      return { attractions, total: attractions.length, page: 1, limit: attractions.length };
+    }
+
+    const offset = (page - 1) * limit;
+    const query = `${baseSelect} LIMIT $${paramIdx++} OFFSET $${paramIdx++}`;
     params.push(limit, offset);
 
     const attractions = await db.all<Attraction>(query, params);

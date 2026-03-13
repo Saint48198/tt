@@ -8,6 +8,8 @@ import {
   ViewChild,
   ElementRef,
   AfterViewInit,
+  afterNextRender,
+  Injector,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
@@ -32,7 +34,7 @@ import { CountriesService } from '../../services/countries.service';
 import { StatesService } from '../../services/states.service';
 import { CitiesService } from '../../services/cities.service';
 import { AttractionsService } from '../../services/attractions.service';
-import { AdminPhoto } from '../../interfaces';
+import { AdminPhoto } from '@shared/types';
 import {
   PhotoEditDialogComponent,
   PhotoEditDialogResult,
@@ -77,6 +79,7 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
 
   photos = signal<AdminPhoto[]>([]);
   total = signal(0);
@@ -193,28 +196,32 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
   private setupScrollObserver(): void {
     this.scrollObserver?.disconnect();
 
-    // Use a timeout to ensure the sentinel element is rendered
-    setTimeout(() => {
-      if (!this.scrollSentinel?.nativeElement) return;
+    // Defer observer setup until after the next render cycle so the
+    // conditionally-rendered scroll sentinel element is in the DOM.
+    afterNextRender(
+      () => {
+        if (!this.scrollSentinel?.nativeElement) return;
 
-      this.scrollObserver = new IntersectionObserver(
-        (entries) => {
-          const entry = entries[0];
-          if (
-            entry.isIntersecting &&
-            this.viewMode() === 'masonry' &&
-            !this.loading() &&
-            !this.loadingMore() &&
-            this.hasMore()
-          ) {
-            this.loadMorePhotos();
-          }
-        },
-        { rootMargin: '200px' }
-      );
+        this.scrollObserver = new IntersectionObserver(
+          (entries) => {
+            const entry = entries[0];
+            if (
+              entry.isIntersecting &&
+              this.viewMode() === 'masonry' &&
+              !this.loading() &&
+              !this.loadingMore() &&
+              this.hasMore()
+            ) {
+              this.loadMorePhotos();
+            }
+          },
+          { rootMargin: '200px' }
+        );
 
-      this.scrollObserver.observe(this.scrollSentinel.nativeElement);
-    });
+        this.scrollObserver.observe(this.scrollSentinel.nativeElement);
+      },
+      { injector: this.injector }
+    );
   }
 
   /** Sync all filter state and page number to URL query params */
@@ -330,7 +337,7 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
           this.photos.update((current) => [...current, ...response.photos]);
           this.total.set(response.total);
           this.hasMore.set(
-            response.photos.length >= this.pageSize && this.filteredPhotos().length < response.total
+            response.photos.length >= this.pageSize && this.photos().length < response.total
           );
           this.loadingMore.set(false);
         },
@@ -460,7 +467,7 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
 
     this.loadingAttractions.set(true);
     this.attractionsService
-      .getAttractions({ limit: 1000, sortBy: 'name', sortOrder: 'asc' })
+      .getAllAttractions('name')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
