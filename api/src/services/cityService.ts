@@ -1,5 +1,12 @@
 import { db } from '../db';
 
+interface CityAlias {
+  id: number;
+  city_id: number;
+  alias: string;
+  created_date?: string;
+}
+
 interface City {
   id: number;
   name: string;
@@ -14,6 +21,7 @@ interface City {
   created_date?: string;
   updated_date?: string;
   disabled_date?: string;
+  aliases?: CityAlias[];
 }
 
 interface ListCitiesOptions {
@@ -150,7 +158,7 @@ class CityService {
   }
 
   public async getCityById(id: number | string): Promise<City | undefined> {
-    return db.get<City>(
+    const city = await db.get<City>(
       `SELECT cities.id, cities.name, cities.lat, cities.lng, cities.last_visited,
               cities.created_date, cities.updated_date, cities.disabled_date,
               cities.country_id, countries.name AS country_name,
@@ -161,6 +169,13 @@ class CityService {
        WHERE cities.id = $1 AND cities.disabled_date IS NULL`,
       [id]
     );
+    if (city) {
+      city.aliases = await db.all<CityAlias>(
+        'SELECT * FROM city_aliases WHERE city_id = $1 ORDER BY alias',
+        [id]
+      );
+    }
+    return city;
   }
 
   public async createCity(data: {
@@ -206,6 +221,85 @@ class CityService {
       [id]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
+  }
+
+  /**
+   * Attach aliases to an array of cities in a single query.
+   */
+  private async attachAliases(cities: City[]): Promise<void> {
+    if (cities.length === 0) return;
+    const ids = cities.map((c) => c.id);
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+    const aliases = await db.all<CityAlias>(
+      `SELECT * FROM city_aliases WHERE city_id IN (${placeholders}) ORDER BY alias`,
+      ids
+    );
+    const aliasMap = new Map<number, CityAlias[]>();
+    for (const a of aliases) {
+      if (!aliasMap.has(a.city_id)) aliasMap.set(a.city_id, []);
+      aliasMap.get(a.city_id)!.push(a);
+    }
+    for (const c of cities) {
+      c.aliases = aliasMap.get(c.id) || [];
+    }
+  }
+
+  // --- City Alias CRUD ---
+
+  public async getAliases(cityId: number | string): Promise<CityAlias[]> {
+    return db.all<CityAlias>('SELECT * FROM city_aliases WHERE city_id = $1 ORDER BY alias', [
+      cityId,
+    ]);
+  }
+
+  public async addAlias(cityId: number | string, alias: string): Promise<{ id: number }> {
+    const result = await db.run(
+      'INSERT INTO city_aliases (city_id, alias) VALUES ($1, $2) RETURNING id',
+      [cityId, alias.trim()]
+    );
+    return { id: result.rows[0].id };
+  }
+
+  public async removeAlias(aliasId: number | string): Promise<{ success: boolean }> {
+    const result = await db.run('DELETE FROM city_aliases WHERE id = $1', [aliasId]);
+    return { success: result.rowCount > 0 };
+  }
+
+  /**
+   * Find a city by checking its name or aliases.
+   * Used for reverse-geocode city matching.
+   */
+  public async findCityByAlias(name: string): Promise<City | undefined> {
+    const lower = name.toLowerCase().trim();
+
+    // Check name first
+    let city = await db.get<City>(
+      `SELECT cities.*, countries.name AS country_name, states.name AS state_name
+       FROM cities
+       LEFT JOIN countries ON cities.country_id = countries.id
+       LEFT JOIN states ON cities.state_id = states.id
+       WHERE cities.disabled_date IS NULL
+         AND LOWER(cities.name) = $1`,
+      [lower]
+    );
+    if (city) return city;
+
+    // Check aliases table
+    const aliasRow = await db.get<{ city_id: number }>(
+      `SELECT city_id FROM city_aliases WHERE LOWER(alias) = $1`,
+      [lower]
+    );
+    if (aliasRow) {
+      city = await db.get<City>(
+        `SELECT cities.*, countries.name AS country_name, states.name AS state_name
+         FROM cities
+         LEFT JOIN countries ON cities.country_id = countries.id
+         LEFT JOIN states ON cities.state_id = states.id
+         WHERE cities.id = $1 AND cities.disabled_date IS NULL`,
+        [aliasRow.city_id]
+      );
+    }
+    return city;
   }
 }
 

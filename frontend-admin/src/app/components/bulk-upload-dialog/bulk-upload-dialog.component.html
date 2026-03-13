@@ -103,13 +103,93 @@
       </button>
     </div>
 
+    <!-- Processing stage banner (shown for 5+ files during reading/uploading) -->
+    @if (processingStage() === 'reading') {
+      <div class="processing-banner reading">
+        <div class="processing-banner-header">
+          <mat-spinner diameter="18"></mat-spinner>
+          <span class="processing-banner-text">
+            Processing photos… {{ filesProcessed() }} of {{ filesToProcess() }}
+          </span>
+        </div>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="filesToProcess() > 0 ? (filesProcessed() / filesToProcess()) * 100 : 0"
+          class="processing-progress"
+        ></mat-progress-bar>
+      </div>
+    }
+
+    @if (processingStage() === 'uploading') {
+      <div class="processing-banner uploading">
+        <div class="processing-banner-header">
+          <mat-spinner diameter="18"></mat-spinner>
+          <span class="processing-banner-text">
+            Uploading {{ files().length }} photo{{ files().length > 1 ? 's' : '' }}…
+          </span>
+        </div>
+        <mat-progress-bar mode="indeterminate" class="processing-progress"></mat-progress-bar>
+      </div>
+    }
+
+    @if (processingStage() === 'done') {
+      <div class="processing-banner done">
+        <div class="processing-banner-header">
+          <mat-icon class="done-icon">check_circle</mat-icon>
+          <span class="processing-banner-text">
+            {{ files().length }} photo{{ files().length > 1 ? 's' : '' }} uploaded successfully
+          </span>
+        </div>
+      </div>
+    }
+
     <div class="file-previews">
       @for (file of files(); track file.name; let i = $index) {
-        <div class="file-preview-card mat-elevation-z1">
-          <img [src]="file.previewUrl" [alt]="file.name" class="preview-thumb" />
+        <div
+          class="file-preview-card mat-elevation-z1"
+          [class.file-error]="file.status === 'error'"
+          [class.file-done]="file.status === 'done'"
+        >
+          <div class="preview-thumb-container">
+            <img [src]="file.previewUrl" [alt]="file.name" class="preview-thumb" />
+            @if (file.status === 'reading' || file.status === 'resizing') {
+              <div class="thumb-overlay processing">
+                <mat-spinner diameter="20"></mat-spinner>
+              </div>
+            }
+            @if (file.status === 'uploading') {
+              <div class="thumb-overlay uploading">
+                <mat-spinner diameter="20"></mat-spinner>
+              </div>
+            }
+            @if (file.status === 'done') {
+              <div class="thumb-overlay done">
+                <mat-icon>check_circle</mat-icon>
+              </div>
+            }
+            @if (file.status === 'error') {
+              <div class="thumb-overlay error">
+                <mat-icon>error</mat-icon>
+              </div>
+            }
+          </div>
           <div class="file-info">
             <span class="file-name">{{ file.name }}</span>
-            <span class="file-size">{{ file.size }}</span>
+            <span class="file-size">
+              {{ file.size }}
+              @if (file.status === 'reading') {
+                <span class="file-status-text"> — Reading EXIF…</span>
+              }
+              @if (file.status === 'resizing') {
+                <span class="file-status-text"> — Resizing…</span>
+              }
+              @if (file.status === 'uploading') {
+                <span class="file-status-text uploading"> — Uploading…</span>
+              }
+              @if (file.status === 'error') {
+                <span class="file-status-text error"> — {{ file.errorMessage || 'Error' }}</span>
+              }
+            </span>
             @if (file.exif?.title || file.exif?.keywords?.length || file.exif?.latitude) {
               <div class="exif-badges">
                 @if (file.exif?.title) {
@@ -161,8 +241,8 @@
     </div>
   }
 
-  <!-- Upload progress -->
-  @if (uploading()) {
+  <!-- Upload progress (fallback for when processing banner is not shown) -->
+  @if (uploading() && processingStage() !== 'uploading') {
     <mat-progress-bar mode="indeterminate" class="upload-progress"></mat-progress-bar>
   }
 </mat-dialog-content>
@@ -173,7 +253,9 @@
     mat-flat-button
     color="primary"
     (click)="upload()"
-    [disabled]="files().length === 0 || uploading() || detectingCountry()"
+    [disabled]="
+      files().length === 0 || uploading() || detectingCountry() || processingStage() === 'reading'
+    "
   >
     @if (uploading()) {
       <span class="btn-content">
@@ -184,6 +266,11 @@
       <span class="btn-content">
         <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
         Detecting Country...
+      </span>
+    } @else if (processingStage() === 'reading') {
+      <span class="btn-content">
+        <mat-spinner diameter="20" class="btn-spinner"></mat-spinner>
+        Processing {{ filesProcessed() }}/{{ filesToProcess() }}…
       </span>
     } @else {
       <span class="btn-content">

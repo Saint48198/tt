@@ -60,6 +60,10 @@ interface FilePreview {
   name: string;
   size: string;
   exif?: ExifData;
+  /** Upload/processing status for this file */
+  status?: 'pending' | 'reading' | 'resizing' | 'ready' | 'uploading' | 'done' | 'error';
+  /** Error message if status is 'error' */
+  errorMessage?: string;
 }
 
 @Component({
@@ -97,6 +101,16 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
   dragOver = signal(false);
   countries = signal<Country[]>([]);
   selectedCountry = signal<string>('');
+
+  // Processing stage tracking
+  /** Current processing stage: 'idle' | 'reading' | 'uploading' | 'done' */
+  processingStage = signal<'idle' | 'reading' | 'uploading' | 'done'>('idle');
+  /** How many files have finished processing (EXIF + resize) */
+  filesProcessed = signal(0);
+  /** Total files being processed */
+  filesToProcess = signal(0);
+  /** How many files uploaded so far (for upload stage counter) */
+  filesUploaded = signal(0);
 
   // Country detection from GPS
   detectingCountry = signal(false);
@@ -160,6 +174,17 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
     this.dragOver.set(false);
   }
 
+  /**
+   * Apply GPS direction reference to a coordinate value.
+   * South latitudes and West longitudes should be negative.
+   */
+  private applyGpsDirection(value: number, ref: string | undefined): number {
+    if (ref === 'S' || ref === 'South' || ref === 'W' || ref === 'West') {
+      return -Math.abs(value);
+    }
+    return value;
+  }
+
   private async extractExif(file: File): Promise<ExifData> {
     const exif: ExifData = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -190,8 +215,8 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
           let lat = parseFloat(String(rawLat.description));
           let lng = parseFloat(String(rawLng.description));
           if (!isNaN(lat) && !isNaN(lng)) {
-            if (latRef === 'S' || latRef === 'South') lat = -Math.abs(lat);
-            if (lngRef === 'W' || lngRef === 'West') lng = -Math.abs(lng);
+            lat = this.applyGpsDirection(lat, latRef);
+            lng = this.applyGpsDirection(lng, lngRef);
             exif.latitude = lat;
             exif.longitude = lng;
           }
@@ -377,8 +402,8 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
         if (gps?.Latitude !== undefined && gps?.Longitude !== undefined) {
           let lat = gps.Latitude;
           let lng = gps.Longitude;
-          if (latRef === 'S' || latRef === 'South') lat = -Math.abs(lat);
-          if (lngRef === 'W' || lngRef === 'West') lng = -Math.abs(lng);
+          lat = this.applyGpsDirection(lat, latRef);
+          lng = this.applyGpsDirection(lng, lngRef);
           exif.latitude = lat;
           exif.longitude = lng;
         } else {
@@ -388,8 +413,8 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
             let lat = parseFloat(rawLat.description);
             let lng = parseFloat(rawLng.description);
             if (!isNaN(lat) && !isNaN(lng)) {
-              if (latRef === 'S' || latRef === 'South') lat = -Math.abs(lat);
-              if (lngRef === 'W' || lngRef === 'West') lng = -Math.abs(lng);
+              lat = this.applyGpsDirection(lat, latRef);
+              lng = this.applyGpsDirection(lng, lngRef);
               exif.latitude = lat;
               exif.longitude = lng;
             }
@@ -400,15 +425,54 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Extract original date taken from DateTimeOriginal
+    // Extract original date taken from DateTimeOriginal or XMP date fields
     try {
       const dateOriginal: string | undefined = tags.exif?.DateTimeOriginal?.description;
       if (dateOriginal) {
-        // Append 'Z' to treat as UTC so the date doesn't shift due to local timezone
         const isoDate = dateOriginal.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
         const parsed = new Date(isoDate + 'Z');
         if (!isNaN(parsed.getTime())) {
           exif.created_date = parsed.toISOString();
+        }
+      }
+
+      // Fallback: check XMP date fields (common in PNGs)
+      if (!exif.created_date && tags.xmp) {
+        const xmpDateKey = [
+          'DateCreated',
+          'CreateDate',
+          'xmp:CreateDate',
+          'photoshop:DateCreated',
+          'DateTimeOriginal',
+          'exif:DateTimeOriginal',
+        ].find((k) => tags.xmp?.[k]?.description);
+        if (xmpDateKey) {
+          const xmpDate = tags.xmp[xmpDateKey].description;
+          const isoDate = xmpDate.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
+          const parsed = new Date(isoDate);
+          if (!isNaN(parsed.getTime())) {
+            exif.created_date = parsed.toISOString();
+          }
+        }
+      }
+
+      // Fallback for PNGs: try non-expanded mode DateTimeOriginal or DateCreated
+      if (!exif.created_date && isPng) {
+        try {
+          const buf = await file.arrayBuffer();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const raw: any = ExifReader.load(buf);
+          const dateTag =
+            raw.DateTimeOriginal || raw.DateCreated || raw.CreateDate || raw['xmp:CreateDate'];
+          if (dateTag?.description) {
+            const isoDate = dateTag.description.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
+            const parsed = new Date(isoDate);
+            if (!isNaN(parsed.getTime())) {
+              exif.created_date = parsed.toISOString();
+            }
+          }
+        } catch {
+          // PNG date fallback failed
         }
       }
     } catch {
@@ -426,36 +490,96 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
     const existingNames = new Set(existing.map((f) => f.name));
 
     const filtered = newFiles.filter((f) => !existingNames.has(f.name));
-    const previews: FilePreview[] = [];
+    if (filtered.length === 0) return;
 
-    for (const file of filtered) {
-      const exif = await this.extractExif(file);
-      const resized =
-        file.size > this.MAX_FILE_SIZE && file.type.startsWith('image/')
-          ? await this.resizeImage(file)
-          : file;
-      previews.push({
-        file: resized,
-        previewUrl: URL.createObjectURL(resized),
-        name: file.name,
-        size: this.formatFileSize(resized.size),
-        exif,
-      });
-    }
+    // Add placeholder entries immediately so users see their files
+    const placeholders: FilePreview[] = filtered.map((file) => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      name: file.name,
+      size: this.formatFileSize(file.size),
+      status: 'reading' as const,
+    }));
 
-    const allFiles = [...existing, ...previews];
+    const allFiles = [...existing, ...placeholders];
     this.files.set(allFiles);
 
-    // Detect country from GPS data when country select is shown
-    if (this.showCountrySelect && allFiles.length > 0) {
-      await this.detectCountryFromFiles(allFiles);
+    // Track processing progress
+    const isLargeBatch = filtered.length >= 5;
+    if (isLargeBatch) {
+      this.processingStage.set('reading');
+      this.filesProcessed.set(0);
+      this.filesToProcess.set(filtered.length);
     }
+
+    // Process each file (EXIF + resize) and update status
+    for (let i = 0; i < filtered.length; i++) {
+      const file = filtered[i];
+      const fileIndex = existing.length + i;
+
+      try {
+        // Read EXIF
+        this.updateFileStatus(fileIndex, 'reading');
+        const exif = await this.extractExif(file);
+
+        // Resize if needed
+        let resized = file;
+        if (file.size > this.MAX_FILE_SIZE && file.type.startsWith('image/')) {
+          this.updateFileStatus(fileIndex, 'resizing');
+          resized = await this.resizeImage(file);
+        }
+
+        // Update the file entry with processed data
+        this.files.update((files) =>
+          files.map((f, idx) =>
+            idx === fileIndex
+              ? {
+                  ...f,
+                  file: resized,
+                  size: this.formatFileSize(resized.size),
+                  exif,
+                  status: 'ready' as const,
+                }
+              : f
+          )
+        );
+      } catch {
+        this.updateFileStatus(fileIndex, 'error', 'Failed to process file');
+      }
+
+      if (isLargeBatch) {
+        this.filesProcessed.set(i + 1);
+      }
+    }
+
+    if (isLargeBatch) {
+      this.processingStage.set('idle');
+    }
+
+    // Detect country from GPS data when country select is shown
+    const currentFiles = this.files();
+    if (this.showCountrySelect && currentFiles.length > 0) {
+      await this.detectCountryFromFiles(currentFiles);
+    }
+  }
+
+  /**
+   * Update the status of a specific file by index.
+   */
+  private updateFileStatus(
+    index: number,
+    status: FilePreview['status'],
+    errorMessage?: string
+  ): void {
+    this.files.update((files) =>
+      files.map((f, i) => (i === index ? { ...f, status, errorMessage } : f))
+    );
   }
 
   /**
    * Detect the country from photo metadata.
    * Prefers IPTC country name (embedded in photo metadata) over GPS reverse-geocoding.
-   * Auto-selects if all photos are from the same country and it's in the list.
+   * Auto-selects if all photos are from the same country, and it's in the list.
    * Shows warnings for mismatches or missing countries.
    */
   private async detectCountryFromFiles(allFiles: FilePreview[]): Promise<void> {
@@ -680,6 +804,10 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
     this.countryMismatchWarning.set('');
     this.countryNotFoundWarning.set('');
     this.detectedCountryName.set('');
+    this.processingStage.set('idle');
+    this.filesProcessed.set(0);
+    this.filesToProcess.set(0);
+    this.filesUploaded.set(0);
   }
 
   upload(): void {
@@ -688,6 +816,15 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
 
     this.uploading.set(true);
     this.uploadProgress.set(0);
+    this.processingStage.set('uploading');
+    this.filesUploaded.set(0);
+
+    // Mark all ready files as uploading
+    this.files.update((files) =>
+      files.map((f) =>
+        f.status === 'ready' || !f.status ? { ...f, status: 'uploading' as const } : f
+      )
+    );
 
     const rawFiles = fileList.map((f) => f.file);
     const exifData = fileList.map((f) => f.exif || {});
@@ -700,6 +837,12 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
         next: (res) => {
           this.uploading.set(false);
           this.uploadProgress.set(100);
+          this.processingStage.set('done');
+
+          // Mark all files as done
+          this.files.update((files) => files.map((f) => ({ ...f, status: 'done' as const })));
+          this.filesUploaded.set(fileList.length);
+
           const count = res.images?.length || rawFiles.length;
           this.snackBar.open(
             `${count} photo${count > 1 ? 's' : ''} uploaded successfully`,
@@ -742,6 +885,15 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.uploading.set(false);
+          this.processingStage.set('idle');
+          // Mark uploading files as error
+          this.files.update((files) =>
+            files.map((f) =>
+              f.status === 'uploading'
+                ? { ...f, status: 'error' as const, errorMessage: 'Upload failed' }
+                : f
+            )
+          );
           this.snackBar.open(err?.error?.error || 'Upload failed', 'Close', { duration: 5000 });
         },
       });

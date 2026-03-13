@@ -91,6 +91,25 @@ async function init() {
       );
     `);
 
+    // city_aliases TABLE (1-to-many: one city has many aliases)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS city_aliases (
+        id SERIAL PRIMARY KEY,
+        city_id INTEGER NOT NULL,
+        alias TEXT NOT NULL,
+        created_date TIMESTAMP DEFAULT NOW(),
+        FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE CASCADE
+      );
+    `);
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_city_aliases_unique
+        ON city_aliases (city_id, LOWER(alias));
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_city_aliases_alias
+        ON city_aliases (LOWER(alias));
+    `);
+
     // attractions TABLE
     await client.query(`
       CREATE TABLE IF NOT EXISTS attractions (

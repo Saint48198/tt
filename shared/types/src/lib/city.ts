@@ -1,3 +1,10 @@
+export interface CityAlias {
+  id: number;
+  city_id: number;
+  alias: string;
+  created_date?: string;
+}
+
 export interface City {
   id: number;
   name: string;
@@ -12,6 +19,7 @@ export interface City {
   created_date?: string;
   updated_date?: string;
   disabled_date?: string;
+  aliases?: CityAlias[];
 }
 
 export interface CityListResponse {

@@ -185,6 +185,65 @@ mat-dialog-content {
   padding-right: 4px;
 }
 
+// ── Processing Banner ──
+.processing-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  animation: fadeIn 0.2s ease;
+
+  .processing-banner-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .processing-banner-text {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .processing-progress {
+    border-radius: 4px;
+  }
+
+  &.reading {
+    background: var(--mat-sys-surface-container-low, #f7f2fa);
+    color: var(--mat-sys-on-surface, #1c1b1f);
+  }
+
+  &.uploading {
+    background: #e3f2fd;
+    color: #1565c0;
+  }
+
+  &.done {
+    background: #e8f5e9;
+    color: #2e7d32;
+
+    .done-icon {
+      color: #2e7d32;
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .file-preview-card {
   display: flex;
   align-items: center;
@@ -192,6 +251,24 @@ mat-dialog-content {
   padding: 8px;
   border-radius: 12px;
   background: var(--mat-sys-surface-container-low, #f7f2fa);
+  transition:
+    opacity 0.2s ease,
+    background 0.2s ease;
+
+  &.file-done {
+    background: #f1f8e9;
+  }
+
+  &.file-error {
+    background: #fce4ec;
+  }
+
+  .preview-thumb-container {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+  }
 
   .preview-thumb {
     width: 56px;
@@ -199,6 +276,48 @@ mat-dialog-content {
     object-fit: cover;
     border-radius: 8px;
     flex-shrink: 0;
+  }
+
+  .thumb-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.processing {
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    &.uploading {
+      background: rgba(21, 101, 192, 0.15);
+    }
+
+    &.done {
+      background: rgba(46, 125, 50, 0.15);
+
+      mat-icon {
+        color: #2e7d32;
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    &.error {
+      background: rgba(211, 47, 47, 0.15);
+
+      mat-icon {
+        color: #d32f2f;
+        font-size: 28px;
+        width: 28px;
+        height: 28px;
+      }
+    }
   }
 
   .file-info {
@@ -220,6 +339,19 @@ mat-dialog-content {
     .file-size {
       font-size: 0.7rem;
       color: var(--mat-sys-outline, #79747e);
+    }
+
+    .file-status-text {
+      font-weight: 500;
+      color: var(--mat-sys-primary, #6750a4);
+
+      &.uploading {
+        color: #1565c0;
+      }
+
+      &.error {
+        color: #d32f2f;
+      }
     }
   }
 }

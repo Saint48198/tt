@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   City,
+  CityAlias,
   CityListResponse,
   CityListParams,
   CreateCityRequest,
@@ -93,5 +94,26 @@ export class CitiesService {
    */
   deleteCity(id: number): Observable<CityResponse> {
     return this.http.delete<CityResponse>(`${this.apiUrl}/${id}`);
+  }
+
+  /**
+   * Get aliases for a city
+   */
+  getAliases(cityId: number): Observable<{ aliases: CityAlias[] }> {
+    return this.http.get<{ aliases: CityAlias[] }>(`${this.apiUrl}/${cityId}/aliases`);
+  }
+
+  /**
+   * Add an alias to a city
+   */
+  addAlias(cityId: number, alias: string): Observable<{ id: number }> {
+    return this.http.post<{ id: number }>(`${this.apiUrl}/${cityId}/aliases`, { alias });
+  }
+
+  /**
+   * Remove an alias from a city
+   */
+  removeAlias(cityId: number, aliasId: number): Observable<{ success: boolean }> {
+    return this.http.delete<{ success: boolean }>(`${this.apiUrl}/${cityId}/aliases/${aliasId}`);
   }
 }

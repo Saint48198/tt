@@ -1,5 +1,6 @@
 export type {
   City,
+  CityAlias,
   CityListResponse,
   CityListParams,
   CreateCityRequest,
