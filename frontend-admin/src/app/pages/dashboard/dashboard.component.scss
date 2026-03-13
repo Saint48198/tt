@@ -239,53 +239,6 @@
   }
 }
 
-.recent-section {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-
-  h2 {
-    margin: 0 0 1rem 0;
-    font-size: 1.125rem;
-    color: #1f2937;
-  }
-}
-
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.activity-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem;
-  background: #f9fafb;
-  border-radius: 8px;
-
-  .activity-icon {
-    font-size: 1.25rem;
-  }
-
-  .activity-content {
-    display: flex;
-    flex-direction: column;
-
-    .activity-text {
-      color: #374151;
-      font-size: 0.875rem;
-    }
-
-    .activity-time {
-      color: #9ca3af;
-      font-size: 0.75rem;
-    }
-  }
-}
-
 .map-section {
   margin-top: 2rem;
   min-height: 500px;
