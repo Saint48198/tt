@@ -89,7 +89,7 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
   unassignedFilter = signal(false);
   tagsFilter = signal(false);
   dateSortOrder = signal<'asc' | 'desc'>('desc');
-  dateSortField = signal<'created_date' | 'updated_date' | 'created_at'>('created_date');
+  dateSortField = signal<'created_date' | 'updated_date' | 'created_at'>('created_at');
 
   // Entity option lists
   countryOptions = signal<Array<{ id: number; name: string }>>([]);
