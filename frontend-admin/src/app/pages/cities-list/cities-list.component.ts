@@ -22,10 +22,13 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CitiesService } from '../../services/cities.service';
-import { City } from '../../interfaces';
+import { CountriesService } from '../../services/countries.service';
+import { StatesService } from '../../services/states.service';
+import { City, Country, State } from '../../interfaces';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -45,6 +48,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
     MatTooltipModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatSlideToggleModule,
     MatDialogModule,
   ],
@@ -53,6 +57,8 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
 })
 export class CitiesListComponent implements OnInit, AfterViewInit {
   private readonly citiesService = inject(CitiesService);
+  private readonly countriesService = inject(CountriesService);
+  private readonly statesService = inject(StatesService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
@@ -74,11 +80,19 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
   searchQuery = signal('');
   includeDisabled = signal(false);
 
+  // Filter signals
+  selectedCountryId = signal<number | null>(null);
+  selectedStateId = signal<number | null>(null);
+  countries = signal<Country[]>([]);
+  states = signal<State[]>([]);
+  filteredStates = signal<State[]>([]);
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   ngOnInit(): void {
     this.loadCities();
+    this.loadFilterOptions();
   }
 
   ngAfterViewInit(): void {
@@ -96,6 +110,8 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
         sort: sortOrder,
         search: this.searchQuery() || undefined,
         includeDisabled: this.includeDisabled(),
+        country_id: this.selectedCountryId() ?? undefined,
+        state_id: this.selectedStateId() ?? undefined,
       })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -159,6 +175,54 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
 
   onToggleDisabled(checked: boolean): void {
     this.includeDisabled.set(checked);
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadCities();
+  }
+
+  private loadFilterOptions(): void {
+    this.countriesService
+      .getAllCountries('name')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => this.countries.set(res.countries),
+      });
+
+    this.statesService
+      .getAllStates('name')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.states.set(res.states);
+          this.filteredStates.set(res.states);
+        },
+      });
+  }
+
+  onCountryChange(countryId: number | null): void {
+    this.selectedCountryId.set(countryId);
+    // Filter states to only show those belonging to the selected country
+    if (countryId) {
+      this.filteredStates.set(
+        this.states().filter((s) => Number(s.country_id) === Number(countryId))
+      );
+    } else {
+      this.filteredStates.set(this.states());
+    }
+    // Clear state filter if it no longer matches
+    const currentState = this.selectedStateId();
+    if (currentState && !this.filteredStates().find((s) => s.id === currentState)) {
+      this.selectedStateId.set(null);
+    }
+    if (this.paginator) {
+      this.paginator.firstPage();
+    }
+    this.loadCities();
+  }
+
+  onStateChange(stateId: number | null): void {
+    this.selectedStateId.set(stateId);
     if (this.paginator) {
       this.paginator.firstPage();
     }
