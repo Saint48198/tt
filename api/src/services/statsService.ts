@@ -9,6 +9,43 @@ interface DashboardStats {
   totalPhotos: number;
 }
 
+interface EntityBreakdown {
+  name: string;
+  value: number;
+}
+
+interface TimeSeriesPoint {
+  date: string;
+  count: number;
+}
+
+interface PhotosByEntity {
+  entity: string;
+  count: number;
+}
+
+interface TripTimeline {
+  name: string;
+  startDate: string;
+  endDate: string;
+  planItemCount: number;
+}
+
+export interface AnalyticsData {
+  entityBreakdown: EntityBreakdown[];
+  photosByMonth: TimeSeriesPoint[];
+  photosByEntity: PhotosByEntity[];
+  tripTimeline: TripTimeline[];
+  tripsPerYear: TimeSeriesPoint[];
+  entityGrowth: {
+    month: string;
+    countries: number;
+    states: number;
+    cities: number;
+    attractions: number;
+  }[];
+}
+
 class StatsService {
   private static instance: StatsService;
 
@@ -48,6 +85,217 @@ class StatsService {
 
     return { totalUsers, totalCountries, totalStates, totalCities, totalAttractions, totalPhotos };
   }
+
+  public async getAnalytics(): Promise<AnalyticsData> {
+    const [
+      entityBreakdown,
+      photosByMonth,
+      photosByEntity,
+      tripTimeline,
+      tripsPerYear,
+      entityGrowth,
+    ] = await Promise.all([
+      this.getEntityBreakdown(),
+      this.getPhotosByMonth(),
+      this.getPhotosByEntity(),
+      this.getTripTimeline(),
+      this.getTripsPerYear(),
+      this.getEntityGrowth(),
+    ]);
+
+    return {
+      entityBreakdown,
+      photosByMonth,
+      photosByEntity,
+      tripTimeline,
+      tripsPerYear,
+      entityGrowth,
+    };
+  }
+
+  /** Donut chart: counts of each entity type */
+  private async getEntityBreakdown(): Promise<EntityBreakdown[]> {
+    const tables = [
+      { name: 'Countries', table: 'countries' },
+      { name: 'States', table: 'states' },
+      { name: 'Cities', table: 'cities' },
+      { name: 'Attractions', table: 'attractions' },
+      { name: 'Photos', table: 'photos' },
+      { name: 'Trips', table: 'trips' },
+    ];
+
+    const results: EntityBreakdown[] = [];
+    for (const t of tables) {
+      try {
+        const hasDisabled = t.table !== 'trips';
+        const where = hasDisabled ? ' WHERE disabled_date IS NULL' : '';
+        const row = await db.get<{ count: string }>(
+          `SELECT COUNT(*) AS count FROM ${t.table}${where}`
+        );
+        results.push({ name: t.name, value: Number(row?.count ?? 0) });
+      } catch {
+        results.push({ name: t.name, value: 0 });
+      }
+    }
+    return results;
+  }
+
+  /** Bar chart: photos created per month (last 12 months) */
+  private async getPhotosByMonth(): Promise<TimeSeriesPoint[]> {
+    try {
+      const rows = await db.all<{ month: string; count: string }>(
+        `SELECT TO_CHAR(created_date, 'YYYY-MM') AS month, COUNT(*) AS count
+         FROM photos
+         WHERE disabled_date IS NULL
+           AND created_date >= NOW() - INTERVAL '12 months'
+         GROUP BY TO_CHAR(created_date, 'YYYY-MM')
+         ORDER BY month`
+      );
+      return rows.map((r) => ({ date: r.month, count: Number(r.count) }));
+    } catch (err) {
+      console.error('Failed to get photos by month:', err);
+      return [];
+    }
+  }
+
+  /** Horizontal bar: photos grouped by entity type assignment */
+  private async getPhotosByEntity(): Promise<PhotosByEntity[]> {
+    try {
+      const queries = [
+        {
+          entity: 'Country',
+          sql: `SELECT COUNT(*) AS count FROM photos
+                WHERE country_id IS NOT NULL AND disabled_date IS NULL`,
+        },
+        {
+          entity: 'State',
+          sql: `SELECT COUNT(*) AS count FROM photos
+                WHERE state_id IS NOT NULL AND disabled_date IS NULL`,
+        },
+        {
+          entity: 'City',
+          sql: `SELECT COUNT(*) AS count FROM photos
+                WHERE city_id IS NOT NULL AND disabled_date IS NULL`,
+        },
+        {
+          entity: 'Attraction',
+          sql: `SELECT COUNT(*) AS count FROM photos
+                WHERE attraction_id IS NOT NULL AND disabled_date IS NULL`,
+        },
+        {
+          entity: 'Unassigned',
+          sql: `SELECT COUNT(*) AS count FROM photos
+                WHERE country_id IS NULL AND state_id IS NULL
+                  AND city_id IS NULL AND attraction_id IS NULL
+                  AND disabled_date IS NULL`,
+        },
+      ];
+
+      const results: PhotosByEntity[] = [];
+      for (const q of queries) {
+        const row = await db.get<{ count: string }>(q.sql);
+        results.push({ entity: q.entity, count: Number(row?.count ?? 0) });
+      }
+      return results;
+    } catch (err) {
+      console.error('Failed to get photos by entity:', err);
+      return [];
+    }
+  }
+
+  /** Timeline: trips with derived start/end dates from plan JSON */
+  private async getTripTimeline(): Promise<TripTimeline[]> {
+    try {
+      const trips = await db.all<{
+        name: string;
+        plan: string | object;
+        created_date: string;
+      }>(`SELECT name, plan, created_date FROM trips ORDER BY created_date DESC LIMIT 20`);
+
+      return trips.map((t) => {
+        const plan = typeof t.plan === 'string' ? JSON.parse(t.plan) : t.plan || [];
+        const dates = (plan as Array<{ startDate?: string; endDate?: string }>).flatMap((p) =>
+          [p.startDate, p.endDate].filter(Boolean)
+        ) as string[];
+        dates.sort();
+        return {
+          name: t.name,
+          startDate: dates[0] || t.created_date,
+          endDate: dates[dates.length - 1] || t.created_date,
+          planItemCount: plan.length,
+        };
+      });
+    } catch (err) {
+      console.error('Failed to get trip timeline:', err);
+      return [];
+    }
+  }
+
+  /** Bar chart: trips created per year */
+  private async getTripsPerYear(): Promise<TimeSeriesPoint[]> {
+    try {
+      const rows = await db.all<{ year: string; count: string }>(
+        `SELECT TO_CHAR(created_date, 'YYYY') AS year, COUNT(*) AS count
+         FROM trips
+         GROUP BY TO_CHAR(created_date, 'YYYY')
+         ORDER BY year`
+      );
+      return rows.map((r) => ({ date: r.year, count: Number(r.count) }));
+    } catch (err) {
+      console.error('Failed to get trips per year:', err);
+      return [];
+    }
+  }
+
+  /** Stacked area: entity creation over time (monthly) */
+  private async getEntityGrowth(): Promise<
+    {
+      month: string;
+      countries: number;
+      states: number;
+      cities: number;
+      attractions: number;
+    }[]
+  > {
+    try {
+      const tables = ['countries', 'states', 'cities', 'attractions'] as const;
+      const dataSets: Record<string, Record<string, number>> = {};
+
+      for (const table of tables) {
+        const rows = await db.all<{ month: string; count: string }>(
+          `SELECT TO_CHAR(created_date, 'YYYY-MM') AS month, COUNT(*) AS count
+           FROM ${table}
+           WHERE disabled_date IS NULL AND created_date IS NOT NULL
+           GROUP BY TO_CHAR(created_date, 'YYYY-MM')
+           ORDER BY month`
+        );
+        for (const r of rows) {
+          if (!dataSets[r.month]) {
+            dataSets[r.month] = {
+              countries: 0,
+              states: 0,
+              cities: 0,
+              attractions: 0,
+            };
+          }
+          dataSets[r.month][table] = Number(r.count);
+        }
+      }
+
+      return Object.entries(dataSets)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([month, data]) => ({
+          month,
+          countries: data.countries ?? 0,
+          states: data.states ?? 0,
+          cities: data.cities ?? 0,
+          attractions: data.attractions ?? 0,
+        }));
+    } catch (err) {
+      console.error('Failed to get entity growth:', err);
+      return [];
+    }
+  }
 }
 
-export const statsService = StatsService.getInstance();
+export const statsService = StatsService.getInstance(); // singleton
