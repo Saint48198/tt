@@ -44,11 +44,17 @@
           >
             <span class="user-avatar">{{ user.username?.[0]?.toUpperCase() || 'U' }}</span>
             <span class="user-name">{{ user.username }}</span>
-            <span class="menu-icon">▼</span>
+            <span class="menu-icon"><i class="fa-solid fa-caret-down"></i></span>
           </button>
 
           @if (showUserMenu()) {
-            <div class="user-menu-dropdown" (click)="closeUserMenu()">
+            <div
+              class="user-menu-dropdown"
+              tabindex="0"
+              role="menu"
+              (click)="closeUserMenu()"
+              (keydown.escape)="closeUserMenu()"
+            >
               <div class="menu-header">
                 <div class="user-info">
                   <div class="user-avatar-large">
@@ -67,12 +73,12 @@
 
               <div class="menu-items">
                 <a routerLink="/profile" class="menu-item">
-                  <span class="item-icon">👤</span>
+                  <span class="item-icon"><i class="fa-solid fa-user"></i></span>
                   <span>Profile</span>
                 </a>
                 @if (adminUrl && user.roles.includes('admin')) {
                   <a [href]="adminUrl" class="menu-item admin-link">
-                    <span class="item-icon">🛠️</span>
+                    <span class="item-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
                     <span>Admin Panel</span>
                   </a>
                 }
@@ -81,7 +87,7 @@
               <div class="menu-divider"></div>
 
               <button class="logout-btn" (click)="logout()">
-                <span class="item-icon">🚪</span>
+                <span class="item-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
                 <span>Logout</span>
               </button>
             </div>
