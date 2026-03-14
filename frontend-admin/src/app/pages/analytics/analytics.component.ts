@@ -16,7 +16,6 @@ import {
   EntityBreakdown,
   TimeSeriesPoint,
   PhotosByEntity,
-  TripTimeline,
   EntityGrowth,
   CountriesPerRegion,
 } from '../../services/analytics.service';
@@ -40,7 +39,6 @@ export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('entityDonut') entityDonutEl?: ElementRef<HTMLDivElement>;
   @ViewChild('photosBar') photosBarEl?: ElementRef<HTMLDivElement>;
   @ViewChild('photosEntity') photosEntityEl?: ElementRef<HTMLDivElement>;
-  @ViewChild('tripTimeline') tripTimelineEl?: ElementRef<HTMLDivElement>;
   @ViewChild('countriesRegion') countriesRegionEl?: ElementRef<HTMLDivElement>;
   @ViewChild('photosYear') photosYearEl?: ElementRef<HTMLDivElement>;
   @ViewChild('entityGrowth') entityGrowthEl?: ElementRef<HTMLDivElement>;
@@ -112,7 +110,6 @@ export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.renderEntityDonut(data.entityBreakdown);
     this.renderPhotosBar(data.photosByMonth);
     this.renderPhotosEntity(data.photosByEntity);
-    this.renderTripTimeline(data.tripTimeline);
     this.renderCountriesPerRegion(data.countriesPerRegion);
     this.renderPhotosPerYear(data.photosPerYear);
     this.renderEntityGrowth(data.entityGrowth);
@@ -352,93 +349,6 @@ export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
 
     svg.append('g').call(d3.axisLeft(y));
     svg.append('g').attr('transform', `translate(0,${height})`).call(d3.axisBottom(x).ticks(5));
-  }
-
-  // ─── Gantt-style: Trip Timeline ───
-  private renderTripTimeline(data: TripTimeline[]): void {
-    const el = this.tripTimelineEl?.nativeElement;
-    if (!el || !data.length) return;
-    d3.select(el).selectAll('*').remove();
-
-    const sorted = [...data].sort(
-      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-    );
-
-    const margin = { top: 20, right: 30, bottom: 40, left: 140 };
-    const barHeight = 22;
-    const gap = 6;
-    const height = sorted.length * (barHeight + gap) + margin.top + margin.bottom;
-    const width = el.clientWidth - margin.left - margin.right;
-
-    const svg = d3
-      .select(el)
-      .append('svg')
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height)
-      .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
-
-    const allDates = sorted.flatMap((d) => [new Date(d.startDate), new Date(d.endDate)]);
-    const x = d3
-      .scaleTime()
-      .domain([d3.min(allDates) || new Date(), d3.max(allDates) || new Date()])
-      .range([0, width]);
-
-    const y = d3
-      .scaleBand()
-      .domain(sorted.map((d) => d.name))
-      .range([0, sorted.length * (barHeight + gap)])
-      .padding(0.15);
-
-    const colors = d3.scaleOrdinal(d3.schemeSet2);
-
-    const tooltip = d3.select(el).append('div').attr('class', 'chart-tooltip').style('opacity', 0);
-
-    svg
-      .selectAll('.trip-bar')
-      .data(sorted)
-      .enter()
-      .append('rect')
-      .attr('y', (d) => y(d.name) ?? 0)
-      .attr('height', y.bandwidth())
-      .attr('x', (d) => x(new Date(d.startDate)))
-      .attr('width', 0)
-      .attr('fill', (_, i) => colors(String(i)))
-      .attr('rx', 4)
-      .style('cursor', 'pointer')
-      .on('mouseover', function (event, d) {
-        d3.select(this).attr('opacity', 0.8);
-        tooltip.transition().duration(200).style('opacity', 1);
-        const start = new Date(d.startDate).toLocaleDateString();
-        const end = new Date(d.endDate).toLocaleDateString();
-        tooltip
-          .html(
-            `<strong>${d.name}</strong><br/>` +
-              `${start} – ${end}<br/>` +
-              `${d.planItemCount} plan items`
-          )
-          .style('left', `${event.offsetX + 10}px`)
-          .style('top', `${event.offsetY - 28}px`);
-      })
-      .on('mouseout', function () {
-        d3.select(this).attr('opacity', 1);
-        tooltip.transition().duration(300).style('opacity', 0);
-      })
-      .transition()
-      .duration(800)
-      .delay((_, i) => i * 50)
-      .attr('width', (d) => Math.max(x(new Date(d.endDate)) - x(new Date(d.startDate)), 4));
-
-    svg.append('g').call(d3.axisLeft(y));
-    const bottomAxis = d3
-      .axisBottom(x)
-      .ticks(6)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .tickFormat(d3.timeFormat('%b %Y') as any);
-    svg
-      .append('g')
-      .attr('transform', `translate(0,${sorted.length * (barHeight + gap)})`)
-      .call(bottomAxis);
   }
 
   // ─── Horizontal Bar Chart: Visited Countries per Region ───

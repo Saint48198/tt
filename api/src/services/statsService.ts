@@ -24,13 +24,6 @@ interface PhotosByEntity {
   count: number;
 }
 
-interface TripTimeline {
-  name: string;
-  startDate: string;
-  endDate: string;
-  planItemCount: number;
-}
-
 interface CountriesPerRegion {
   region: string;
   count: number;
@@ -40,7 +33,6 @@ export interface AnalyticsData {
   entityBreakdown: EntityBreakdown[];
   photosByMonth: TimeSeriesPoint[];
   photosByEntity: PhotosByEntity[];
-  tripTimeline: TripTimeline[];
   countriesPerRegion: CountriesPerRegion[];
   photosPerYear: TimeSeriesPoint[];
   entityGrowth: {
@@ -97,7 +89,6 @@ class StatsService {
       entityBreakdown,
       photosByMonth,
       photosByEntity,
-      tripTimeline,
       countriesPerRegion,
       photosPerYear,
       entityGrowth,
@@ -105,7 +96,6 @@ class StatsService {
       this.getEntityBreakdown(),
       this.getPhotosByMonth(),
       this.getPhotosByEntity(),
-      this.getTripTimeline(),
       this.getCountriesPerRegion(),
       this.getPhotosPerYear(),
       this.getEntityGrowth(),
@@ -115,7 +105,6 @@ class StatsService {
       entityBreakdown,
       photosByMonth,
       photosByEntity,
-      tripTimeline,
       countriesPerRegion,
       photosPerYear,
       entityGrowth,
@@ -208,34 +197,6 @@ class StatsService {
       return results;
     } catch (err) {
       console.error('Failed to get photos by entity:', err);
-      return [];
-    }
-  }
-
-  /** Timeline: trips with derived start/end dates from plan JSON */
-  private async getTripTimeline(): Promise<TripTimeline[]> {
-    try {
-      const trips = await db.all<{
-        name: string;
-        plan: string | object;
-        created_date: string;
-      }>(`SELECT name, plan, created_date FROM trips ORDER BY created_date DESC LIMIT 20`);
-
-      return trips.map((t) => {
-        const plan = typeof t.plan === 'string' ? JSON.parse(t.plan) : t.plan || [];
-        const dates = (plan as Array<{ startDate?: string; endDate?: string }>).flatMap((p) =>
-          [p.startDate, p.endDate].filter(Boolean)
-        ) as string[];
-        dates.sort();
-        return {
-          name: t.name,
-          startDate: dates[0] || t.created_date,
-          endDate: dates[dates.length - 1] || t.created_date,
-          planItemCount: plan.length,
-        };
-      });
-    } catch (err) {
-      console.error('Failed to get trip timeline:', err);
       return [];
     }
   }

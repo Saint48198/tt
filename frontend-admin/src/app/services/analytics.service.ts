@@ -17,13 +17,6 @@ export interface PhotosByEntity {
   count: number;
 }
 
-export interface TripTimeline {
-  name: string;
-  startDate: string;
-  endDate: string;
-  planItemCount: number;
-}
-
 export interface EntityGrowth {
   month: string;
   countries: number;
@@ -41,7 +34,6 @@ export interface AnalyticsData {
   entityBreakdown: EntityBreakdown[];
   photosByMonth: TimeSeriesPoint[];
   photosByEntity: PhotosByEntity[];
-  tripTimeline: TripTimeline[];
   countriesPerRegion: CountriesPerRegion[];
   photosPerYear: TimeSeriesPoint[];
   entityGrowth: EntityGrowth[];
