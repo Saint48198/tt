@@ -38,10 +38,10 @@ export class PhotosService {
   }
 
   /**
-   * Get photos for a specific entity (city or attraction)
+   * Get photos for a specific entity (city, attraction, country, or state)
    */
   getPhotosByEntity(
-    entityType: 'cities' | 'attractions',
+    entityType: 'cities' | 'attractions' | 'countries' | 'states',
     entityId: number
   ): Observable<EntityPhotosResponse> {
     return this.http.get<EntityPhotosResponse>(`${this.apiUrl}/${entityType}/${entityId}`);

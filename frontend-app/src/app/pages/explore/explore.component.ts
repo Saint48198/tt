@@ -11,7 +11,14 @@ import { Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, Subject, EMPTY } from 'rxjs';
 import { takeUntil, switchMap, tap, finalize } from 'rxjs/operators';
-import { MapComponent, MapMarker, MapOverlay, OverlayClickEvent } from '@shared/components';
+import {
+  MapComponent,
+  MapMarker,
+  MapOverlay,
+  OverlayClickEvent,
+  LightboxComponent,
+  LightboxPhoto,
+} from '@shared/components';
 import {
   ExploreService,
   ExploreDetailService,
@@ -20,7 +27,9 @@ import {
   ExploreCity,
   ExploreAttraction,
 } from '../../services/explore.service';
+import { PhotoService } from '../../services/photo.service';
 import { EntityDetailComponent } from './entity-detail/entity-detail.component';
+import { EntityListComponent, EntityListItem } from './entity-list/entity-list.component';
 
 type ExploreLevel = 'countries' | 'states' | 'cities' | 'city' | 'attractions' | 'attraction';
 
@@ -31,7 +40,13 @@ interface BreadcrumbItem {
 
 @Component({
   selector: 'app-explore',
-  imports: [MapComponent, RouterLink, EntityDetailComponent],
+  imports: [
+    MapComponent,
+    RouterLink,
+    EntityDetailComponent,
+    LightboxComponent,
+    EntityListComponent,
+  ],
   templateUrl: './explore.component.html',
   styleUrl: './explore.component.scss',
 })
@@ -40,6 +55,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private location = inject(Location);
   private exploreService = inject(ExploreService);
+  private photoService = inject(PhotoService);
   readonly detailService = inject(ExploreDetailService);
   private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
@@ -59,6 +75,47 @@ export class ExploreComponent implements OnInit, OnDestroy {
   states = signal<ExploreState[]>([]);
   cities = signal<ExploreCity[]>([]);
   attractions = signal<ExploreAttraction[]>([]);
+
+  // --- EntityListItem mappings ---
+  countryItems = computed<EntityListItem[]>(() =>
+    this.countries().map((c) => ({
+      id: c.id,
+      name: c.name,
+      badge: c.abbreviation,
+      icon: 'pin' as const,
+      lastVisited: c.last_visited,
+    }))
+  );
+
+  stateItems = computed<EntityListItem[]>(() =>
+    this.states().map((s) => ({
+      id: s.id,
+      name: s.name,
+      badge: s.abbr,
+      icon: 'capitol' as const,
+      lastVisited: s.last_visited,
+    }))
+  );
+
+  cityItems = computed<EntityListItem[]>(() =>
+    this.cities().map((c) => ({
+      id: c.id,
+      name: c.name,
+      subtitle: c.state_name,
+      icon: 'skyline' as const,
+      lastVisited: c.last_visited,
+    }))
+  );
+
+  attractionItems = computed<EntityListItem[]>(() =>
+    this.attractions().map((a) => ({
+      id: a.id,
+      name: a.name,
+      icon: this.getAttractionIcon(a),
+      lastVisited: a.last_visited,
+      tags: a.types,
+    }))
+  );
 
   // Plain array (not signal) to avoid repeated ngOnChanges on the map component
   countryMapOverlays: MapOverlay[] = [];
@@ -119,8 +176,18 @@ export class ExploreComponent implements OnInit, OnDestroy {
     return [];
   });
 
-  /** Map center for the country page — use hardcoded values for US/CA, otherwise country coords */
+  /** Map center — when a state is selected, center on its cities; otherwise use country center */
   countryMapCenter = computed<[number, number]>(() => {
+    // When viewing cities within a state, center on those cities
+    if (this.level() === 'cities' && this.selectedState()) {
+      const stateCities = this.cities().filter((c) => c.lat && c.lng);
+      if (stateCities.length > 0) {
+        const avgLat = stateCities.reduce((sum, c) => sum + c.lat, 0) / stateCities.length;
+        const avgLng = stateCities.reduce((sum, c) => sum + c.lng, 0) / stateCities.length;
+        return [avgLat, avgLng];
+      }
+    }
+
     const country = this.selectedCountry();
     const abbr = (country?.abbreviation || '').toUpperCase();
     const name = (country?.name || '').toLowerCase();
@@ -377,6 +444,16 @@ export class ExploreComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 
+  private filterOverlaysToState(state: ExploreState): void {
+    const stateOverlay = this.countryMapOverlays.find((o) => {
+      const gj = o.geoJson as GeoJSON.FeatureCollection;
+      return gj.features?.some(
+        (f) => f.properties?.['name']?.toLowerCase() === state.name.toLowerCase()
+      );
+    });
+    this.countryMapOverlays = stateOverlay ? [stateOverlay] : [];
+  }
+
   private loadStatesForUrl$(
     country: ExploreCountry,
     stateAbbr: string,
@@ -400,6 +477,8 @@ export class ExploreComponent implements OnInit, OnDestroy {
         );
         if (state) {
           this.selectedState.set(state);
+          // Filter overlays to only show the selected state
+          this.filterOverlaysToState(state);
           return this.exploreService.getCities(state.country_id, state.id).pipe(
             switchMap((cities) => {
               this.cities.set(cities);
@@ -526,6 +605,9 @@ export class ExploreComponent implements OnInit, OnDestroy {
     this.selectedState.set(state);
     this.loading.set(true);
 
+    // Filter overlays to only show the selected state
+    this.filterOverlaysToState(state);
+
     this.exploreService
       .getCities(state.country_id, state.id)
       .pipe(
@@ -615,6 +697,11 @@ export class ExploreComponent implements OnInit, OnDestroy {
       this.selectedState.set(null);
       this.detailService.reset();
       if (this.states().length > 0) {
+        // Restore all state overlays
+        const country = this.selectedCountry();
+        if (country) {
+          this.loadStateOverlays(country, this.states());
+        }
         this.level.set('states');
       } else {
         this.level.set('cities');
@@ -660,6 +747,11 @@ export class ExploreComponent implements OnInit, OnDestroy {
       if (this.states().length > 0) {
         this.updateUrl(`${this.baseUrl()}/${countryAbbr}`);
         this.selectedState.set(null);
+        // Restore all state overlays
+        const country = this.selectedCountry();
+        if (country) {
+          this.loadStateOverlays(country, this.states());
+        }
         this.level.set('states');
       } else {
         this.updateUrl(this.baseUrl());
@@ -698,5 +790,86 @@ export class ExploreComponent implements OnInit, OnDestroy {
 
   hasType(attraction: ExploreAttraction, slug: string): boolean {
     return attraction.types?.some((t) => t.slug === slug) ?? false;
+  }
+
+  private getAttractionIcon(attraction: ExploreAttraction): EntityListItem['icon'] {
+    if (this.hasType(attraction, 'unesco')) return 'unesco';
+    if (this.hasType(attraction, 'national-park')) return 'tree';
+    if (this.hasType(attraction, 'state-park')) return 'park';
+    return 'castle';
+  }
+
+  // --- Entity list card click handlers ---
+  onCountryCardClick(item: EntityListItem): void {
+    const country = this.countries().find((c) => c.id === item.id);
+    if (country) this.onCountryClick(country);
+  }
+
+  onStateCardClick(item: EntityListItem): void {
+    const state = this.states().find((s) => s.id === item.id);
+    if (state) this.onStateClick(state);
+  }
+
+  onCityCardClick(item: EntityListItem): void {
+    const city = this.cities().find((c) => c.id === item.id);
+    if (city) this.onCityClick(city);
+  }
+
+  onAttractionCardClick(item: EntityListItem): void {
+    const attraction = this.attractions().find((a) => a.id === item.id);
+    if (attraction) this.onAttractionClick(attraction);
+  }
+
+  // --- Lightbox for entity photos ---
+  lightboxPhotos = signal<LightboxPhoto[]>([]);
+  lightboxOpen = signal(false);
+  lightboxIndex = signal(0);
+
+  private openLightboxForEntity(
+    fetchFn: (
+      id: number,
+      page: number,
+      limit: number
+    ) => Observable<{ photos: { url: string; caption?: string | null }[] }>,
+    entityId: number
+  ): void {
+    fetchFn
+      .call(this.photoService, entityId, 1, 100)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((res: { photos: { url: string; caption?: string | null }[] }) => {
+        if (res.photos.length > 0) {
+          this.lightboxPhotos.set(
+            res.photos.map((p) => ({ url: p.url, caption: p.caption ?? undefined }))
+          );
+          this.lightboxIndex.set(0);
+          this.lightboxOpen.set(true);
+        }
+      });
+  }
+
+  onCountryPhotoClick(item: EntityListItem): void {
+    this.openLightboxForEntity(this.photoService.getCountryPhotos, item.id);
+  }
+
+  onStatePhotoClick(item: EntityListItem): void {
+    this.openLightboxForEntity(this.photoService.getStatePhotos, item.id);
+  }
+
+  onCityPhotoClick(item: EntityListItem): void {
+    this.openLightboxForEntity(this.photoService.getCityPhotos, item.id);
+  }
+
+  onViewAllStatePhotos(): void {
+    const state = this.selectedState();
+    if (!state) return;
+    this.openLightboxForEntity(this.photoService.getStatePhotos, state.id);
+  }
+
+  onLightboxClose(): void {
+    this.lightboxOpen.set(false);
+  }
+
+  onLightboxIndexChange(index: number): void {
+    this.lightboxIndex.set(index);
   }
 }

@@ -1,0 +1,119 @@
+<div class="card-grid">
+  @for (item of items(); track item.id) {
+    <div
+      class="explore-card"
+      role="button"
+      tabindex="0"
+      (click)="onCardClick(item)"
+      (keydown.enter)="onCardClick(item)"
+    >
+      <div class="card-icon">
+        @switch (item.icon) {
+          @case ('pin') {
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <path
+                d="M16 6a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"
+                fill="#fff"
+              />
+            </svg>
+          }
+          @case ('capitol') {
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <path
+                d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z"
+                fill="#fff"
+              />
+            </svg>
+          }
+          @case ('skyline') {
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <path
+                d="M6 24h20v-2H6v2zm2-4h3V10H8v10zm5 0h3V7h-3v13zm5 0h3V12h-3v8zm5 0h3V9h-3v11z"
+                fill="#fff"
+              />
+            </svg>
+          }
+          @case ('unesco') {
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="28" height="28">
+              <circle cx="16" cy="16" r="16" fill="#667eea" />
+              <path
+                d="M8 24h16v-2H8v2zm2-4h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zm4 0h2v-6h-2v6zM8 12l8-5 8 5v2H8v-2z"
+                fill="#fff"
+              />
+            </svg>
+          }
+          @case ('tree') {
+            🌲
+          }
+          @case ('park') {
+            🏞️
+          }
+          @case ('castle') {
+            🏰
+          }
+        }
+      </div>
+      <div class="card-content">
+        <h3>{{ item.name }}</h3>
+        @if (item.badge) {
+          <span class="card-badge">{{ item.badge }}</span>
+        }
+        @if (item.subtitle) {
+          <p class="card-sub">{{ item.subtitle }}</p>
+        }
+        @if (item.tags && item.tags.length > 0) {
+          <div class="card-tags">
+            @for (tag of item.tags; track tag.id) {
+              <span class="tag tag-{{ tag.slug }}">{{ tag.name }}</span>
+            }
+          </div>
+        }
+        @if (item.lastVisited) {
+          <p class="card-meta">
+            <svg
+              class="meta-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 32 32"
+              width="18"
+              height="18"
+            >
+              <circle cx="16" cy="16" r="16" fill="#fff" />
+              <path
+                d="M9 6v2H6v18h20V8h-3V6h-2v2H11V6H9zM7 12h18v10H7V12zm3 2v3h3v-3h-3zm5 0v3h3v-3h-3zm5 0v3h3v-3h-3zm-10 5v3h3v-3h-3zm5 0v3h3v-3h-3z"
+                fill="#1f2937"
+              />
+            </svg>
+            {{ formatDate(item.lastVisited) }}
+          </p>
+        }
+      </div>
+      @if (showPhotoButton()) {
+        <button class="card-photos-btn" (click)="onPhotoClick(item, $event)" title="View photos">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+        </button>
+      }
+      <span class="card-arrow">›</span>
+    </div>
+  } @empty {
+    <div class="empty-state">
+      <p>{{ emptyMessage() }}</p>
+    </div>
+  }
+</div>

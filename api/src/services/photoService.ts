@@ -594,9 +594,17 @@ class PhotoService {
     page = 1,
     limit = 15
   ): Promise<PhotosByEntityResponse> {
-    if (!['cities', 'attractions'].includes(entityType))
-      throw new Error('Invalid entityType. Must be "cities" or "attractions".');
-    const column = entityType === 'cities' ? 'city_id' : 'attraction_id';
+    const columnMap: Record<string, string> = {
+      cities: 'city_id',
+      attractions: 'attraction_id',
+      countries: 'country_id',
+      states: 'state_id',
+    };
+    if (!columnMap[entityType])
+      throw new Error(
+        'Invalid entityType. Must be "cities", "attractions", "countries", or "states".'
+      );
+    const column = columnMap[entityType];
     await this.ensureTable();
 
     const offset = (page - 1) * limit;

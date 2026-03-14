@@ -37,6 +37,26 @@ export class PhotoService {
   }
 
   /**
+   * Get photos for a specific country (paginated)
+   */
+  getCountryPhotos(countryId: number, page = 1, limit = 15): Observable<EntityPhotosResponse> {
+    const params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
+    return this.http
+      .get<EntityPhotosResponse>(`/api/photos/countries/${countryId}`, { params })
+      .pipe(catchError(() => of({ photos: [], total: 0, page, limit })));
+  }
+
+  /**
+   * Get photos for a specific state (paginated)
+   */
+  getStatePhotos(stateId: number, page = 1, limit = 15): Observable<EntityPhotosResponse> {
+    const params = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
+    return this.http
+      .get<EntityPhotosResponse>(`/api/photos/states/${stateId}`, { params })
+      .pipe(catchError(() => of({ photos: [], total: 0, page, limit })));
+  }
+
+  /**
    * Get photos with location data for map display.
    * Optionally filter by city or attraction slug name.
    */
