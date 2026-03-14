@@ -865,6 +865,12 @@ export class ExploreComponent implements OnInit, OnDestroy {
     this.openLightboxForEntity(this.photoService.getStatePhotos, state.id);
   }
 
+  onViewAllCountryPhotos(): void {
+    const country = this.selectedCountry();
+    if (!country) return;
+    this.openLightboxForEntity(this.photoService.getCountryPhotos, country.id);
+  }
+
   onLightboxClose(): void {
     this.lightboxOpen.set(false);
   }

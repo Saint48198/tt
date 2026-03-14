@@ -69,6 +69,15 @@ export class LightboxComponent implements AfterViewChecked {
     this.close();
   }
 
+  onContentClick(event: Event): void {
+    event.stopPropagation();
+  }
+
+  onContentKeydown(event: KeyboardEvent): void {
+    event.stopPropagation();
+    this.onKeydown(event);
+  }
+
   close(): void {
     this.closed.emit();
     if (this.triggerEl) {
@@ -144,6 +153,7 @@ export class LightboxComponent implements AfterViewChecked {
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {
     if (!this.open()) return;
+    // Skip if the event originated inside the dialog (already handled by template bindings)
     const dialog = this.lightboxDialogRef?.nativeElement;
     if (dialog && dialog.contains(event.target as Node)) return;
     this.onKeydown(event);

@@ -19,8 +19,8 @@
     <div
       class="lightbox-content"
       role="document"
-      (click)="$event.stopPropagation()"
-      (keydown)="$event.stopPropagation()"
+      (click)="onContentClick($event)"
+      (keydown)="onContentKeydown($event)"
     >
       <button class="lightbox-close" (click)="close()" aria-label="Close photo viewer">✕</button>
       @if (photos().length > 1) {
