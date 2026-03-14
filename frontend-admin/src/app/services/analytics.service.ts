@@ -32,12 +32,18 @@ export interface EntityGrowth {
   attractions: number;
 }
 
+export interface CountriesPerRegion {
+  region: string;
+  count: number;
+}
+
 export interface AnalyticsData {
   entityBreakdown: EntityBreakdown[];
   photosByMonth: TimeSeriesPoint[];
   photosByEntity: PhotosByEntity[];
   tripTimeline: TripTimeline[];
-  tripsPerYear: TimeSeriesPoint[];
+  countriesPerRegion: CountriesPerRegion[];
+  photosPerYear: TimeSeriesPoint[];
   entityGrowth: EntityGrowth[];
 }
 

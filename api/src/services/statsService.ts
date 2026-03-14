@@ -31,12 +31,18 @@ interface TripTimeline {
   planItemCount: number;
 }
 
+interface CountriesPerRegion {
+  region: string;
+  count: number;
+}
+
 export interface AnalyticsData {
   entityBreakdown: EntityBreakdown[];
   photosByMonth: TimeSeriesPoint[];
   photosByEntity: PhotosByEntity[];
   tripTimeline: TripTimeline[];
-  tripsPerYear: TimeSeriesPoint[];
+  countriesPerRegion: CountriesPerRegion[];
+  photosPerYear: TimeSeriesPoint[];
   entityGrowth: {
     month: string;
     countries: number;
@@ -92,14 +98,16 @@ class StatsService {
       photosByMonth,
       photosByEntity,
       tripTimeline,
-      tripsPerYear,
+      countriesPerRegion,
+      photosPerYear,
       entityGrowth,
     ] = await Promise.all([
       this.getEntityBreakdown(),
       this.getPhotosByMonth(),
       this.getPhotosByEntity(),
       this.getTripTimeline(),
-      this.getTripsPerYear(),
+      this.getCountriesPerRegion(),
+      this.getPhotosPerYear(),
       this.getEntityGrowth(),
     ]);
 
@@ -108,7 +116,8 @@ class StatsService {
       photosByMonth,
       photosByEntity,
       tripTimeline,
-      tripsPerYear,
+      countriesPerRegion,
+      photosPerYear,
       entityGrowth,
     };
   }
@@ -231,18 +240,37 @@ class StatsService {
     }
   }
 
-  /** Bar chart: trips created per year */
-  private async getTripsPerYear(): Promise<TimeSeriesPoint[]> {
+  /** Bar chart: visited countries grouped by world region */
+  private async getCountriesPerRegion(): Promise<CountriesPerRegion[]> {
+    try {
+      const rows = await db.all<{ region: string; count: string }>(
+        `SELECT wr.name AS region, COUNT(c.id) AS count
+         FROM countries c
+         JOIN world_regions wr ON c.world_region_id = wr.id
+         WHERE c.disabled_date IS NULL
+         GROUP BY wr.name
+         ORDER BY count DESC`
+      );
+      return rows.map((r) => ({ region: r.region, count: Number(r.count) }));
+    } catch (err) {
+      console.error('Failed to get countries per region:', err);
+      return [];
+    }
+  }
+
+  /** Line chart: photos created per year */
+  private async getPhotosPerYear(): Promise<TimeSeriesPoint[]> {
     try {
       const rows = await db.all<{ year: string; count: string }>(
         `SELECT TO_CHAR(created_date, 'YYYY') AS year, COUNT(*) AS count
-         FROM trips
+         FROM photos
+         WHERE disabled_date IS NULL AND created_date IS NOT NULL
          GROUP BY TO_CHAR(created_date, 'YYYY')
          ORDER BY year`
       );
       return rows.map((r) => ({ date: r.year, count: Number(r.count) }));
     } catch (err) {
-      console.error('Failed to get trips per year:', err);
+      console.error('Failed to get photos per year:', err);
       return [];
     }
   }
