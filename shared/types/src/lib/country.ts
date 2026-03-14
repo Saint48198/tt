@@ -12,6 +12,12 @@ export interface Country {
   lat?: number;
   lng?: number;
   slug?: string;
+  region?: string;
+  sub_region?: string;
+  world_region_id?: number | null;
+  world_sub_region_id?: number | null;
+  world_region_name?: string;
+  world_sub_region_name?: string;
   last_visited?: string;
   geo_map_id?: string;
   created_date?: string;
@@ -31,7 +37,16 @@ export interface CountryListParams {
   page?: number;
   limit?: number;
   all?: boolean;
-  sortBy?: 'name' | 'abbreviation' | 'lat' | 'lng' | 'slug' | 'last_visited' | 'geo_map_id';
+  sortBy?:
+    | 'name'
+    | 'abbreviation'
+    | 'lat'
+    | 'lng'
+    | 'slug'
+    | 'region'
+    | 'sub_region'
+    | 'last_visited'
+    | 'geo_map_id';
   sortOrder?: 'asc' | 'desc';
   includeDisabled?: boolean;
 }
@@ -42,6 +57,10 @@ export interface CreateCountryRequest {
   lat?: number;
   lng?: number;
   slug?: string;
+  region?: string;
+  sub_region?: string;
+  world_region_id?: number | null;
+  world_sub_region_id?: number | null;
   last_visited?: string;
   geo_map_id?: string;
 }

@@ -50,7 +50,15 @@ export class CountriesListComponent implements OnInit, AfterViewInit {
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
-  displayedColumns: string[] = ['name', 'abbreviation', 'lat', 'lng', 'last_visited', 'actions'];
+  displayedColumns: string[] = [
+    'name',
+    'abbreviation',
+    'region',
+    'lat',
+    'lng',
+    'last_visited',
+    'actions',
+  ];
   dataSource = new MatTableDataSource<Country>([]);
 
   total = signal(0);

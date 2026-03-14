@@ -7,6 +7,31 @@ const pool = new Pool({
 async function init() {
   const client = await pool.connect();
   try {
+    // world_regions TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS world_regions (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        created_date TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // world_sub_regions TABLE
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS world_sub_regions (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        world_region_id INTEGER NOT NULL,
+        created_date TIMESTAMP DEFAULT NOW(),
+        FOREIGN KEY (world_region_id) REFERENCES world_regions(id) ON DELETE CASCADE,
+        UNIQUE (name, world_region_id)
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_world_sub_regions_region
+        ON world_sub_regions (world_region_id);
+    `);
+
     // countries TABLE
     await client.query(`
       CREATE TABLE IF NOT EXISTS countries (
@@ -17,6 +42,10 @@ async function init() {
         lat DOUBLE PRECISION NOT NULL,
         lng DOUBLE PRECISION NOT NULL,
         slug TEXT NOT NULL,
+        region TEXT,
+        sub_region TEXT,
+        world_region_id INTEGER REFERENCES world_regions(id),
+        world_sub_region_id INTEGER REFERENCES world_sub_regions(id),
         last_visited TIMESTAMP,
         geo_map_id TEXT NOT NULL UNIQUE,
         created_date TIMESTAMP DEFAULT NOW(),

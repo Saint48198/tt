@@ -14,6 +14,12 @@ interface Country {
   lat?: number;
   lng?: number;
   slug?: string;
+  region?: string;
+  sub_region?: string;
+  world_region_id?: number | null;
+  world_sub_region_id?: number | null;
+  world_region_name?: string;
+  world_sub_region_name?: string;
   last_visited?: string;
   geo_map_id?: string;
   created_date?: string;
@@ -39,12 +45,25 @@ class CountryService {
     'lat',
     'lng',
     'slug',
+    'region',
+    'sub_region',
+    'world_region_id',
+    'world_sub_region_id',
     'last_visited',
     'geo_map_id',
     'created_date',
     'updated_date',
     'disabled_date',
   ];
+
+  private readonly selectWithRegions = `
+    SELECT c.*,
+           wr.name AS world_region_name,
+           wsr.name AS world_sub_region_name
+    FROM countries c
+    LEFT JOIN world_regions wr ON c.world_region_id = wr.id
+    LEFT JOIN world_sub_regions wsr ON c.world_sub_region_id = wsr.id
+  `;
 
   private constructor() {}
 
@@ -80,11 +99,11 @@ class CountryService {
       throw new Error('Invalid sort order.');
     }
 
-    const disabledFilter = includeDisabled ? '' : 'WHERE disabled_date IS NULL';
+    const disabledFilter = includeDisabled ? '' : 'WHERE c.disabled_date IS NULL';
 
     if (all) {
       const countries = await db.all<Country>(
-        `SELECT * FROM countries ${disabledFilter} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`
+        `${this.selectWithRegions} ${disabledFilter} ORDER BY c.${sortByStr} ${sortOrderStr.toUpperCase()}`
       );
       await this.attachAliases(countries);
       return { total: countries.length, countries };
@@ -92,10 +111,10 @@ class CountryService {
 
     const offset = (page - 1) * limit;
     const totalRow = await db.get<{ count: string }>(
-      `SELECT COUNT(*) AS count FROM countries ${disabledFilter}`
+      `SELECT COUNT(*) AS count FROM countries c ${disabledFilter}`
     );
     const countries = await db.all<Country>(
-      `SELECT * FROM countries ${disabledFilter} ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT $1 OFFSET $2`,
+      `${this.selectWithRegions} ${disabledFilter} ORDER BY c.${sortByStr} ${sortOrderStr.toUpperCase()} LIMIT $1 OFFSET $2`,
       [limit, offset]
     );
     await this.attachAliases(countries);
@@ -105,7 +124,7 @@ class CountryService {
 
   public async getCountryById(id: number | string): Promise<Country | undefined> {
     const country = await db.get<Country>(
-      'SELECT * FROM countries WHERE id = $1 AND disabled_date IS NULL',
+      `${this.selectWithRegions} WHERE c.id = $1 AND c.disabled_date IS NULL`,
       [id]
     );
     if (country) {
@@ -123,14 +142,42 @@ class CountryService {
     lat?: number;
     lng?: number;
     slug?: string;
+    region?: string;
+    sub_region?: string;
+    world_region_id?: number | null;
+    world_sub_region_id?: number | null;
     last_visited?: string;
     geo_map_id?: string;
   }): Promise<{ id: number }> {
-    const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } = data;
+    const {
+      name,
+      abbreviation,
+      lat,
+      lng,
+      slug,
+      region,
+      sub_region,
+      world_region_id,
+      world_sub_region_id,
+      last_visited,
+      geo_map_id,
+    } = data;
     const result = await db.run(
-      `INSERT INTO countries (name, abbreviation, lat, lng, slug, last_visited, geo_map_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      [name, abbreviation, lat, lng, slug, last_visited, geo_map_id]
+      `INSERT INTO countries (name, abbreviation, lat, lng, slug, region, sub_region, world_region_id, world_sub_region_id, last_visited, geo_map_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
+      [
+        name,
+        abbreviation,
+        lat,
+        lng,
+        slug,
+        region,
+        sub_region,
+        world_region_id || null,
+        world_sub_region_id || null,
+        last_visited,
+        geo_map_id,
+      ]
     );
     return { id: result.rows[0].id };
   }
@@ -143,14 +190,45 @@ class CountryService {
       lat?: number;
       lng?: number;
       slug?: string;
+      region?: string;
+      sub_region?: string;
+      world_region_id?: number | null;
+      world_sub_region_id?: number | null;
       last_visited?: string;
       geo_map_id?: string;
     }
   ): Promise<{ success: boolean; changes: number }> {
-    const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } = data;
+    const {
+      name,
+      abbreviation,
+      lat,
+      lng,
+      slug,
+      region,
+      sub_region,
+      world_region_id,
+      world_sub_region_id,
+      last_visited,
+      geo_map_id,
+    } = data;
     const result = await db.run(
-      'UPDATE countries SET name = $1, abbreviation = $2, lat = $3, lng = $4, slug = $5, last_visited = $6, geo_map_id = $7, updated_date = NOW() WHERE id = $8',
-      [name, abbreviation, lat, lng, slug, last_visited, geo_map_id, id]
+      `UPDATE countries SET name = $1, abbreviation = $2, lat = $3, lng = $4, slug = $5,
+       region = $6, sub_region = $7, world_region_id = $8, world_sub_region_id = $9,
+       last_visited = $10, geo_map_id = $11, updated_date = NOW() WHERE id = $12`,
+      [
+        name,
+        abbreviation,
+        lat,
+        lng,
+        slug,
+        region,
+        sub_region,
+        world_region_id || null,
+        world_sub_region_id || null,
+        last_visited,
+        geo_map_id,
+        id,
+      ]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
   }

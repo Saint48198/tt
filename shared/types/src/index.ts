@@ -13,3 +13,4 @@ export * from './lib/trip';
 export * from './lib/geocode';
 export * from './lib/wikipedia';
 export * from './lib/dashboard';
+export * from './lib/world-region';

@@ -19,6 +19,7 @@ import statesRouter from './routes/states';
 import tripsRouter from './routes/trips';
 import statsRouter from './routes/stats';
 import profileRouter from './routes/profile';
+import worldRegionsRouter from './routes/worldRegions';
 
 const app = express();
 
@@ -45,6 +46,7 @@ app.use(statesRouter);
 app.use(tripsRouter);
 app.use(statsRouter);
 app.use(profileRouter);
+app.use(worldRegionsRouter);
 
 const port = process.env.PORT || 3001;
 

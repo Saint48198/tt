@@ -12,11 +12,14 @@ import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker
 import { MatNativeDateModule, MAT_DATE_FORMATS } from '@angular/material/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MapComponent, MapMarker } from '@shared/components';
 import { HasUnsavedChanges } from '@shared/services';
+import { WorldRegion, WorldSubRegion } from '@shared/types';
 import { CountriesService } from '../../services/countries.service';
 import { GeocodeService } from '../../services/geocode.service';
+import { WorldRegionsService } from '../../services/world-regions.service';
 import type { Country, CountryAlias } from '../../interfaces';
 
 const MONTH_YEAR_FORMATS = {
@@ -44,6 +47,7 @@ const MONTH_YEAR_FORMATS = {
     MatNativeDateModule,
     MatTooltipModule,
     MatChipsModule,
+    MatSelectModule,
     MatDialogModule,
     MapComponent,
   ],
@@ -57,6 +61,7 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
   private readonly router = inject(Router);
   private readonly countriesService = inject(CountriesService);
   private readonly geocodeService = inject(GeocodeService);
+  private readonly worldRegionsService = inject(WorldRegionsService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
@@ -71,6 +76,10 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
   mapCenter = signal<[number, number]>([39.8283, -98.5795]);
   hasCoordinates = signal(false);
   private saved = false;
+
+  // World region data
+  worldRegions = signal<(WorldRegion & { sub_regions: WorldSubRegion[] })[]>([]);
+  filteredSubRegions = signal<WorldSubRegion[]>([]);
 
   // Alias management
   aliases = signal<CountryAlias[]>([]);
@@ -91,6 +100,7 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
 
   ngOnInit(): void {
     this.initForm();
+    this.loadWorldRegions();
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
@@ -108,6 +118,36 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
       .get('lng')
       ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.updateMapFromForm());
+
+    // When region changes, update filtered sub-regions and clear sub-region selection
+    this.form
+      .get('world_region_id')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((regionId: number | null) => {
+        this.updateFilteredSubRegions(regionId);
+        // Clear sub-region when region changes (unless loading)
+        if (!this.loading()) {
+          this.form.get('world_sub_region_id')?.setValue(null);
+        }
+      });
+  }
+
+  private loadWorldRegions(): void {
+    this.worldRegionsService
+      .getRegions()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (regions) => this.worldRegions.set(regions),
+      });
+  }
+
+  private updateFilteredSubRegions(regionId: number | null): void {
+    if (!regionId) {
+      this.filteredSubRegions.set([]);
+      return;
+    }
+    const region = this.worldRegions().find((r) => r.id === regionId);
+    this.filteredSubRegions.set(region?.sub_regions || []);
   }
 
   private initForm(): void {
@@ -117,6 +157,8 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
       lat: [null, [Validators.required]],
       lng: [null, [Validators.required]],
       slug: ['', [Validators.required, Validators.maxLength(255)]],
+      world_region_id: [null as number | null],
+      world_sub_region_id: [null as number | null],
       last_visited: [null as Date | null],
       geo_map_id: ['', [Validators.required, Validators.maxLength(255)]],
     });
@@ -151,9 +193,13 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
             lat: country.lat ?? null,
             lng: country.lng ?? null,
             slug: country.slug || '',
+            world_region_id: country.world_region_id ?? null,
+            world_sub_region_id: country.world_sub_region_id ?? null,
             last_visited: this.parseDate(country.last_visited),
             geo_map_id: country.geo_map_id || '',
           });
+          // Pre-populate sub-regions for the selected region
+          this.updateFilteredSubRegions(country.world_region_id ?? null);
           if (country.aliases) {
             this.aliases.set(country.aliases);
           } else {
@@ -213,6 +259,8 @@ export class CountryEditComponent implements OnInit, HasUnsavedChanges {
       lat: formValue.lat != null && formValue.lat !== '' ? +formValue.lat : undefined,
       lng: formValue.lng != null && formValue.lng !== '' ? +formValue.lng : undefined,
       slug: formValue.slug || undefined,
+      world_region_id: formValue.world_region_id || null,
+      world_sub_region_id: formValue.world_sub_region_id || null,
       last_visited: this.formatDate(formValue.last_visited),
       geo_map_id: formValue.geo_map_id || undefined,
     };

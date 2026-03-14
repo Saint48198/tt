@@ -38,7 +38,19 @@ router.get('/api/countries', async (req: Request, res: Response) => {
 
 // POST /api/countries
 router.post('/api/countries', async (req: Request, res: Response) => {
-  const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } = req.body;
+  const {
+    name,
+    abbreviation,
+    lat,
+    lng,
+    slug,
+    region,
+    sub_region,
+    world_region_id,
+    world_sub_region_id,
+    last_visited,
+    geo_map_id,
+  } = req.body;
 
   const missing: string[] = [];
   if (!name) missing.push('Name');
@@ -61,6 +73,10 @@ router.post('/api/countries', async (req: Request, res: Response) => {
       lat,
       lng,
       slug,
+      region,
+      sub_region,
+      world_region_id,
+      world_sub_region_id,
       last_visited,
       geo_map_id,
     });
@@ -136,7 +152,19 @@ router.get('/api/countries/:id', async (req: Request, res: Response) => {
 // PUT /api/countries/:id
 router.put('/api/countries/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, abbreviation, lat, lng, slug, last_visited, geo_map_id } = req.body;
+  const {
+    name,
+    abbreviation,
+    lat,
+    lng,
+    slug,
+    region,
+    sub_region,
+    world_region_id,
+    world_sub_region_id,
+    last_visited,
+    geo_map_id,
+  } = req.body;
 
   const missing: string[] = [];
   if (!name) missing.push('Name');
@@ -159,6 +187,10 @@ router.put('/api/countries/:id', async (req: Request, res: Response) => {
       lat,
       lng,
       slug,
+      region,
+      sub_region,
+      world_region_id,
+      world_sub_region_id,
       last_visited,
       geo_map_id,
     });
