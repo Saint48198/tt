@@ -203,6 +203,26 @@ class TagService {
       .trim()
       .replace(/\s+/g, '-');
   }
+
+  /**
+   * Get tag frequency data for word cloud
+   * Returns all tags with their frequency count across all photos
+   */
+  public async getTagFrequencies(): Promise<{ tags: Array<{ tag: string; count: number }> }> {
+    await this.ensureTable();
+
+    const rows = await db.all<{ name: string; count: number }>(
+      `SELECT t.name, COUNT(pt.id) as count
+       FROM tags t
+       LEFT JOIN photo_tags pt ON pt.tag_id = t.id
+       GROUP BY t.id, t.name
+       ORDER BY count DESC`
+    );
+
+    return {
+      tags: rows.map((r) => ({ tag: r.name, count: r.count })),
+    };
+  }
 }
 
 export const tagService = TagService.getInstance();

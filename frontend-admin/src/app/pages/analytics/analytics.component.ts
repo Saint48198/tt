@@ -20,12 +20,15 @@ import {
   CountriesPerRegion,
 } from '../../services/analytics.service';
 import { DashboardService, DashboardStats } from '../../services/dashboard.service';
+import { WordCloudService, WordCloudItem } from '../../services/word-cloud.service';
+import { WordCloudComponent } from '@shared/components';
 import { forkJoin, catchError, of } from 'rxjs';
 import * as d3 from 'd3';
 
 @Component({
   selector: 'app-analytics',
   standalone: true,
+  imports: [WordCloudComponent],
   templateUrl: './analytics.component.html',
   styleUrl: './analytics.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +36,7 @@ import * as d3 from 'd3';
 export class AnalyticsComponent implements OnDestroy {
   private analyticsService = inject(AnalyticsService);
   private dashboardService = inject(DashboardService);
+  private wordCloudService = inject(WordCloudService);
   private cdr = inject(ChangeDetectorRef);
 
   @ViewChild('entityDonut') entityDonutEl?: ElementRef<HTMLDivElement>;
@@ -46,6 +50,7 @@ export class AnalyticsComponent implements OnDestroy {
   error = signal<string | null>(null);
   stats = signal<DashboardStats | null>(null);
   analytics = signal<AnalyticsData | null>(null);
+  wordCloudItems = signal<WordCloudItem[]>([]);
 
   private resizeObserver?: ResizeObserver;
   private resizeDebounceTimer?: ReturnType<typeof setTimeout>;
@@ -54,6 +59,7 @@ export class AnalyticsComponent implements OnDestroy {
   private data$ = forkJoin({
     stats: this.dashboardService.getStats().pipe(catchError(() => of(null))),
     analytics: this.analyticsService.getAnalytics().pipe(catchError(() => of(null))),
+    wordCloudItems: this.wordCloudService.getTagFrequencies().pipe(catchError(() => of([]))),
   });
   private data = toSignal(this.data$.pipe(takeUntilDestroyed()));
 
@@ -61,7 +67,7 @@ export class AnalyticsComponent implements OnDestroy {
     effect(() => {
       const d = this.data();
       if (d) {
-        const { stats, analytics } = d;
+        const { stats, analytics, wordCloudItems } = d;
         if (stats) this.stats.set(stats);
         if (analytics) {
           this.analytics.set(analytics);
@@ -73,6 +79,7 @@ export class AnalyticsComponent implements OnDestroy {
             this.setupResizeObserver();
           });
         }
+        if (wordCloudItems) this.wordCloudItems.set(wordCloudItems);
         if (!stats && !analytics) {
           this.error.set('Failed to load analytics data. Please try again.');
         }

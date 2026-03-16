@@ -103,4 +103,16 @@ router.post('/api/tags/suggest', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/tags/frequency/all
+router.get('/api/tags/frequency/all', async (_req: Request, res: Response) => {
+  try {
+    const result = await tagService.getTagFrequencies();
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Failed to fetch tag frequencies:', error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch tag frequencies';
+    return res.status(500).json({ error: message });
+  }
+});
+
 export default router;

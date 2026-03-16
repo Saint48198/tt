@@ -362,6 +362,20 @@
         <div class="map-section">
           <app-dashboard-map [countriesVisited]="countriesVisited()"></app-dashboard-map>
         </div>
+
+        <!-- Word Cloud Widget showing photo tag frequencies -->
+        @if (wordCloudItems().length > 0) {
+          <div class="word-cloud-section">
+            <h2 class="word-cloud-title">Photo Tags Cloud</h2>
+            <p class="word-cloud-subtitle">Visualization of tags used across your photos</p>
+            <lib-word-cloud
+              [items]="wordCloudItems()"
+              colorScheme="vibrant"
+              [minFontSize]="14"
+              [maxFontSize]="48"
+            ></lib-word-cloud>
+          </div>
+        }
       }
     </main>
   </div>

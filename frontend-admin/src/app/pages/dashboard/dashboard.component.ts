@@ -13,11 +13,13 @@ import { AuthService } from '@shared/services';
 import { DashboardMapComponent } from '../../components/dashboard-map/dashboard-map.component';
 import { DashboardService, DashboardStats } from '../../services/dashboard.service';
 import { TripsService } from '../../services/trips.service';
+import { WordCloudService, WordCloudItem } from '../../services/word-cloud.service';
 import { CountryVisited } from '../../interfaces';
+import { WordCloudComponent } from '@shared/components';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterModule, DashboardMapComponent],
+  imports: [RouterModule, DashboardMapComponent, WordCloudComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +29,7 @@ export class DashboardComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly dashboardService = inject(DashboardService);
   private readonly tripsService = inject(TripsService);
+  private readonly wordCloudService = inject(WordCloudService);
   private destroyRef = inject(DestroyRef);
 
   currentUser = toSignal(this.authService.currentUser$);
@@ -43,6 +46,7 @@ export class DashboardComponent implements OnInit {
   });
 
   countriesVisited = signal<CountryVisited[]>([]);
+  wordCloudItems = signal<WordCloudItem[]>([]);
 
   ngOnInit(): void {
     this.loadDashboard();
@@ -73,15 +77,22 @@ export class DashboardComponent implements OnInit {
           return of(null);
         })
       ),
+      wordCloudItems: this.wordCloudService.getTagFrequencies().pipe(
+        catchError((err) => {
+          console.error('Failed to load tag frequencies:', err);
+          return of([]);
+        })
+      ),
     })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.loading.set(false))
       )
       .subscribe({
-        next: ({ stats, countriesVisited }) => {
+        next: ({ stats, countriesVisited, wordCloudItems }) => {
           if (stats) this.stats.set(stats);
           if (countriesVisited) this.countriesVisited.set(countriesVisited);
+          if (wordCloudItems) this.wordCloudItems.set(wordCloudItems);
         },
       });
   }

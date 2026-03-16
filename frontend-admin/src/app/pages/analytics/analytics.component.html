@@ -94,5 +94,19 @@
         <div #entityGrowth class="chart-container"></div>
       </div>
     </div>
+
+    <!-- Word Cloud Widget -->
+    @if (wordCloudItems().length > 0) {
+      <div class="word-cloud-section">
+        <h2><i class="fa-solid fa-tags"></i> Photo Tags Cloud</h2>
+        <p class="subtitle">Visualization of tags used across your photos</p>
+        <lib-word-cloud
+          [items]="wordCloudItems()"
+          colorScheme="cool"
+          [minFontSize]="14"
+          [maxFontSize]="48"
+        ></lib-word-cloud>
+      </div>
+    }
   }
 </div>

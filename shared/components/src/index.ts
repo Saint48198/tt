@@ -9,3 +9,5 @@ export * from './lib/lightbox/lightbox.component';
 export * from './lib/lightbox/lightbox.types';
 export * from './lib/photo-grid/photo-grid.component';
 export * from './lib/photo-grid/photo-grid.types';
+export * from './lib/word-cloud/word-cloud.component';
+export * from './lib/word-cloud/word-cloud.types';

@@ -1,0 +1,16 @@
+<div class="word-cloud-container" #wordCloudContainer>
+  @if (wordCloudItems.length > 0) {
+    @for (item of wordCloudItems; track item.text) {
+      <div
+        class="word-cloud-item"
+        [style.font-size.px]="item.size"
+        [style.color]="item.color"
+        [title]="item.text + ' (' + item.count + ')'"
+      >
+        {{ item.text }}
+      </div>
+    }
+  } @else {
+    <div class="empty-message">No items to display</div>
+  }
+</div>

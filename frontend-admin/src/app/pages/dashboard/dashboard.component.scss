@@ -296,3 +296,24 @@
   margin-top: 2rem;
   min-height: 500px;
 }
+
+.word-cloud-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .word-cloud-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .word-cloud-subtitle {
+    margin: 0 0 1.5rem 0;
+    font-size: 0.95rem;
+    color: #6b7280;
+  }
+}
