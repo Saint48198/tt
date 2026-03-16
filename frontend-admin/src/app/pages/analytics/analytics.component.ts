@@ -1,6 +1,5 @@
 import {
   Component,
-  OnInit,
   OnDestroy,
   ElementRef,
   ViewChild,
@@ -8,8 +7,9 @@ import {
   signal,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  AfterViewChecked,
+  effect,
 } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   AnalyticsService,
   AnalyticsData,
@@ -20,7 +20,7 @@ import {
   CountriesPerRegion,
 } from '../../services/analytics.service';
 import { DashboardService, DashboardStats } from '../../services/dashboard.service';
-import { forkJoin, catchError, of, Subscription } from 'rxjs';
+import { forkJoin, catchError, of } from 'rxjs';
 import * as d3 from 'd3';
 
 @Component({
@@ -30,11 +30,10 @@ import * as d3 from 'd3';
   styleUrl: './analytics.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
+export class AnalyticsComponent implements OnDestroy {
   private analyticsService = inject(AnalyticsService);
   private dashboardService = inject(DashboardService);
   private cdr = inject(ChangeDetectorRef);
-  private subscription?: Subscription;
 
   @ViewChild('entityDonut') entityDonutEl?: ElementRef<HTMLDivElement>;
   @ViewChild('photosBar') photosBarEl?: ElementRef<HTMLDivElement>;
@@ -48,65 +47,79 @@ export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
   stats = signal<DashboardStats | null>(null);
   analytics = signal<AnalyticsData | null>(null);
 
-  private chartsRendered = false;
   private resizeObserver?: ResizeObserver;
+  private resizeDebounceTimer?: ReturnType<typeof setTimeout>;
+  private chartContainerEls: ElementRef<HTMLDivElement>[] = [];
 
-  ngOnInit(): void {
-    this.loadData();
-  }
+  private data$ = forkJoin({
+    stats: this.dashboardService.getStats().pipe(catchError(() => of(null))),
+    analytics: this.analyticsService.getAnalytics().pipe(catchError(() => of(null))),
+  });
+  private data = toSignal(this.data$.pipe(takeUntilDestroyed()));
 
-  ngAfterViewChecked(): void {
-    // Render charts once the ViewChild refs become available after @if/else renders
-    const data = this.analytics();
-    if (data && !this.chartsRendered && this.entityDonutEl?.nativeElement) {
-      this.chartsRendered = true;
-      this.renderAllCharts(data);
-
-      // Set up resize observer now that elements exist
-      if (!this.resizeObserver) {
-        this.resizeObserver = new ResizeObserver(() => {
-          const current = this.analytics();
-          if (current) this.renderAllCharts(current);
-        });
-        const parent = this.entityDonutEl.nativeElement.parentElement;
-        if (parent) this.resizeObserver.observe(parent);
-      }
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
-    this.resizeObserver?.disconnect();
-  }
-
-  private loadData(): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    this.subscription = forkJoin({
-      stats: this.dashboardService.getStats().pipe(catchError(() => of(null))),
-      analytics: this.analyticsService.getAnalytics().pipe(catchError(() => of(null))),
-    }).subscribe({
-      next: ({ stats, analytics }) => {
+  constructor() {
+    effect(() => {
+      const d = this.data();
+      if (d) {
+        const { stats, analytics } = d;
         if (stats) this.stats.set(stats);
         if (analytics) {
           this.analytics.set(analytics);
+          // The effect will re-run when data is ready.
+          // We need to ensure the view is stable before rendering charts.
+          // A microtask delay ensures @ViewChild elements are available.
+          Promise.resolve().then(() => {
+            this.renderAllCharts(analytics);
+            this.setupResizeObserver();
+          });
         }
         if (!stats && !analytics) {
           this.error.set('Failed to load analytics data. Please try again.');
         }
         this.loading.set(false);
         this.cdr.markForCheck();
-      },
-      error: () => {
-        this.error.set('Failed to load analytics data.');
-        this.loading.set(false);
-        this.cdr.markForCheck();
-      },
+      }
     });
   }
 
+  ngOnDestroy(): void {
+    // Clear resize debounce timer
+    if (this.resizeDebounceTimer) clearTimeout(this.resizeDebounceTimer);
+
+    // Disconnect resize observer
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = undefined;
+
+    // Cancel all active D3 transitions and remove event listeners from chart containers
+    this.cleanupAllCharts();
+  }
+
+  private setupResizeObserver(): void {
+    if (this.resizeObserver || !this.entityDonutEl?.nativeElement) return;
+
+    this.resizeObserver = new ResizeObserver(() => {
+      if (this.resizeDebounceTimer) clearTimeout(this.resizeDebounceTimer);
+      this.resizeDebounceTimer = setTimeout(() => {
+        const current = this.analytics();
+        if (current) this.renderAllCharts(current);
+      }, 200);
+    });
+
+    const parent = this.entityDonutEl.nativeElement.parentElement;
+    if (parent) this.resizeObserver.observe(parent);
+  }
+
   private renderAllCharts(data: AnalyticsData): void {
+    // Track all chart container ElementRefs for cleanup
+    this.chartContainerEls = [
+      this.entityDonutEl,
+      this.photosBarEl,
+      this.photosEntityEl,
+      this.countriesRegionEl,
+      this.photosYearEl,
+      this.entityGrowthEl,
+    ].filter((el): el is ElementRef<HTMLDivElement> => !!el);
+
     this.renderEntityDonut(data.entityBreakdown);
     this.renderPhotosBar(data.photosByMonth);
     this.renderPhotosEntity(data.photosByEntity);
@@ -115,11 +128,28 @@ export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.renderEntityGrowth(data.entityGrowth);
   }
 
+  /** Cancel D3 transitions and remove all D3-managed DOM from chart containers */
+  private cleanupAllCharts(): void {
+    for (const elRef of this.chartContainerEls) {
+      this.cleanupChartElement(elRef.nativeElement);
+    }
+    this.chartContainerEls = [];
+  }
+
+  /** Interrupt active transitions and clear all children from a chart container */
+  private cleanupChartElement(el: HTMLElement): void {
+    // Interrupt all active D3 transitions to release held references
+    d3.select(el).selectAll('*').interrupt();
+    // Remove all D3-managed DOM (SVGs, tooltips, legends)
+    d3.select(el).selectAll('*').remove();
+  }
+
+  // ... (rest of the chart rendering methods are unchanged)
   // ─── Donut Chart: Entity Breakdown ───
   private renderEntityDonut(data: EntityBreakdown[]): void {
     const el = this.entityDonutEl?.nativeElement;
     if (!el || !data.length) return;
-    d3.select(el).selectAll('*').remove();
+    this.cleanupChartElement(el);
 
     const width = el.clientWidth;
     const height = 300;
@@ -211,7 +241,7 @@ export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
   private renderPhotosBar(data: TimeSeriesPoint[]): void {
     const el = this.photosBarEl?.nativeElement;
     if (!el || !data.length) return;
-    d3.select(el).selectAll('*').remove();
+    this.cleanupChartElement(el);
 
     const margin = { top: 20, right: 20, bottom: 60, left: 50 };
     const width = el.clientWidth - margin.left - margin.right;
@@ -292,7 +322,7 @@ export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
   private renderPhotosEntity(data: PhotosByEntity[]): void {
     const el = this.photosEntityEl?.nativeElement;
     if (!el || !data.length) return;
-    d3.select(el).selectAll('*').remove();
+    this.cleanupChartElement(el);
 
     const margin = { top: 20, right: 30, bottom: 30, left: 90 };
     const width = el.clientWidth - margin.left - margin.right;
@@ -355,7 +385,7 @@ export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
   private renderCountriesPerRegion(data: CountriesPerRegion[]): void {
     const el = this.countriesRegionEl?.nativeElement;
     if (!el || !data.length) return;
-    d3.select(el).selectAll('*').remove();
+    this.cleanupChartElement(el);
 
     const margin = { top: 20, right: 40, bottom: 40, left: 120 };
     const barHeight = 28;
@@ -426,7 +456,7 @@ export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
   private renderPhotosPerYear(data: TimeSeriesPoint[]): void {
     const el = this.photosYearEl?.nativeElement;
     if (!el || !data.length) return;
-    d3.select(el).selectAll('*').remove();
+    this.cleanupChartElement(el);
 
     const margin = { top: 20, right: 20, bottom: 40, left: 50 };
     const width = el.clientWidth - margin.left - margin.right;
@@ -541,7 +571,7 @@ export class AnalyticsComponent implements OnInit, AfterViewChecked, OnDestroy {
   private renderEntityGrowth(data: EntityGrowth[]): void {
     const el = this.entityGrowthEl?.nativeElement;
     if (!el || !data.length) return;
-    d3.select(el).selectAll('*').remove();
+    this.cleanupChartElement(el);
 
     const margin = { top: 20, right: 20, bottom: 60, left: 50 };
     const width = el.clientWidth - margin.left - margin.right;

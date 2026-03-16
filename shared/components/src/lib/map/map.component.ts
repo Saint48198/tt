@@ -69,6 +69,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   private initialized = false;
   private lastOverlaysRef: MapOverlay[] | null = null;
   private lastMarkersRef: MapMarker[] | null = null;
+  private pendingTimers: ReturnType<typeof setTimeout>[] = [];
 
   ngAfterViewInit(): void {
     this.initMap();
@@ -87,9 +88,11 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       this.lastOverlaysRef = this.overlays;
       this.updateOverlays();
       // Recalculate map size in case container changed
-      setTimeout(() => {
-        if (this.map) this.map.invalidateSize();
-      }, 50);
+      this.pendingTimers.push(
+        setTimeout(() => {
+          if (this.map) this.map.invalidateSize();
+        }, 50)
+      );
     }
 
     if (changes['center'] || changes['zoom']) {
@@ -100,8 +103,14 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   ngOnDestroy(): void {
+    // Clear any pending setTimeout timers
+    this.pendingTimers.forEach((t) => clearTimeout(t));
+    this.pendingTimers = [];
+
     if (this.map) {
       this.map.remove();
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      this.map = null!;
     }
   }
 
@@ -151,9 +160,9 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
         this.map.invalidateSize();
       }
     };
-    setTimeout(recalc, 0);
-    setTimeout(recalc, 100);
-    setTimeout(recalc, 300);
+    this.pendingTimers.push(setTimeout(recalc, 0));
+    this.pendingTimers.push(setTimeout(recalc, 100));
+    this.pendingTimers.push(setTimeout(recalc, 300));
   }
 
   private updateMarkers(): void {
@@ -395,9 +404,11 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
    */
   public invalidateSize(): void {
     if (this.map) {
-      setTimeout(() => {
-        this.map.invalidateSize();
-      }, 0);
+      this.pendingTimers.push(
+        setTimeout(() => {
+          if (this.map) this.map.invalidateSize();
+        }, 0)
+      );
     }
   }
 
