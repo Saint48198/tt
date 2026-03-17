@@ -27,8 +27,8 @@ class TagService {
     if (this.initialized) return;
     await db.exec(`
       CREATE TABLE IF NOT EXISTS tags (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE
+        id SERIAL PRIMARY KEY,
+        name TEXT UNIQUE NOT NULL
       )
     `);
     this.initialized = true;
@@ -67,7 +67,7 @@ class TagService {
     await this.ensureTable();
 
     for (const tag of tags) {
-      await db.run('INSERT OR IGNORE INTO tags (name) VALUES ($1)', [tag]);
+      await db.run('INSERT INTO tags (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [tag]);
     }
     return { success: true };
   }
@@ -105,7 +105,7 @@ class TagService {
     } while (nextCursor);
 
     for (const tag of allTags) {
-      await db.run('INSERT OR IGNORE INTO tags (name) VALUES ($1)', [tag]);
+      await db.run('INSERT INTO tags (name) VALUES ($1) ON CONFLICT (name) DO NOTHING', [tag]);
     }
     return { count: allTags.size };
   }
@@ -205,22 +205,122 @@ class TagService {
   }
 
   /**
-   * Get tag frequency data for word cloud
-   * Returns all tags with their frequency count across all photos
+   * Get total count of all tags in database
    */
-  public async getTagFrequencies(): Promise<{ tags: Array<{ tag: string; count: number }> }> {
+  public async getTotalTagCount(): Promise<{ totalCount: number }> {
+    const query = `SELECT COUNT(*) as total FROM tags`;
+
+    console.log('Executing query:', query);
+    const result = await db.get<{ total: number }>(query);
+    const totalCount = result?.total || 0;
+    console.log('Total tag count:', totalCount);
+
+    return { totalCount };
+  }
+
+  /**
+   * Get all available years from photos
+   */
+  public async getAvailableYears(): Promise<{ years: number[] }> {
+    const query = `
+      SELECT DISTINCT EXTRACT(YEAR FROM created_date)::int as year
+      FROM photos
+      WHERE created_date IS NOT NULL
+      ORDER BY year DESC
+    `;
+
+    console.log('Executing query:', query);
+    const rows = await db.all<{ year: number }>(query);
+    console.log('Years query result:', rows);
+    const years = rows.map((r) => r.year).filter((y) => y > 0);
+    console.log('Filtered years:', years);
+
+    return { years };
+  }
+
+  /**
+   * Get all available countries from photos
+   */
+  public async getAvailableCountries(): Promise<{
+    countries: Array<{ id: number; name: string }>;
+  }> {
+    const query = `
+      SELECT DISTINCT c.id, c.name
+      FROM countries c
+      INNER JOIN photos p ON c.id = p.country_id
+      WHERE p.country_id IS NOT NULL
+      ORDER BY c.name ASC
+    `;
+
+    console.log('Executing query:', query);
+    const rows = await db.all<{ id: number; name: string }>(query);
+    console.log('Countries query result:', rows);
+
+    return { countries: rows };
+  }
+
+  /**
+   * Get tag frequency data for word cloud with optional filters
+   * Returns all tags with their frequency count across all photos
+   * Can be filtered by year and/or country ID
+   */
+  public async getTagFrequencies(
+    year?: number,
+    countryId?: number
+  ): Promise<{ tags: Array<{ tag: string; count: number }> }> {
     await this.ensureTable();
 
-    const rows = await db.all<{ name: string; count: number }>(
-      `SELECT t.name, COUNT(pt.id) as count
-       FROM tags t
-       LEFT JOIN photo_tags pt ON pt.tag_id = t.id
-       GROUP BY t.id, t.name
-       ORDER BY count DESC`
-    );
+    let query = `SELECT t.name, COUNT(pt.photo_id) as count
+       FROM tags t`;
+
+    const conditions: string[] = [];
+    const params: (string | number)[] = [];
+
+    // If we have filters, use INNER JOIN to only get photos matching the criteria
+    if (year || countryId) {
+      query += ` INNER JOIN photo_tags pt ON pt.tag_id = t.id
+       INNER JOIN photos p ON pt.photo_id = p.id`;
+
+      // Add year filter if provided
+      if (year) {
+        params.push(year);
+        conditions.push(`EXTRACT(YEAR FROM p.created_date) = $${params.length}`);
+      }
+
+      // Add country ID filter if provided
+      if (countryId) {
+        params.push(countryId);
+        conditions.push(`p.country_id = $${params.length}`);
+      }
+    } else {
+      // If no filters, use LEFT JOIN to get all tags even if unused
+      query += ` LEFT JOIN photo_tags pt ON pt.tag_id = t.id`;
+    }
+
+    if (conditions.length > 0) {
+      query += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    query += ` GROUP BY t.id, t.name
+       ORDER BY count DESC`;
+
+    // Limit to 150 tags when no filters are applied
+    if (!year && !countryId) {
+      query += ` LIMIT 150`;
+    }
+
+    console.log('Tag frequency query:', query);
+    console.log('Parameters:', params);
+
+    const rows = await db.all<{ name: string; count: string }>(query, params);
+
+    console.log('Tag frequency results:', rows);
 
     return {
-      tags: rows.map((r) => ({ tag: r.name, count: r.count })),
+      tags: rows.map((r) => ({
+        tag: r.name,
+        count: parseInt(String(r.count), 10) || 0,
+      })),
     };
   }
 }

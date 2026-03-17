@@ -95,18 +95,19 @@
       </div>
     </div>
 
-    <!-- Word Cloud Widget -->
-    @if (wordCloudItems().length > 0) {
-      <div class="word-cloud-section">
-        <h2><i class="fa-solid fa-tags"></i> Photo Tags Cloud</h2>
-        <p class="subtitle">Visualization of tags used across your photos</p>
-        <lib-word-cloud
-          [items]="wordCloudItems()"
-          colorScheme="cool"
-          [minFontSize]="14"
-          [maxFontSize]="48"
-        ></lib-word-cloud>
-      </div>
-    }
+    <!-- Word Cloud Component (includes filters, title, and visualization) -->
+    <lib-word-cloud
+      [items]="wordCloudItems()"
+      [title]="'Photo Tags Cloud'"
+      [subtitle]="'Visualization of tags used across your photos'"
+      [selectedYear]="selectedYear()"
+      [selectedCountry]="selectedCountry()"
+      [showFilters]="true"
+      colorScheme="cool"
+      [minFontSize]="14"
+      [maxFontSize]="48"
+      (yearChange)="onYearChange($event)"
+      (countryChange)="onCountryChange($event)"
+    ></lib-word-cloud>
   }
 </div>

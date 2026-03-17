@@ -1,6 +1,32 @@
-import { Component, input, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  input,
+  output,
+  ViewChild,
+  ElementRef,
+  AfterViewInit,
+  AfterContentChecked,
+  OnDestroy,
+  ViewEncapsulation,
+  ChangeDetectionStrategy,
+  signal,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { WordCloudItem } from './word-cloud.types';
+import * as d3 from 'd3';
+
+interface CloudWord {
+  text: string;
+  count: number;
+  size: number;
+  x?: number;
+  y?: number;
+  rotate?: number;
+}
 
 @Component({
   selector: 'lib-word-cloud',
@@ -8,67 +34,168 @@ import { WordCloudItem } from './word-cloud.types';
   imports: [CommonModule],
   templateUrl: './word-cloud.component.html',
   styleUrl: './word-cloud.component.scss',
+  encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WordCloudComponent implements AfterViewInit {
+export class WordCloudComponent implements AfterViewInit, AfterContentChecked, OnDestroy {
   /** Array of items with text and count */
   items = input.required<WordCloudItem[]>();
+
+  /** Optional title for the word cloud */
+  title = input<string | null>(null);
+
+  /** Optional subtitle for the word cloud */
+  subtitle = input<string | null>(null);
 
   /** Color scheme: 'default', 'warm', 'cool', 'vibrant' */
   colorScheme = input<'default' | 'warm' | 'cool' | 'vibrant'>('default');
 
   /** Minimum font size in pixels */
-  minFontSize = input(12);
+  minFontSize = input(14);
 
   /** Maximum font size in pixels */
-  maxFontSize = input(48);
+  maxFontSize = input(72);
 
-  /** Randomize colors for each word */
-  randomizeColors = input(false);
+  /** Optional width for the word cloud */
+  width = input(800);
+
+  /** Optional height for the word cloud */
+  height = input(500);
+
+  /** Filter inputs */
+  selectedYear = input<number | null>(null);
+  selectedCountry = input<number | null>(null);
+
+  /** Filter outputs */
+  yearChange = output<number | null>();
+  countryChange = output<number | null>();
+
+  /** Show filters */
+  showFilters = input(true);
+
+  // Signal to store unfiltered count
+  unfilteredCount = signal(0);
+
+  // Total tags in database
+  totalTagsCount = signal(0);
+
+  // Available options from database
+  availableYears = signal<number[]>([]);
+  availableCountries = signal<{ id: number; name: string }[]>([]);
+
+  private http = inject(HttpClient);
 
   @ViewChild('wordCloudContainer') wordCloudContainer!: ElementRef<HTMLDivElement>;
 
-  wordCloudItems: Array<WordCloudItem & { size: number; color: string }> = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private cloudLayout: any;
+  private lastItemsLength = 0;
 
   ngAfterViewInit(): void {
+    // Load filter options first
+    this.loadFilterOptions();
+    // Store the initial unfiltered count
+    this.unfilteredCount.set(this.items().length);
     this.generateWordCloud();
+    this.lastItemsLength = this.items().length;
+  }
+
+  ngAfterContentChecked(): void {
+    // Re-render if items count changed
+    const currentLength = this.items().length;
+    if (currentLength !== this.lastItemsLength && this.viewReady) {
+      this.lastItemsLength = currentLength;
+      this.generateWordCloud();
+    }
+  }
+
+  private viewReady = true;
+
+  ngOnDestroy(): void {
+    if (this.cloudLayout) {
+      this.cloudLayout.stop();
+    }
   }
 
   private generateWordCloud(): void {
-    if (!this.items() || this.items().length === 0) {
-      this.wordCloudItems = [];
+    const items = this.items();
+    if (!items || items.length === 0) {
       return;
     }
 
-    const items = this.items();
+    const container = this.wordCloudContainer?.nativeElement;
+    if (!container) {
+      return;
+    }
+
+    d3.select(container).selectAll('*').remove();
+
     const minCount = Math.min(...items.map((i) => i.count));
     const maxCount = Math.max(...items.map((i) => i.count));
     const countRange = maxCount - minCount || 1;
 
-    // Randomize order for better visual distribution
-    const shuffled = [...items].sort(() => Math.random() - 0.5);
+    const sizeScale = (count: number) => {
+      const normalized = (count - minCount) / countRange;
+      return this.minFontSize() + normalized * (this.maxFontSize() - this.minFontSize());
+    };
 
-    this.wordCloudItems = shuffled.map((item) => {
-      const normalized = (item.count - minCount) / countRange;
-      const size = this.minFontSize() + normalized * (this.maxFontSize() - this.minFontSize());
-      const color = this.getColor(item.text);
+    const width = this.width();
+    const height = this.height();
 
-      return {
-        ...item,
-        size,
-        color,
-      };
-    });
+    // Create word data with random positions
+    const cloudData: CloudWord[] = items.map((item) => ({
+      text: item.text,
+      count: item.count,
+      size: sizeScale(item.count),
+      x: (Math.random() - 0.5) * width * 0.8,
+      y: (Math.random() - 0.5) * height * 0.8,
+      rotate: 0,
+    }));
+
+    const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
+
+    const g = svg.append('g').attr('transform', `translate(${width / 2},${height / 2})`);
+
+    this.drawWords(g, cloudData);
   }
 
-  private getColor(text: string): string {
-    if (this.randomizeColors()) {
-      return this.generateRandomColor();
-    }
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private drawWords(svg: any, words: CloudWord[]): void {
     const colorScheme = this.colorScheme();
     const colors = this.getColorPalette(colorScheme);
-    const hash = this.hashCode(text);
-    return colors[Math.abs(hash) % colors.length];
+
+    const text = svg
+      .selectAll('text')
+      .data(words)
+      .enter()
+      .append('text')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .style('font-size', (d: any) => `${d.size}px`)
+      .style('font-weight', '500')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .style('fill', (d: any) => colors[Math.abs(this.hashCode(d.text)) % colors.length])
+      .attr('text-anchor', 'middle')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .attr('transform', (d: any) => `translate(${d.x},${d.y})rotate(${d.rotate})`)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .text((d: any) => d.text)
+      .style('cursor', 'pointer')
+      .style('user-select', 'none')
+      .style('transition', 'all 0.3s ease');
+
+    text
+      .on('mouseenter', function (this: HTMLElement) {
+        d3.select(this)
+          .style('font-weight', '700')
+          .style('opacity', '0.8')
+          .style('filter', 'brightness(1.2)');
+      })
+      .on('mouseleave', function (this: HTMLElement) {
+        d3.select(this)
+          .style('font-weight', '500')
+          .style('opacity', '1')
+          .style('filter', 'brightness(1)');
+      });
   }
 
   private getColorPalette(scheme: string): string[] {
@@ -87,13 +214,53 @@ export class WordCloudComponent implements AfterViewInit {
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
       hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32-bit integer
+      hash = hash & hash;
     }
     return hash;
   }
 
-  private generateRandomColor(): string {
-    const colors = this.getColorPalette(this.colorScheme());
-    return colors[Math.floor(Math.random() * colors.length)];
+  // Load available years and countries from database
+  private loadFilterOptions(): void {
+    console.log('Loading filter options from API...');
+    const url = '/api/tags?filterOptions=true';
+    this.http
+      .get<{ years: number[]; countries: { id: number; name: string }[] }>(url)
+      .pipe(catchError(() => of({ years: [], countries: [] })))
+      .subscribe({
+        next: (result) => {
+          console.log(
+            'Filter options loaded - Years:',
+            result.years,
+            'Countries:',
+            result.countries
+          );
+          this.availableYears.set(result.years || []);
+          this.availableCountries.set(result.countries || []);
+        },
+        error: (err) => console.error('Failed to load filter options:', err),
+      });
+
+    // Load total tag count from database
+    this.http
+      .get<{ totalCount: number }>('/api/tags/total-count')
+      .pipe(catchError(() => of({ totalCount: 0 })))
+      .subscribe({
+        next: (result) => {
+          console.log('Total tags in database:', result.totalCount);
+          this.totalTagsCount.set(result.totalCount || 0);
+        },
+        error: (err) => console.error('Failed to load total tag count:', err),
+      });
+  }
+
+  // Filter methods
+  onYearChange(value: string): void {
+    const year = value ? parseInt(value, 10) : null;
+    this.yearChange.emit(year);
+  }
+
+  onCountryChange(value: string): void {
+    const countryId = value ? parseInt(value, 10) : null;
+    this.countryChange.emit(countryId);
   }
 }

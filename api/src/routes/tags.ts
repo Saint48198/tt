@@ -4,13 +4,61 @@ import { tagService } from '../services/tagService';
 
 const router = Router();
 
-// GET /api/tags?query=...
+// GET /api/tags/total-count - Get total count of all tags in database
+router.get('/api/tags/total-count', async (_req: Request, res: Response) => {
+  try {
+    console.log('GET /api/tags/total-count called');
+    const result = await tagService.getTotalTagCount();
+    console.log('Total tag count result:', result);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error('Failed to fetch total tag count:', error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch total tag count';
+    return res.status(500).json({ error: message });
+  }
+});
+
+// GET /api/tags - Multi-purpose endpoint:
+// - ?filterOptions=true - Get available years and countries for filters
+// - ?year=2024&countryId=1 - Get tag frequencies filtered by year and/or country
+// - ?query=... - Search tags by query
 router.get('/api/tags', async (req: Request, res: Response) => {
   try {
-    const rawQuery = req.query.query;
-    const query = Array.isArray(rawQuery) ? rawQuery[0] : rawQuery;
+    // Handle filter options request
+    if (req.query.filterOptions === 'true') {
+      console.log('GET /api/tags?filterOptions=true called');
+      const years = await tagService.getAvailableYears();
+      const countries = await tagService.getAvailableCountries();
+      console.log('Filter options result:', { years, countries });
+      return res.status(200).json({
+        years: years.years,
+        countries: countries.countries,
+      });
+    }
 
+    // Handle tag frequency filtering (for word cloud)
+    if (req.query.year || req.query.countryId) {
+      const year = req.query.year ? parseInt(String(req.query.year), 10) : undefined;
+      const countryId = req.query.countryId ? parseInt(String(req.query.countryId), 10) : undefined;
+
+      console.log('GET /api/tags with filters - year:', year, 'countryId:', countryId);
+      const result = await tagService.getTagFrequencies(year, countryId);
+      console.log('Tag frequency result:', result);
+      return res.status(200).json(result);
+    }
+
+    // Handle regular tag search
+    const rawQuery = req.query.query;
+    if (!rawQuery) {
+      // No query provided, return all tags with their frequencies
+      const result = await tagService.getTagFrequencies();
+      console.log('All tags result:', result);
+      return res.status(200).json(result);
+    }
+
+    const query = Array.isArray(rawQuery) ? rawQuery[0] : rawQuery;
     const result = await tagService.searchTags(query as string);
+    return res.status(200).json(result);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch tags:', error);
@@ -99,18 +147,6 @@ router.post('/api/tags/suggest', async (req: Request, res: Response) => {
       return res.status(400).json({ error: message });
     }
 
-    return res.status(500).json({ error: message });
-  }
-});
-
-// GET /api/tags/frequency/all
-router.get('/api/tags/frequency/all', async (_req: Request, res: Response) => {
-  try {
-    const result = await tagService.getTagFrequencies();
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error('Failed to fetch tag frequencies:', error);
-    const message = error instanceof Error ? error.message : 'Failed to fetch tag frequencies';
     return res.status(500).json({ error: message });
   }
 });

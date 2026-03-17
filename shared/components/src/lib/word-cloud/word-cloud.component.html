@@ -1,16 +1,59 @@
-<div class="word-cloud-container" #wordCloudContainer>
-  @if (wordCloudItems.length > 0) {
-    @for (item of wordCloudItems; track item.text) {
-      <div
-        class="word-cloud-item"
-        [style.font-size.px]="item.size"
-        [style.color]="item.color"
-        [title]="item.text + ' (' + item.count + ')'"
+<div class="word-cloud-wrapper">
+  <!-- Filters -->
+  <div class="word-cloud-filters">
+    <div class="filter-group">
+      <label for="yearFilter">Year:</label>
+      <select
+        id="yearFilter"
+        [value]="selectedYear() || ''"
+        (change)="onYearChange($any($event.target).value)"
       >
-        {{ item.text }}
-      </div>
-    }
-  } @else {
-    <div class="empty-message">No items to display</div>
+        <option value="">All Years</option>
+        @for (year of availableYears(); track year) {
+          <option [value]="year">{{ year }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="countryFilter">Country:</label>
+      <select
+        id="countryFilter"
+        [value]="selectedCountry() || ''"
+        (change)="onCountryChange($any($event.target).value)"
+      >
+        <option value="">All Countries</option>
+        @for (country of availableCountries(); track country.id) {
+          <option [value]="country.id">{{ country.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Word Count Info -->
+  <div class="word-cloud-info">
+    <div>
+      <span>Total Words (Unfiltered):</span>
+      <span>{{ totalTagsCount() }}</span>
+    </div>
+    <div>
+      <span>Filtered Words:</span>
+      <span>{{ items().length }}</span>
+    </div>
+    <div>
+      <span>Filters Active:</span>
+      <span>{{ selectedYear() || selectedCountry() ? 'Yes' : 'No' }}</span>
+    </div>
+  </div>
+
+  <!-- Title and Subtitle -->
+  @if (title()) {
+    <h2 class="word-cloud-title">{{ title() }}</h2>
   }
+  @if (subtitle()) {
+    <p class="word-cloud-subtitle">{{ subtitle() }}</p>
+  }
+
+  <!-- Word Cloud Container -->
+  <div class="word-cloud-container" #wordCloudContainer></div>
 </div>

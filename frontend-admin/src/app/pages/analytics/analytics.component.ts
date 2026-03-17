@@ -7,8 +7,10 @@ import {
   signal,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  DestroyRef,
   effect,
 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   AnalyticsService,
@@ -28,7 +30,7 @@ import * as d3 from 'd3';
 @Component({
   selector: 'app-analytics',
   standalone: true,
-  imports: [WordCloudComponent],
+  imports: [CommonModule, WordCloudComponent],
   templateUrl: './analytics.component.html',
   styleUrl: './analytics.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +40,7 @@ export class AnalyticsComponent implements OnDestroy {
   private dashboardService = inject(DashboardService);
   private wordCloudService = inject(WordCloudService);
   private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('entityDonut') entityDonutEl?: ElementRef<HTMLDivElement>;
   @ViewChild('photosBar') photosBarEl?: ElementRef<HTMLDivElement>;
@@ -52,6 +55,12 @@ export class AnalyticsComponent implements OnDestroy {
   analytics = signal<AnalyticsData | null>(null);
   wordCloudItems = signal<WordCloudItem[]>([]);
 
+  // Word cloud filters
+  selectedYear = signal<number | null>(null);
+  selectedCountry = signal<number | null>(null);
+  availableYears = signal<number[]>([]);
+  availableCountries = signal<string[]>([]);
+
   private resizeObserver?: ResizeObserver;
   private resizeDebounceTimer?: ReturnType<typeof setTimeout>;
   private chartContainerEls: ElementRef<HTMLDivElement>[] = [];
@@ -64,6 +73,7 @@ export class AnalyticsComponent implements OnDestroy {
   private data = toSignal(this.data$.pipe(takeUntilDestroyed()));
 
   constructor() {
+    // Load main analytics data
     effect(() => {
       const d = this.data();
       if (d) {
@@ -71,9 +81,6 @@ export class AnalyticsComponent implements OnDestroy {
         if (stats) this.stats.set(stats);
         if (analytics) {
           this.analytics.set(analytics);
-          // The effect will re-run when data is ready.
-          // We need to ensure the view is stable before rendering charts.
-          // A microtask delay ensures @ViewChild elements are available.
           Promise.resolve().then(() => {
             this.renderAllCharts(analytics);
             this.setupResizeObserver();
@@ -87,6 +94,21 @@ export class AnalyticsComponent implements OnDestroy {
         this.cdr.markForCheck();
       }
     });
+
+    // Load word cloud tags separately
+    this.wordCloudService
+      .getTagFrequencies()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (tags) => {
+          console.log('Word cloud tags loaded:', tags);
+          this.wordCloudItems.set(tags);
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Failed to load word cloud tags:', err);
+        },
+      });
   }
 
   ngOnDestroy(): void {
@@ -101,6 +123,48 @@ export class AnalyticsComponent implements OnDestroy {
     this.cleanupAllCharts();
   }
 
+  // Word cloud filter methods
+  onYearChange(year: number | null): void {
+    console.log('Year changed to:', year);
+    this.selectedYear.set(year);
+    this.loadFilteredWordCloud();
+  }
+
+  onCountryChange(country: number | null): void {
+    console.log('Country changed to:', country);
+    this.selectedCountry.set(country);
+    this.loadFilteredWordCloud();
+  }
+
+  parseYearValue(value: string): number | null {
+    return value ? parseInt(value, 10) : null;
+  }
+
+  private loadFilteredWordCloud(): void {
+    const year = this.selectedYear();
+    const country = this.selectedCountry();
+
+    console.log('Loading filtered word cloud with year:', year, 'country:', country);
+
+    this.wordCloudService
+      .getTagFrequencies(year ?? undefined, country ?? undefined)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError((err) => {
+          console.error('Failed to load filtered word cloud tags:', err);
+          return of([]);
+        })
+      )
+      .subscribe({
+        next: (tags) => {
+          console.log('Filtered tags received:', tags);
+          this.wordCloudItems.set(tags);
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  // ...existing code...
   private setupResizeObserver(): void {
     if (this.resizeObserver || !this.entityDonutEl?.nativeElement) return;
 
