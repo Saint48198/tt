@@ -1,51 +1,4 @@
 <div class="word-cloud-wrapper">
-  <!-- Filters -->
-  <div class="word-cloud-filters">
-    <div class="filter-group">
-      <label for="yearFilter">Year:</label>
-      <select
-        id="yearFilter"
-        [value]="selectedYear() || ''"
-        (change)="onYearChange($any($event.target).value)"
-      >
-        <option value="">All Years</option>
-        @for (year of availableYears(); track year) {
-          <option [value]="year">{{ year }}</option>
-        }
-      </select>
-    </div>
-
-    <div class="filter-group">
-      <label for="countryFilter">Country:</label>
-      <select
-        id="countryFilter"
-        [value]="selectedCountry() || ''"
-        (change)="onCountryChange($any($event.target).value)"
-      >
-        <option value="">All Countries</option>
-        @for (country of availableCountries(); track country.id) {
-          <option [value]="country.id">{{ country.name }}</option>
-        }
-      </select>
-    </div>
-  </div>
-
-  <!-- Word Count Info -->
-  <div class="word-cloud-info">
-    <div>
-      <span>Total Words (Unfiltered):</span>
-      <span>{{ totalTagsCount() }}</span>
-    </div>
-    <div>
-      <span>Filtered Words:</span>
-      <span>{{ items().length }}</span>
-    </div>
-    <div>
-      <span>Filters Active:</span>
-      <span>{{ selectedYear() || selectedCountry() ? 'Yes' : 'No' }}</span>
-    </div>
-  </div>
-
   <!-- Title and Subtitle -->
   @if (title()) {
     <h2 class="word-cloud-title">{{ title() }}</h2>
@@ -54,6 +7,64 @@
     <p class="word-cloud-subtitle">{{ subtitle() }}</p>
   }
 
-  <!-- Word Cloud Container -->
-  <div class="word-cloud-container" #wordCloudContainer></div>
+  <!-- Word Count Info -->
+  <div class="word-cloud-info">
+    <div>
+      <span>Total Words:</span>
+      <span>{{ totalTagsCount() }}</span>
+    </div>
+    <div>
+      <span>Filtered Words:</span>
+      <span>{{ items().length }}</span>
+    </div>
+  </div>
+
+  <!-- Word Cloud Container with Filters Overlay -->
+  <div class="word-cloud-container">
+    <!-- Filters Overlay -->
+    <div class="word-cloud-filters" [class.minimized]="filtersMinimized()">
+      <button class="filters-toggle" (click)="toggleFilters()" type="button">
+        <mat-icon>{{ filtersMinimized() ? 'tune' : 'close' }}</mat-icon>
+      </button>
+
+      @if (!filtersMinimized()) {
+        <div class="filter-groups">
+          <div class="filter-group">
+            <mat-form-field>
+              <mat-label>Year</mat-label>
+              <select
+                matNativeControl
+                [value]="selectedYear() || ''"
+                (change)="onYearChange($any($event.target).value)"
+              >
+                <option value="">All Years</option>
+                @for (year of availableYears(); track year) {
+                  <option [value]="year">{{ year }}</option>
+                }
+              </select>
+            </mat-form-field>
+          </div>
+
+          <div class="filter-group">
+            <mat-form-field>
+              <mat-label>Country</mat-label>
+              <select
+                matNativeControl
+                [value]="selectedCountry() || ''"
+                (change)="onCountryChange($any($event.target).value)"
+              >
+                <option value="">All Countries</option>
+                @for (country of availableCountries(); track country.id) {
+                  <option [value]="country.id">{{ country.name }}</option>
+                }
+              </select>
+            </mat-form-field>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- D3 renders SVG here -->
+    <div #wordCloudContainer></div>
+  </div>
 </div>

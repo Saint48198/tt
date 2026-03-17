@@ -15,6 +15,9 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { WordCloudItem } from './word-cloud.types';
@@ -33,7 +36,7 @@ interface CloudWord {
 @Component({
   selector: 'lib-word-cloud',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule],
   templateUrl: './word-cloud.component.html',
   styleUrl: './word-cloud.component.scss',
   encapsulation: ViewEncapsulation.None,
@@ -87,6 +90,13 @@ export class WordCloudComponent implements AfterViewInit, AfterContentChecked, O
 
   // Error state
   error = signal<string | null>(null);
+
+  // Filter overlay minimize state
+  filtersMinimized = signal(false);
+
+  toggleFilters(): void {
+    this.filtersMinimized.update((v) => !v);
+  }
 
   private wordCloudDataService = inject(WordCloudDataService);
   private destroyRef = inject(DestroyRef);
