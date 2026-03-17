@@ -11,13 +11,15 @@ import {
   ChangeDetectionStrategy,
   signal,
   inject,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { WordCloudItem } from './word-cloud.types';
 import * as d3 from 'd3';
+import { WordCloudDataService } from '../services/word-cloud-data.service';
 
 interface CloudWord {
   text: string;
@@ -83,7 +85,11 @@ export class WordCloudComponent implements AfterViewInit, AfterContentChecked, O
   availableYears = signal<number[]>([]);
   availableCountries = signal<{ id: number; name: string }[]>([]);
 
-  private http = inject(HttpClient);
+  // Error state
+  error = signal<string | null>(null);
+
+  private wordCloudDataService = inject(WordCloudDataService);
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('wordCloudContainer') wordCloudContainer!: ElementRef<HTMLDivElement>;
 
@@ -219,38 +225,27 @@ export class WordCloudComponent implements AfterViewInit, AfterContentChecked, O
     return hash;
   }
 
-  // Load available years and countries from database
+  // Load available years, countries, and total tag count from the database
   private loadFilterOptions(): void {
-    console.log('Loading filter options from API...');
-    const url = '/api/tags?filterOptions=true';
-    this.http
-      .get<{ years: number[]; countries: { id: number; name: string }[] }>(url)
-      .pipe(catchError(() => of({ years: [], countries: [] })))
-      .subscribe({
-        next: (result) => {
-          console.log(
-            'Filter options loaded - Years:',
-            result.years,
-            'Countries:',
-            result.countries
-          );
-          this.availableYears.set(result.years || []);
-          this.availableCountries.set(result.countries || []);
-        },
-        error: (err) => console.error('Failed to load filter options:', err),
-      });
-
-    // Load total tag count from database
-    this.http
-      .get<{ totalCount: number }>('/api/tags/total-count')
-      .pipe(catchError(() => of({ totalCount: 0 })))
-      .subscribe({
-        next: (result) => {
-          console.log('Total tags in database:', result.totalCount);
-          this.totalTagsCount.set(result.totalCount || 0);
-        },
-        error: (err) => console.error('Failed to load total tag count:', err),
-      });
+    this.wordCloudDataService
+      .getWordCloudInitialData()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        tap((data) => {
+          if (data) {
+            this.availableYears.set(data.years);
+            this.availableCountries.set(data.countries);
+            this.totalTagsCount.set(data.totalTagsCount);
+            this.error.set(null);
+          }
+        }),
+        catchError((err) => {
+          console.error('Failed to load initial data:', err);
+          this.error.set('Failed to load word cloud data. Please try again.');
+          return of(null);
+        })
+      )
+      .subscribe();
   }
 
   // Filter methods
