@@ -12,7 +12,7 @@ import {
   Injector,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { filter, switchMap, catchError } from 'rxjs/operators';
@@ -64,6 +64,7 @@ import { ImageLoaderComponent } from '@shared/components';
     MatButtonToggleModule,
     MatSlideToggleModule,
     ImageLoaderComponent,
+    DecimalPipe,
   ],
   templateUrl: './photos-list.component.html',
   styleUrl: './photos-list.component.scss',

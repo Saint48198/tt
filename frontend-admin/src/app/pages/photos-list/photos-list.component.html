@@ -3,7 +3,7 @@
     <div class="page-header-left">
       <h1>Photos</h1>
       @if (!loading()) {
-        <span class="photo-count">{{ total() }} photos</span>
+        <span class="photo-count">{{ total() | number }} photos</span>
       }
     </div>
     <div class="page-header-right">
