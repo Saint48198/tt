@@ -696,12 +696,10 @@ export class ExploreComponent implements OnInit, OnDestroy {
       // Back to country level (states or cities)
       this.selectedState.set(null);
       this.detailService.reset();
-      if (this.states().length > 0) {
-        // Restore all state overlays
-        const country = this.selectedCountry();
-        if (country) {
-          this.loadStateOverlays(country, this.states());
-        }
+      const country = this.selectedCountry();
+      if (country && this.isStateCountry(country) && this.states().length > 0) {
+        // Restore all state overlays (US / Canada only)
+        this.loadStateOverlays(country, this.states());
         this.level.set('states');
       } else {
         this.level.set('cities');

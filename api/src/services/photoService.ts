@@ -1170,7 +1170,82 @@ class PhotoService {
       await this.setTagsForPhoto(photoId, tags);
     }
 
+    // After saving, update last_visited for any linked entities using the photo's capture date
+    await this.updateLastVisitedFromPhoto(photoId, cityId, attractionId, stateId, countryId);
+
     return { success: true };
+  }
+
+  /**
+   * Update last_visited on city, state, attraction, and country linked to a photo,
+   * using the photo's created_date (capture date) as the visit date.
+   * Does nothing if the photo has no capture date.
+   * Only updates last_visited when the capture date is more recent than what is already stored.
+   */
+  private async updateLastVisitedFromPhoto(
+    photoId: number,
+    cityId?: number | null,
+    attractionId?: number | null,
+    stateId?: number | null,
+    countryId?: number | null
+  ): Promise<void> {
+    try {
+      // Fetch the photo's current state (including any auto-resolved IDs and created_date)
+      const photo = await db.get<{
+        created_date: string | null;
+        city_id: number | null;
+        attraction_id: number | null;
+        state_id: number | null;
+        country_id: number | null;
+      }>(
+        'SELECT created_date, city_id, attraction_id, state_id, country_id FROM photos WHERE id = $1',
+        [photoId]
+      );
+
+      if (!photo) return;
+
+      // Only update last_visited if the photo has a capture date — skip if missing
+      if (!photo.created_date) return;
+
+      const visitDate = photo.created_date;
+
+      // Determine effective IDs — prefer the explicitly passed values, fall back to what's stored
+      const effectiveCityId = cityId !== undefined ? cityId : photo.city_id;
+      const effectiveAttractionId = attractionId !== undefined ? attractionId : photo.attraction_id;
+      const effectiveStateId = stateId !== undefined ? stateId : photo.state_id;
+      const effectiveCountryId = countryId !== undefined ? countryId : photo.country_id;
+
+      if (effectiveCityId) {
+        await db.run(
+          `UPDATE cities SET last_visited = $1 WHERE id = $2 AND (last_visited IS NULL OR last_visited < $1)`,
+          [visitDate, effectiveCityId]
+        );
+      }
+
+      if (effectiveAttractionId) {
+        await db.run(
+          `UPDATE attractions SET last_visited = $1 WHERE id = $2 AND (last_visited IS NULL OR last_visited < $1)`,
+          [visitDate, effectiveAttractionId]
+        );
+      }
+
+      if (effectiveStateId) {
+        await db.run(
+          `UPDATE states SET last_visited = $1 WHERE id = $2 AND (last_visited IS NULL OR last_visited < $1)`,
+          [visitDate, effectiveStateId]
+        );
+      }
+
+      if (effectiveCountryId) {
+        await db.run(
+          `UPDATE countries SET last_visited = $1 WHERE id = $2 AND (last_visited IS NULL OR last_visited < $1)`,
+          [visitDate, effectiveCountryId]
+        );
+      }
+    } catch (err) {
+      // Non-fatal — log and continue
+      console.warn('[updateLastVisitedFromPhoto] Failed to update last_visited:', err);
+    }
   }
 
   private async getAllDbPhotos(): Promise<Array<any>> {

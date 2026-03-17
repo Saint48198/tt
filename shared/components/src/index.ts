@@ -11,3 +11,4 @@ export * from './lib/photo-grid/photo-grid.component';
 export * from './lib/photo-grid/photo-grid.types';
 export * from './lib/word-cloud/word-cloud.component';
 export * from './lib/word-cloud/word-cloud.types';
+export * from './lib/services/word-cloud-data.service';
