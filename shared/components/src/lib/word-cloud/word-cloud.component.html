@@ -11,11 +11,11 @@
   <div class="word-cloud-info">
     <div>
       <span>Total Words:</span>
-      <span>{{ totalTagsCount() }}</span>
+      <span>{{ totalTagsCount() | number }}</span>
     </div>
     <div>
       <span>Filtered Words:</span>
-      <span>{{ items().length }}</span>
+      <span>{{ items().length | number }}</span>
     </div>
   </div>
 

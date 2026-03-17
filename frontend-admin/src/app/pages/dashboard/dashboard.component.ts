@@ -6,6 +6,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { forkJoin, catchError, of, finalize } from 'rxjs';
@@ -19,7 +20,7 @@ import { WordCloudComponent } from '@shared/components';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterModule, DashboardMapComponent, WordCloudComponent],
+  imports: [DecimalPipe, RouterModule, DashboardMapComponent, WordCloudComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
