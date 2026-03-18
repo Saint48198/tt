@@ -10,7 +10,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter, switchMap } from 'rxjs';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
@@ -62,6 +62,8 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
   private readonly snackBar = inject(MatSnackBar);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   displayedColumns: string[] = [
@@ -87,19 +89,74 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
   states = signal<State[]>([]);
   filteredStates = signal<State[]>([]);
 
+  // Pagination / sort state (read from URL on init)
+  private currentPage = 1;
+  private currentLimit = 25;
+  private currentSortBy = 'name';
+  private currentSortOrder: 'asc' | 'desc' = 'asc';
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
 
   ngOnInit(): void {
-    this.loadCities();
+    // Read initial filter state from URL query params
+    const params = this.route.snapshot.queryParamMap;
+    this.searchQuery.set(params.get('search') || '');
+    this.selectedCountryId.set(params.has('country') ? Number(params.get('country')) : null);
+    this.selectedStateId.set(params.has('state') ? Number(params.get('state')) : null);
+    this.includeDisabled.set(params.get('disabled') === 'true');
+    this.currentPage = params.has('page') ? Number(params.get('page')) : 1;
+    this.currentLimit = params.has('limit') ? Number(params.get('limit')) : 25;
+    this.currentSortBy = params.get('sortBy') || 'name';
+    this.currentSortOrder = (params.get('sortOrder') as 'asc' | 'desc') || 'asc';
+
     this.loadFilterOptions();
   }
 
   ngAfterViewInit(): void {
     this.dataSource.sort = this.sort;
+
+    // Restore paginator / sort from URL after view initializes
+    if (this.paginator) {
+      this.paginator.pageIndex = this.currentPage - 1;
+      this.paginator.pageSize = this.currentLimit;
+    }
+    if (this.sort && this.currentSortBy !== 'name') {
+      this.sort.active = this.currentSortBy;
+      this.sort.direction = this.currentSortOrder;
+    }
+
+    this.loadCities(this.currentPage, this.currentLimit, this.currentSortBy, this.currentSortOrder);
+  }
+
+  /** Sync current filter/pagination state to the URL without navigating away */
+  private updateQueryParams(): void {
+    const queryParams: Record<string, string | null> = {
+      search: this.searchQuery() || null,
+      country: this.selectedCountryId() != null ? String(this.selectedCountryId()) : null,
+      state: this.selectedStateId() != null ? String(this.selectedStateId()) : null,
+      disabled: this.includeDisabled() ? 'true' : null,
+      page: this.currentPage > 1 ? String(this.currentPage) : null,
+      limit: this.currentLimit !== 25 ? String(this.currentLimit) : null,
+      sortBy: this.currentSortBy !== 'name' ? this.currentSortBy : null,
+      sortOrder: this.currentSortOrder !== 'asc' ? this.currentSortOrder : null,
+    };
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams,
+      queryParamsHandling: 'replace',
+      replaceUrl: true,
+    });
   }
 
   loadCities(page = 1, limit = 25, sortBy = 'name', sortOrder: 'asc' | 'desc' = 'asc'): void {
+    this.currentPage = page;
+    this.currentLimit = limit;
+    this.currentSortBy = sortBy;
+    this.currentSortOrder = sortOrder;
+    this.updateQueryParams();
+
     this.loading.set(true);
 
     this.citiesService
@@ -186,7 +243,16 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
       .getAllCountries('name')
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => this.countries.set(res.countries),
+        next: (res) => {
+          this.countries.set(res.countries);
+          // Apply country filter from URL — update filteredStates after countries load
+          const cid = this.selectedCountryId();
+          if (cid) {
+            this.filteredStates.set(
+              this.states().filter((s) => Number(s.country_id) === Number(cid))
+            );
+          }
+        },
       });
 
     this.statesService
@@ -195,7 +261,10 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (res) => {
           this.states.set(res.states);
-          this.filteredStates.set(res.states);
+          const cid = this.selectedCountryId();
+          this.filteredStates.set(
+            cid ? res.states.filter((s) => Number(s.country_id) === Number(cid)) : res.states
+          );
         },
       });
   }

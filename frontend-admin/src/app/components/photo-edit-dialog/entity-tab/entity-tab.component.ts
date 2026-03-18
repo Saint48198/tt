@@ -30,7 +30,7 @@ interface CityOption extends EntityOption {
   state_name?: string;
 }
 
-const COUNTRIES_WITH_STATES = ['United States', 'United States of America', 'Canada'];
+// No longer restricted to specific countries — states are loaded for any country that has them in the DB
 
 @Component({
   selector: 'app-entity-tab',
@@ -214,8 +214,8 @@ export class EntityTabComponent implements OnInit {
   }
 
   private loadStates(): void {
-    const countryName = this.state.countryName();
-    if (!COUNTRIES_WITH_STATES.includes(countryName)) {
+    const cid = this.state.countryId();
+    if (!cid) {
       this.allStates.set([]);
       return;
     }
@@ -226,10 +226,7 @@ export class EntityTabComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          const cid = this.state.countryId();
-          const states = cid
-            ? res.states.filter((s) => Number(s.country_id) === Number(cid))
-            : res.states;
+          const states = res.states.filter((s) => Number(s.country_id) === Number(cid));
           this.allStates.set(states.map((s) => ({ id: s.id, name: s.name })));
           this.loadingStates.set(false);
           this.syncInputValues();

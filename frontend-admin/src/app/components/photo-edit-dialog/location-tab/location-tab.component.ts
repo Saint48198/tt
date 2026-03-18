@@ -107,10 +107,6 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
     const country = this.resolvedCountry();
     if (!geo?.state || geo.state === 'Unknown State' || !country) return false;
     const stateName = geo.state;
-    const name = country.name.toLowerCase();
-    const isUsOrCanada =
-      name.includes('united states') || name === 'usa' || name === 'us' || name.includes('canada');
-    if (!isUsOrCanada) return false;
     const match = this.allStates().find(
       (s) => s.name.toLowerCase() === stateName.toLowerCase() && s.country_id === country.id
     );
@@ -302,6 +298,13 @@ export class LocationTabComponent implements AfterViewInit, OnDestroy {
                   s.name.toLowerCase() === geoStateName.toLowerCase() && s.country_id === match.id
               );
               this.resolvedState.set(stateMatch || null);
+              // Auto-assign the matched state to the photo
+              if (stateMatch && this.state.stateId() == null) {
+                this.state.stateId.set(stateMatch.id);
+                this.snackBar.open(`State set to "${stateMatch.name}"`, 'Close', {
+                  duration: 2500,
+                });
+              }
             }
           }
         },

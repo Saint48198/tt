@@ -367,9 +367,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
 
   private loadCountryDrillDown$(country: ExploreCountry): Observable<void> {
     this.countryMapOverlays = [];
-    if (!this.isStateCountry(country)) {
-      return this.loadCitiesForCountry$(country.id);
-    }
+    // Always check for states in the DB; fall through to cities if none exist
     return this.exploreService.getStates(country.id).pipe(
       switchMap((states) => {
         if (states.length > 0) {
@@ -461,17 +459,13 @@ export class ExploreComponent implements OnInit, OnDestroy {
   ): Observable<void> {
     this.countryMapOverlays = [];
 
-    // For non-state countries, the segment is a city name, not a state abbreviation
-    if (!this.isStateCountry(country)) {
-      return this.loadCitiesAndFindCity$(country.id, stateAbbr);
-    }
-
     return this.exploreService.getStates(country.id).pipe(
       tap((states) => {
         this.states.set(states);
         this.loadStateOverlays(country, states);
       }),
       switchMap((states) => {
+        // Try to match the URL segment as a state abbreviation or name
         const state = states.find(
           (s) => (s.abbr || s.name).toLowerCase() === stateAbbr.toLowerCase()
         );
@@ -493,7 +487,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
             })
           );
         }
-        // stateAbbr might actually be a city name for countries without states
+        // No matching state — treat the segment as a city name instead
         if (!cityName) {
           return this.loadCitiesAndFindCity$(country.id, stateAbbr);
         }
