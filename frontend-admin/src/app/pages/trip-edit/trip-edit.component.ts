@@ -27,6 +27,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDialogModule } from '@angular/material/dialog';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { TripsService } from '../../services/trips.service';
 import { CountriesService } from '../../services/countries.service';
 import { CitiesService } from '../../services/cities.service';
@@ -69,6 +70,7 @@ import {
     MatChipsModule,
     MatAutocompleteModule,
     MatDialogModule,
+    DragDropModule,
   ],
   templateUrl: './trip-edit.component.html',
   styleUrl: './trip-edit.component.scss',
@@ -127,16 +129,22 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
 
   // Adding new plan item
   addingItemType = signal<PlanItemType | null>(null);
-  planItemForm!: FormGroup;
+  planItemForm = signal<FormGroup>(this.fb.group({}));
 
   // Editing existing plan item
   editingItemId = signal<number | null>(null);
 
-  private nextLocalId = -1;
+  // Runtime-only ID counter. Uses Date.now() as seed so IDs are unique
+  // across sessions and never collide with each other or with DB IDs.
+  // The server always replaces these with clean sequential positive IDs on save.
+  private nextLocalId = -Date.now();
 
-  /** Sort plan items by startDate (earliest first) */
-  private sortPlanItemsByDate(items: PlanItem[]): AnyPlanItem[] {
+  /** Sort plan items by order, falling back to startDate for legacy items */
+  private sortPlanItems(items: PlanItem[]): AnyPlanItem[] {
     return ([...items] as AnyPlanItem[]).sort((a, b) => {
+      const aOrder = (a as PlanItem & { order?: number }).order ?? Infinity;
+      const bOrder = (b as PlanItem & { order?: number }).order ?? Infinity;
+      if (aOrder !== bOrder) return aOrder - bOrder;
       const dateA = a.startDate ? new Date(a.startDate).getTime() : Infinity;
       const dateB = b.startDate ? new Date(b.startDate).getTime() : Infinity;
       return dateA - dateB;
@@ -291,7 +299,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
           );
           // Set the value on the plan item form
           if (this.planItemForm) {
-            this.planItemForm.get(fieldKey)?.setValue(response.id);
+            this.planItemForm().get(fieldKey)?.setValue(response.id);
           }
           this.snackBar.open(`Country "${name}" added`, 'Close', { duration: 3000 });
           this.addingNewCountryFor.set(null);
@@ -353,7 +361,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
           this.cities.update((c) => [...c, newCity].sort((a, b) => a.name.localeCompare(b.name)));
           // Set the city name on the form field
           if (this.planItemForm) {
-            this.planItemForm.get(fieldKey)?.setValue(name);
+            this.planItemForm().get(fieldKey)?.setValue(name);
           }
           this.snackBar.open(`City "${name}" added`, 'Close', { duration: 3000 });
           this.addingNewCityFor.set(null);
@@ -457,7 +465,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
 
   onCountrySelected(countryId: number, fieldKey: string): void {
     if (this.planItemForm) {
-      this.planItemForm.get(fieldKey)?.setValue(countryId);
+      this.planItemForm().get(fieldKey)?.setValue(countryId);
     }
     // Clear the input filter text so next open shows all
     this.countryInputValues.update((v) => ({ ...v, [fieldKey]: '' }));
@@ -467,7 +475,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   onCitySelected(cityName: string, countryFieldKey: string): void {
     const city = this.cities().find((c) => c.name === cityName);
     if (city?.country_id && this.planItemForm) {
-      this.planItemForm.get(countryFieldKey)?.setValue(city.country_id);
+      this.planItemForm().get(countryFieldKey)?.setValue(city.country_id);
     }
   }
 
@@ -499,7 +507,20 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
             parsedPlan.length,
             parsedPlan
           );
-          this.planItems.set(this.sortPlanItemsByDate(parsedPlan));
+
+          // Always assign fresh unique runtime IDs to all plan items on load.
+          // Preserve the `order` field from the DB — that is the source of truth
+          // for display order. Items without order fall back to index position.
+          const withOrder = parsedPlan.map((item, index) => ({
+            ...item,
+            order: (item as PlanItem & { order?: number }).order ?? index + 1,
+          }));
+          const normalizedPlan = this.sortPlanItems(withOrder).map((item) => ({
+            ...item,
+            id: this.nextLocalId--,
+          }));
+
+          this.planItems.set(this.sortPlanItems(normalizedPlan));
           this.loading.set(false);
         },
         error: (err) => {
@@ -522,16 +543,17 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   startAddPlanItem(type: PlanItemType): void {
     this.editingItemId.set(null);
     this.addingItemType.set(type);
-    this.planItemForm = this.buildPlanItemForm(type);
+    const form = this.buildPlanItemForm(type);
+    this.planItemForm.set(form);
 
     // Default end date to start date when user picks a start date
-    this.planItemForm
+    form
       .get('startDate')
       ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
-        const endDate = this.planItemForm.get('endDate')?.value;
+        const endDate = form.get('endDate')?.value;
         if (value && !endDate) {
-          this.planItemForm.get('endDate')?.setValue(value);
+          form.get('endDate')?.setValue(value);
         }
       });
   }
@@ -541,16 +563,20 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   confirmAddPlanItem(): void {
-    if (this.planItemForm.invalid) {
-      this.planItemForm.markAllAsTouched();
+    if (this.planItemForm().invalid) {
+      this.planItemForm().markAllAsTouched();
       return;
     }
 
-    const raw = this.planItemForm.value;
+    const raw = this.planItemForm().value;
     const type = this.addingItemType()!;
-
-    const item = this.buildPlanItemFromForm(type, raw, this.nextLocalId--);
-    this.planItems.update((items) => this.sortPlanItemsByDate([...items, item]));
+    const nextOrder =
+      this.planItems().reduce(
+        (max, i) => Math.max(max, (i as PlanItem & { order?: number }).order ?? 0),
+        0
+      ) + 1;
+    const item = this.buildPlanItemFromForm(type, raw, this.nextLocalId--, nextOrder);
+    this.planItems.update((items) => this.sortPlanItems([...items, item]));
     this.planDirty.set(true);
     this.addingItemType.set(null);
   }
@@ -558,7 +584,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   startEditPlanItem(item: AnyPlanItem): void {
     this.addingItemType.set(null);
     this.editingItemId.set(item.id);
-    this.planItemForm = this.buildPlanItemForm(item.type, item);
+    this.planItemForm.set(this.buildPlanItemForm(item.type, item));
   }
 
   cancelEditPlanItem(): void {
@@ -566,18 +592,18 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   confirmEditPlanItem(itemId: number): void {
-    if (this.planItemForm.invalid) {
-      this.planItemForm.markAllAsTouched();
+    if (this.planItemForm().invalid) {
+      this.planItemForm().markAllAsTouched();
       return;
     }
 
-    const raw = this.planItemForm.value;
+    const raw = this.planItemForm().value;
     const existing = this.planItems().find((i) => i.id === itemId);
     if (!existing) return;
-
-    const updated = this.buildPlanItemFromForm(existing.type, raw, itemId);
+    const existingOrder = (existing as PlanItem & { order?: number }).order ?? itemId;
+    const updated = this.buildPlanItemFromForm(existing.type, raw, itemId, existingOrder);
     this.planItems.update((items) =>
-      this.sortPlanItemsByDate(items.map((i) => (i.id === itemId ? updated : i)))
+      this.sortPlanItems(items.map((i) => (i.id === itemId ? updated : i)))
     );
     this.planDirty.set(true);
     this.editingItemId.set(null);
@@ -585,6 +611,30 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
 
   removePlanItem(id: number): void {
     this.planItems.update((items) => items.filter((i) => i.id !== id));
+    this.planDirty.set(true);
+  }
+
+  /** Re-order all plan items by startDate and reassign order values */
+  sortPlanByDate(): void {
+    this.planItems.update((items) => {
+      const sorted = ([...items] as AnyPlanItem[]).sort((a, b) => {
+        const dateA = a.startDate ? new Date(a.startDate).getTime() : Infinity;
+        const dateB = b.startDate ? new Date(b.startDate).getTime() : Infinity;
+        return dateA - dateB;
+      });
+      return sorted.map((item, index) => ({ ...item, order: index + 1 }));
+    });
+    this.planDirty.set(true);
+  }
+
+  /** Handle CDK drag-and-drop reorder */
+  onPlanDrop(event: CdkDragDrop<AnyPlanItem[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    this.planItems.update((items) => {
+      const arr = [...items];
+      moveItemInArray(arr, event.previousIndex, event.currentIndex);
+      return arr.map((item, index) => ({ ...item, order: index + 1 }));
+    });
     this.planDirty.set(true);
   }
 
@@ -635,8 +685,15 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   }
 
   private buildPlanItemForm(type: PlanItemType, existing?: AnyPlanItem): FormGroup {
-    const startDate = existing ? new Date(existing.startDate) : null;
-    const endDate = existing ? new Date(existing.endDate) : null;
+    // Parse date strings with a noon local time to avoid UTC-offset off-by-one-day in the datepicker
+    const parseDate = (s: string | undefined): Date | null => {
+      if (!s) return null;
+      const normalized = s.includes('T') ? s : s + 'T12:00:00';
+      const d = new Date(normalized);
+      return isNaN(d.getTime()) ? null : d;
+    };
+    const startDate = existing ? parseDate(existing.startDate) : null;
+    const endDate = existing ? parseDate(existing.endDate) : null;
 
     const base = {
       startDate: [startDate, [Validators.required]],
@@ -708,7 +765,8 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
   private buildPlanItemFromForm(
     type: PlanItemType,
     raw: Record<string, unknown>,
-    id: number
+    id: number,
+    order: number
   ): AnyPlanItem {
     const startDate = this.formatDateValue(raw['startDate'] as Date | null);
     const endDate = this.formatDateValue(raw['endDate'] as Date | null);
@@ -717,6 +775,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
       case 'flight':
         return {
           id,
+          order,
           type,
           startDate,
           endDate,
@@ -728,6 +787,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
       case 'attraction':
         return {
           id,
+          order,
           type,
           startDate,
           endDate,
@@ -739,6 +799,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
       case 'accommodation':
         return {
           id,
+          order,
           type,
           startDate,
           endDate,
@@ -749,6 +810,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
       case 'car_rental':
         return {
           id,
+          order,
           type,
           startDate,
           endDate,
@@ -759,6 +821,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
       case 'ferry':
         return {
           id,
+          order,
           type,
           startDate,
           endDate,
@@ -770,6 +833,7 @@ export class TripEditComponent implements OnInit, HasUnsavedChanges {
       case 'train':
         return {
           id,
+          order,
           type,
           startDate,
           endDate,

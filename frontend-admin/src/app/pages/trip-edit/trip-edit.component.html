@@ -89,6 +89,16 @@
           <mat-icon>list_alt</mat-icon>
           Plan
         </h2>
+        @if (planItems().length > 1) {
+          <button
+            mat-stroked-button
+            matTooltip="Re-order plan items by start date"
+            (click)="sortPlanByDate()"
+          >
+            <mat-icon>sort</mat-icon>
+            Sort by Date
+          </button>
+        }
         <button mat-raised-button color="primary" [matMenuTriggerFor]="addPlanMenu">
           <mat-icon>add</mat-icon>
           Add to Plan
@@ -115,7 +125,7 @@
           <ng-container
             *ngTemplateOutlet="
               planItemFormTpl;
-              context: { $implicit: addingItemType()!, form: planItemForm }
+              context: { $implicit: addingItemType()!, form: planItemForm() }
             "
           ></ng-container>
           <div class="plan-item-form-actions">
@@ -127,21 +137,320 @@
 
       <!-- Existing plan items list -->
       @if (planItems().length) {
-        <div class="plan-items-list">
+        <div
+          class="plan-items-list"
+          cdkDropList
+          [cdkDropListData]="planItems()"
+          (cdkDropListDropped)="onPlanDrop($event)"
+        >
           @for (item of planItems(); track item.id) {
-            <div class="plan-item-card">
+            <div class="plan-item-card" cdkDrag [cdkDragDisabled]="editingItemId() === item.id">
+              <div class="plan-item-drag-placeholder" *cdkDragPlaceholder></div>
               @if (editingItemId() === item.id) {
                 <!-- Edit mode -->
                 <div class="plan-item-form-header">
                   <mat-icon>{{ getPlanItemIcon(item.type) }}</mat-icon>
                   <h3>Edit {{ getPlanItemLabel(item.type) }}</h3>
                 </div>
-                <ng-container
-                  *ngTemplateOutlet="
-                    planItemFormTpl;
-                    context: { $implicit: item.type, form: planItemForm }
-                  "
-                ></ng-container>
+                <div class="plan-item-form" [formGroup]="planItemForm()">
+                  <!-- Dates -->
+                  <div class="form-row two-col">
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>Start Date</mat-label>
+                      <input matInput [matDatepicker]="editStart" formControlName="startDate" />
+                      <mat-datepicker-toggle
+                        matIconSuffix
+                        [for]="editStart"
+                      ></mat-datepicker-toggle>
+                      <mat-datepicker #editStart></mat-datepicker>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="form-field">
+                      <mat-label>End Date</mat-label>
+                      <input matInput [matDatepicker]="editEnd" formControlName="endDate" />
+                      <mat-datepicker-toggle matIconSuffix [for]="editEnd"></mat-datepicker-toggle>
+                      <mat-datepicker #editEnd></mat-datepicker>
+                    </mat-form-field>
+                  </div>
+
+                  @switch (item.type) {
+                    @case ('flight') {
+                      <div class="form-row two-col">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>From</mat-label>
+                          <input
+                            matInput
+                            formControlName="from"
+                            placeholder="Departure city/airport"
+                          />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>From Country</mat-label>
+                          <input
+                            matInput
+                            [value]="displayCountryFn(planItemForm().get('fromCountryId')?.value)"
+                            (input)="onCountryInput($any($event.target).value, 'fromCountryId')"
+                            [matAutocomplete]="editFromCountryAc"
+                            placeholder="Type to search..."
+                          />
+                          <mat-autocomplete
+                            #editFromCountryAc="matAutocomplete"
+                            (optionSelected)="
+                              onCountrySelected($event.option.value, 'fromCountryId')
+                            "
+                          >
+                            @for (
+                              country of filterCountries(
+                                countryInputValues()['fromCountryId'] ?? ''
+                              );
+                              track country.id
+                            ) {
+                              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+                            }
+                          </mat-autocomplete>
+                        </mat-form-field>
+                      </div>
+                      <div class="form-row two-col">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>To</mat-label>
+                          <input matInput formControlName="to" placeholder="Arrival city/airport" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>To Country</mat-label>
+                          <input
+                            matInput
+                            [value]="displayCountryFn(planItemForm().get('toCountryId')?.value)"
+                            (input)="onCountryInput($any($event.target).value, 'toCountryId')"
+                            [matAutocomplete]="editToCountryAc"
+                            placeholder="Type to search..."
+                          />
+                          <mat-autocomplete
+                            #editToCountryAc="matAutocomplete"
+                            (optionSelected)="onCountrySelected($event.option.value, 'toCountryId')"
+                          >
+                            @for (
+                              country of filterCountries(countryInputValues()['toCountryId'] ?? '');
+                              track country.id
+                            ) {
+                              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+                            }
+                          </mat-autocomplete>
+                        </mat-form-field>
+                      </div>
+                    }
+                    @case ('attraction') {
+                      <div class="form-row two-col">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Attraction Name</mat-label>
+                          <input matInput formControlName="attractionName" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Country</mat-label>
+                          <input
+                            matInput
+                            [value]="displayCountryFn(planItemForm().get('countryId')?.value)"
+                            (input)="onCountryInput($any($event.target).value, 'countryId')"
+                            [matAutocomplete]="editAttrCountryAc"
+                            placeholder="Type to search..."
+                          />
+                          <mat-autocomplete
+                            #editAttrCountryAc="matAutocomplete"
+                            (optionSelected)="onCountrySelected($event.option.value, 'countryId')"
+                          >
+                            @for (
+                              country of filterCountries(countryInputValues()['countryId'] ?? '');
+                              track country.id
+                            ) {
+                              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+                            }
+                          </mat-autocomplete>
+                        </mat-form-field>
+                      </div>
+                      <div class="form-row">
+                        <mat-form-field appearance="outline" class="form-field full-width">
+                          <mat-label>Type</mat-label>
+                          <mat-select formControlName="typeOfAttraction">
+                            <mat-option value="UNESCO">UNESCO</mat-option>
+                            <mat-option value="National Park">National Park</mat-option>
+                            <mat-option value="Other">Other</mat-option>
+                          </mat-select>
+                        </mat-form-field>
+                      </div>
+                    }
+                    @case ('accommodation') {
+                      <div class="form-row two-col">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Hotel / Accommodation Name</mat-label>
+                          <input matInput formControlName="name" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>City</mat-label>
+                          <input matInput formControlName="city" />
+                        </mat-form-field>
+                      </div>
+                      <div class="form-row">
+                        <mat-form-field appearance="outline" class="form-field full-width">
+                          <mat-label>Country</mat-label>
+                          <input
+                            matInput
+                            [value]="displayCountryFn(planItemForm().get('countryId')?.value)"
+                            (input)="onCountryInput($any($event.target).value, 'countryId')"
+                            [matAutocomplete]="editAccomCountryAc"
+                            placeholder="Type to search..."
+                          />
+                          <mat-autocomplete
+                            #editAccomCountryAc="matAutocomplete"
+                            (optionSelected)="onCountrySelected($event.option.value, 'countryId')"
+                          >
+                            @for (
+                              country of filterCountries(countryInputValues()['countryId'] ?? '');
+                              track country.id
+                            ) {
+                              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+                            }
+                          </mat-autocomplete>
+                        </mat-form-field>
+                      </div>
+                    }
+                    @case ('car_rental') {
+                      <div class="form-row">
+                        <mat-form-field appearance="outline" class="form-field full-width">
+                          <mat-label>Rental Company</mat-label>
+                          <input matInput formControlName="company" />
+                        </mat-form-field>
+                      </div>
+                      <div class="form-row two-col">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Pickup Location</mat-label>
+                          <input matInput formControlName="pickupLocation" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>Dropoff Location</mat-label>
+                          <input matInput formControlName="dropoffLocation" />
+                        </mat-form-field>
+                      </div>
+                    }
+                    @case ('ferry') {
+                      <div class="form-row two-col">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>From</mat-label>
+                          <input matInput formControlName="from" placeholder="Departure port" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>From Country</mat-label>
+                          <input
+                            matInput
+                            [value]="displayCountryFn(planItemForm().get('countryIdFrom')?.value)"
+                            (input)="onCountryInput($any($event.target).value, 'countryIdFrom')"
+                            [matAutocomplete]="editFerryFromCountryAc"
+                            placeholder="Type to search..."
+                          />
+                          <mat-autocomplete
+                            #editFerryFromCountryAc="matAutocomplete"
+                            (optionSelected)="
+                              onCountrySelected($event.option.value, 'countryIdFrom')
+                            "
+                          >
+                            @for (
+                              country of filterCountries(
+                                countryInputValues()['countryIdFrom'] ?? ''
+                              );
+                              track country.id
+                            ) {
+                              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+                            }
+                          </mat-autocomplete>
+                        </mat-form-field>
+                      </div>
+                      <div class="form-row two-col">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>To</mat-label>
+                          <input matInput formControlName="to" placeholder="Arrival port" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>To Country</mat-label>
+                          <input
+                            matInput
+                            [value]="displayCountryFn(planItemForm().get('countryIdTo')?.value)"
+                            (input)="onCountryInput($any($event.target).value, 'countryIdTo')"
+                            [matAutocomplete]="editFerryToCountryAc"
+                            placeholder="Type to search..."
+                          />
+                          <mat-autocomplete
+                            #editFerryToCountryAc="matAutocomplete"
+                            (optionSelected)="onCountrySelected($event.option.value, 'countryIdTo')"
+                          >
+                            @for (
+                              country of filterCountries(countryInputValues()['countryIdTo'] ?? '');
+                              track country.id
+                            ) {
+                              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+                            }
+                          </mat-autocomplete>
+                        </mat-form-field>
+                      </div>
+                    }
+                    @case ('train') {
+                      <div class="form-row two-col">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>From</mat-label>
+                          <input matInput formControlName="from" placeholder="Departure station" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>From Country</mat-label>
+                          <input
+                            matInput
+                            [value]="displayCountryFn(planItemForm().get('countryIdFrom')?.value)"
+                            (input)="onCountryInput($any($event.target).value, 'countryIdFrom')"
+                            [matAutocomplete]="editTrainFromCountryAc"
+                            placeholder="Type to search..."
+                          />
+                          <mat-autocomplete
+                            #editTrainFromCountryAc="matAutocomplete"
+                            (optionSelected)="
+                              onCountrySelected($event.option.value, 'countryIdFrom')
+                            "
+                          >
+                            @for (
+                              country of filterCountries(
+                                countryInputValues()['countryIdFrom'] ?? ''
+                              );
+                              track country.id
+                            ) {
+                              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+                            }
+                          </mat-autocomplete>
+                        </mat-form-field>
+                      </div>
+                      <div class="form-row two-col">
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>To</mat-label>
+                          <input matInput formControlName="to" placeholder="Arrival station" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="form-field">
+                          <mat-label>To Country</mat-label>
+                          <input
+                            matInput
+                            [value]="displayCountryFn(planItemForm().get('countryIdTo')?.value)"
+                            (input)="onCountryInput($any($event.target).value, 'countryIdTo')"
+                            [matAutocomplete]="editTrainToCountryAc"
+                            placeholder="Type to search..."
+                          />
+                          <mat-autocomplete
+                            #editTrainToCountryAc="matAutocomplete"
+                            (optionSelected)="onCountrySelected($event.option.value, 'countryIdTo')"
+                          >
+                            @for (
+                              country of filterCountries(countryInputValues()['countryIdTo'] ?? '');
+                              track country.id
+                            ) {
+                              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+                            }
+                          </mat-autocomplete>
+                        </mat-form-field>
+                      </div>
+                    }
+                  }
+                </div>
                 <div class="plan-item-form-actions">
                   <button mat-stroked-button (click)="cancelEditPlanItem()">Cancel</button>
                   <button mat-raised-button color="primary" (click)="confirmEditPlanItem(item.id)">
@@ -151,6 +460,9 @@
               } @else {
                 <!-- Display mode -->
                 <div class="plan-item-display">
+                  <div class="plan-item-drag-handle" cdkDragHandle>
+                    <mat-icon>drag_indicator</mat-icon>
+                  </div>
                   <div class="plan-item-icon-col">
                     <mat-icon>{{ getPlanItemIcon(item.type) }}</mat-icon>
                   </div>

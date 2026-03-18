@@ -2,6 +2,7 @@ import { db } from '../db';
 
 interface PlanItem {
   id: number;
+  order: number;
   type: string;
   startDate: string;
   endDate: string;
@@ -65,14 +66,22 @@ class TripService {
   }
 
   /**
-   * Sort plan items by startDate (earliest first)
+   * Normalize plan items: sort by `order` (falling back to `startDate` for
+   * legacy items that pre-date the order field), then reassign sequential
+   * `id` and `order` values (1, 2, 3…).  This guarantees both fields are
+   * always unique, positive, and reflect the intended display order.
    */
-  private sortPlanItems(items: PlanItem[]): PlanItem[] {
-    return [...items].sort((a, b) => {
+  private normalizePlan(items: PlanItem[]): PlanItem[] {
+    const sorted = [...items].sort((a, b) => {
+      const aOrder = a.order != null ? a.order : Infinity;
+      const bOrder = b.order != null ? b.order : Infinity;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      // Fallback: sort by startDate for items without order
       const dateA = a.startDate ? new Date(a.startDate).getTime() : Infinity;
       const dateB = b.startDate ? new Date(b.startDate).getTime() : Infinity;
       return dateA - dateB;
     });
+    return sorted.map((item, index) => ({ ...item, id: index + 1, order: index + 1 }));
   }
 
   /**
@@ -80,7 +89,7 @@ class TripService {
    */
   public async createTrip(data: CreateTripData): Promise<{ id: number }> {
     const { name, notes, plan } = data;
-    const sortedPlan = this.sortPlanItems(plan || []);
+    const sortedPlan = this.normalizePlan(plan || []);
     const result = await db.run(
       'INSERT INTO trips (name, notes, plan) VALUES ($1, $2, $3) RETURNING id',
       [name, notes || null, JSON.stringify(sortedPlan)]
@@ -96,7 +105,7 @@ class TripService {
     data: UpdateTripData
   ): Promise<{ success: boolean; changes: number }> {
     const { name, notes, plan } = data;
-    const sortedPlan = this.sortPlanItems(plan || []);
+    const sortedPlan = this.normalizePlan(plan || []);
     const result = await db.run(
       'UPDATE trips SET name = $1, notes = $2, plan = $3, updated_date = NOW() WHERE id = $4',
       [name, notes || null, JSON.stringify(sortedPlan), id]

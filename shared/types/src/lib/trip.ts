@@ -11,6 +11,7 @@ export interface Trip {
 
 export interface PlanItem {
   id: number;
+  order: number;
   type: string;
   startDate: string;
   endDate: string;
