@@ -251,22 +251,70 @@ class TagService {
       WHERE p.country_id IS NOT NULL
       ORDER BY c.name ASC
     `;
-
-    console.log('Executing query:', query);
     const rows = await db.all<{ id: number; name: string }>(query);
-    console.log('Countries query result:', rows);
-
     return { countries: rows };
   }
 
   /**
+   * Get all available states from photos
+   */
+  public async getAvailableStates(): Promise<{
+    states: Array<{ id: number; name: string }>;
+  }> {
+    const query = `
+      SELECT DISTINCT s.id, s.name
+      FROM states s
+      INNER JOIN photos p ON s.id = p.state_id
+      WHERE p.state_id IS NOT NULL
+      ORDER BY s.name ASC
+    `;
+    const rows = await db.all<{ id: number; name: string }>(query);
+    return { states: rows };
+  }
+
+  /**
+   * Get all available cities from photos
+   */
+  public async getAvailableCities(): Promise<{
+    cities: Array<{ id: number; name: string }>;
+  }> {
+    const query = `
+      SELECT DISTINCT c.id, c.name
+      FROM cities c
+      INNER JOIN photos p ON c.id = p.city_id
+      WHERE p.city_id IS NOT NULL
+      ORDER BY c.name ASC
+    `;
+    const rows = await db.all<{ id: number; name: string }>(query);
+    return { cities: rows };
+  }
+
+  /**
+   * Get all available attractions from photos
+   */
+  public async getAvailableAttractions(): Promise<{
+    attractions: Array<{ id: number; name: string }>;
+  }> {
+    const query = `
+      SELECT DISTINCT a.id, a.name
+      FROM attractions a
+      INNER JOIN photos p ON a.id = p.attraction_id
+      WHERE p.attraction_id IS NOT NULL
+      ORDER BY a.name ASC
+    `;
+    const rows = await db.all<{ id: number; name: string }>(query);
+    return { attractions: rows };
+  }
+
+  /**
    * Get tag frequency data for word cloud with optional filters
-   * Returns all tags with their frequency count across all photos
-   * Can be filtered by year and/or country ID
    */
   public async getTagFrequencies(
     year?: number,
-    countryId?: number
+    countryId?: number,
+    stateId?: number,
+    cityId?: number,
+    attractionId?: number
   ): Promise<{ tags: Array<{ tag: string; count: number }> }> {
     await this.ensureTable();
 
@@ -276,24 +324,33 @@ class TagService {
     const conditions: string[] = [];
     const params: (string | number)[] = [];
 
-    // If we have filters, use INNER JOIN to only get photos matching the criteria
-    if (year || countryId) {
+    const hasFilters = year || countryId || stateId || cityId || attractionId;
+
+    if (hasFilters) {
       query += ` INNER JOIN photo_tags pt ON pt.tag_id = t.id
        INNER JOIN photos p ON pt.photo_id = p.id`;
 
-      // Add year filter if provided
       if (year) {
         params.push(year);
         conditions.push(`EXTRACT(YEAR FROM p.created_date) = $${params.length}`);
       }
-
-      // Add country ID filter if provided
       if (countryId) {
         params.push(countryId);
         conditions.push(`p.country_id = $${params.length}`);
       }
+      if (stateId) {
+        params.push(stateId);
+        conditions.push(`p.state_id = $${params.length}`);
+      }
+      if (cityId) {
+        params.push(cityId);
+        conditions.push(`p.city_id = $${params.length}`);
+      }
+      if (attractionId) {
+        params.push(attractionId);
+        conditions.push(`p.attraction_id = $${params.length}`);
+      }
     } else {
-      // If no filters, use LEFT JOIN to get all tags even if unused
       query += ` LEFT JOIN photo_tags pt ON pt.tag_id = t.id`;
     }
 
@@ -301,11 +358,9 @@ class TagService {
       query += ` WHERE ${conditions.join(' AND ')}`;
     }
 
-    query += ` GROUP BY t.id, t.name
-       ORDER BY count DESC`;
+    query += ` GROUP BY t.id, t.name ORDER BY count DESC`;
 
-    // Limit to 150 tags when no filters are applied
-    if (!year && !countryId) {
+    if (!hasFilters) {
       query += ` LIMIT 150`;
     }
 
@@ -313,8 +368,6 @@ class TagService {
     console.log('Parameters:', params);
 
     const rows = await db.all<{ name: string; count: string }>(query, params);
-
-    console.log('Tag frequency results:', rows);
 
     return {
       tags: rows.map((r) => ({

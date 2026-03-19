@@ -23,7 +23,7 @@ import {
 } from '../../services/analytics.service';
 import { DashboardService, DashboardStats } from '../../services/dashboard.service';
 import { WordCloudService, WordCloudItem } from '../../services/word-cloud.service';
-import { WordCloudComponent } from '@shared/components';
+import { WordCloudComponent, WordCloudFilters } from '@shared/components';
 import { forkJoin, catchError, of } from 'rxjs';
 import * as d3 from 'd3';
 
@@ -54,12 +54,7 @@ export class AnalyticsComponent implements OnDestroy {
   stats = signal<DashboardStats | null>(null);
   analytics = signal<AnalyticsData | null>(null);
   wordCloudItems = signal<WordCloudItem[]>([]);
-
-  // Word cloud filters
-  selectedYear = signal<number | null>(null);
-  selectedCountry = signal<number | null>(null);
-  availableYears = signal<number[]>([]);
-  availableCountries = signal<string[]>([]);
+  wordCloudFilters = signal<WordCloudFilters>({});
 
   private resizeObserver?: ResizeObserver;
   private resizeDebounceTimer?: ReturnType<typeof setTimeout>;
@@ -101,7 +96,6 @@ export class AnalyticsComponent implements OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (tags) => {
-          console.log('Word cloud tags loaded:', tags);
           this.wordCloudItems.set(tags);
           this.cdr.markForCheck();
         },
@@ -123,45 +117,9 @@ export class AnalyticsComponent implements OnDestroy {
     this.cleanupAllCharts();
   }
 
-  // Word cloud filter methods
-  onYearChange(year: number | null): void {
-    console.log('Year changed to:', year);
-    this.selectedYear.set(year);
-    this.loadFilteredWordCloud();
-  }
-
-  onCountryChange(country: number | null): void {
-    console.log('Country changed to:', country);
-    this.selectedCountry.set(country);
-    this.loadFilteredWordCloud();
-  }
-
-  parseYearValue(value: string): number | null {
-    return value ? parseInt(value, 10) : null;
-  }
-
-  private loadFilteredWordCloud(): void {
-    const year = this.selectedYear();
-    const country = this.selectedCountry();
-
-    console.log('Loading filtered word cloud with year:', year, 'country:', country);
-
-    this.wordCloudService
-      .getTagFrequencies(year ?? undefined, country ?? undefined)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        catchError((err) => {
-          console.error('Failed to load filtered word cloud tags:', err);
-          return of([]);
-        })
-      )
-      .subscribe({
-        next: (tags) => {
-          console.log('Filtered tags received:', tags);
-          this.wordCloudItems.set(tags);
-          this.cdr.markForCheck();
-        },
-      });
+  // Word cloud filter handler
+  onFiltersChange(filters: WordCloudFilters): void {
+    this.wordCloudFilters.set(filters);
   }
 
   // ...existing code...

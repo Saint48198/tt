@@ -100,14 +100,12 @@
       [items]="wordCloudItems()"
       [title]="'Photo Tags Cloud'"
       [subtitle]="'Visualization of tags used across your photos'"
-      [selectedYear]="selectedYear()"
-      [selectedCountry]="selectedCountry()"
+      [filters]="wordCloudFilters()"
       [showFilters]="true"
       colorScheme="cool"
       [minFontSize]="14"
       [maxFontSize]="48"
-      (yearChange)="onYearChange($event)"
-      (countryChange)="onCountryChange($event)"
+      (filtersChange)="onFiltersChange($event)"
     ></lib-word-cloud>
   }
 </div>

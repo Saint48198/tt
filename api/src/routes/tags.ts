@@ -26,24 +26,67 @@ router.get('/api/tags', async (req: Request, res: Response) => {
   try {
     // Handle filter options request
     if (req.query.filterOptions === 'true') {
-      console.log('GET /api/tags?filterOptions=true called');
-      const years = await tagService.getAvailableYears();
-      const countries = await tagService.getAvailableCountries();
-      console.log('Filter options result:', { years, countries });
+      const requestedFields = req.query.fields
+        ? String(req.query.fields).split(',')
+        : ['years', 'countries', 'states', 'cities', 'attractions'];
+
+      const [years, countries, states, cities, attractions] = await Promise.all([
+        requestedFields.includes('years')
+          ? tagService.getAvailableYears()
+          : Promise.resolve({ years: [] }),
+        requestedFields.includes('countries')
+          ? tagService.getAvailableCountries()
+          : Promise.resolve({ countries: [] }),
+        requestedFields.includes('states')
+          ? tagService.getAvailableStates()
+          : Promise.resolve({ states: [] }),
+        requestedFields.includes('cities')
+          ? tagService.getAvailableCities()
+          : Promise.resolve({ cities: [] }),
+        requestedFields.includes('attractions')
+          ? tagService.getAvailableAttractions()
+          : Promise.resolve({ attractions: [] }),
+      ]);
+
       return res.status(200).json({
         years: years.years,
         countries: countries.countries,
+        states: states.states,
+        cities: cities.cities,
+        attractions: attractions.attractions,
       });
     }
 
     // Handle tag frequency filtering (for word cloud)
-    if (req.query.year || req.query.countryId) {
+    if (
+      req.query.year ||
+      req.query.countryId ||
+      req.query.stateId ||
+      req.query.cityId ||
+      req.query.attractionId
+    ) {
       const year = req.query.year ? parseInt(String(req.query.year), 10) : undefined;
       const countryId = req.query.countryId ? parseInt(String(req.query.countryId), 10) : undefined;
+      const stateId = req.query.stateId ? parseInt(String(req.query.stateId), 10) : undefined;
+      const cityId = req.query.cityId ? parseInt(String(req.query.cityId), 10) : undefined;
+      const attractionId = req.query.attractionId
+        ? parseInt(String(req.query.attractionId), 10)
+        : undefined;
 
-      console.log('GET /api/tags with filters - year:', year, 'countryId:', countryId);
-      const result = await tagService.getTagFrequencies(year, countryId);
-      console.log('Tag frequency result:', result);
+      console.log('GET /api/tags with filters:', {
+        year,
+        countryId,
+        stateId,
+        cityId,
+        attractionId,
+      });
+      const result = await tagService.getTagFrequencies(
+        year,
+        countryId,
+        stateId,
+        cityId,
+        attractionId
+      );
       return res.status(200).json(result);
     }
 
@@ -58,7 +101,6 @@ router.get('/api/tags', async (req: Request, res: Response) => {
 
     const query = Array.isArray(rawQuery) ? rawQuery[0] : rawQuery;
     const result = await tagService.searchTags(query as string);
-    return res.status(200).json(result);
     return res.status(200).json(result);
   } catch (error) {
     console.error('Failed to fetch tags:', error);

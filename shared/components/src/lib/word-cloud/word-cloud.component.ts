@@ -21,7 +21,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { WordCloudItem } from './word-cloud.types';
+import { WordCloudFilterGroup, WordCloudFilters, WordCloudItem } from './word-cloud.types';
 import * as d3 from 'd3';
 import { WordCloudService } from './word-cloud.service';
 
@@ -68,16 +68,17 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   /** Optional height for the word cloud */
   height = input(500);
 
-  /** Filter inputs */
-  selectedYear = input<number | null>(null);
-  selectedCountry = input<number | null>(null);
+  /** Single object containing all active filters */
+  filters = input<WordCloudFilters>({});
 
-  /** Filter outputs */
-  yearChange = output<number | null>();
-  countryChange = output<number | null>();
+  /** Emits when any filter changes */
+  filtersChange = output<WordCloudFilters>();
 
   /** Show filters */
   showFilters = input(true);
+
+  /** Which filter groups to display and load data for */
+  filterGroups = input<WordCloudFilterGroup[]>(['time', 'location']);
 
   // Signal to store unfiltered count
   unfilteredCount = signal(0);
@@ -88,6 +89,9 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   // Available options from database
   availableYears = signal<number[]>([]);
   availableCountries = signal<{ id: number; name: string }[]>([]);
+  availableStates = signal<{ id: number; name: string }[]>([]);
+  availableCities = signal<{ id: number; name: string }[]>([]);
+  availableAttractions = signal<{ id: number; name: string }[]>([]);
 
   // Error state
   error = signal<string | null>(null);
@@ -95,8 +99,19 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   // Filter overlay minimize state
   filtersMinimized = signal(false);
 
+  // Individual filter group expanded state
+  timeGroupExpanded = signal(true);
+  locationGroupExpanded = signal(true);
+  placeGroupExpanded = signal(true);
+
   toggleFilters(): void {
     this.filtersMinimized.update((v) => !v);
+  }
+
+  toggleGroup(group: 'time' | 'location' | 'place'): void {
+    if (group === 'time') this.timeGroupExpanded.update((v) => !v);
+    if (group === 'location') this.locationGroupExpanded.update((v) => !v);
+    if (group === 'place') this.placeGroupExpanded.update((v) => !v);
   }
 
   private wordCloudService = inject(WordCloudService);
@@ -104,9 +119,8 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('wordCloudContainer') wordCloudContainer!: ElementRef<HTMLDivElement>;
 
-  // Internal filter state (driven by both the dropdown UI and parent inputs)
-  private activeYear = signal<number | null>(null);
-  private activeCountry = signal<number | null>(null);
+  // Internal filter state
+  private activeFilters = signal<WordCloudFilters>({});
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private cloudLayout: any;
@@ -122,13 +136,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   noResults = signal(false);
 
   constructor() {
-    // Watch internal filter signals and re-fetch data whenever they change
+    // Watch internal filter signal and re-fetch data whenever filters change
     effect(() => {
-      const year = this.activeYear();
-      const country = this.activeCountry();
+      const filters = this.activeFilters();
       untracked(() => {
         if (this.viewReady) {
-          this.fetchAndRender(year, country);
+          this.fetchAndRender(filters);
         }
       });
     });
@@ -167,16 +180,16 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private fetchAndRender(year: number | null, country: number | null): void {
-    if (year || country) {
+  private fetchAndRender(filters: WordCloudFilters): void {
+    const hasFilters = Object.values(filters).some((v) => v != null);
+    if (hasFilters) {
       this.wordCloudService
-        .getTagFrequencies(year ?? undefined, country ?? undefined)
+        .getTagFrequencies(filters)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((items) => {
           this.displayItems.set(items);
         });
     } else {
-      // No filters — revert to the items passed in by the parent
       this.displayItems.set(this.items());
     }
   }
@@ -361,16 +374,19 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     return hash;
   }
 
-  // Load available years, countries, and total tag count from the database
+  // Load available filter options from the database
   private loadFilterOptions(): void {
     this.wordCloudService
-      .getInitialData()
+      .getInitialData(this.filterGroups())
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         tap((data) => {
           if (data) {
             this.availableYears.set(data.years);
             this.availableCountries.set(data.countries);
+            this.availableStates.set(data.states);
+            this.availableCities.set(data.cities);
+            this.availableAttractions.set(data.attractions);
             this.totalTagsCount.set(data.totalTagsCount);
             this.error.set(null);
           }
@@ -384,16 +400,11 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       .subscribe();
   }
 
-  // Filter methods
-  onYearChange(value: string): void {
-    const year = value ? parseInt(value, 10) : null;
-    this.activeYear.set(year);
-    this.yearChange.emit(year);
-  }
-
-  onCountryChange(value: string): void {
-    const countryId = value ? parseInt(value, 10) : null;
-    this.activeCountry.set(countryId);
-    this.countryChange.emit(countryId);
+  // Called by each dropdown — merges the changed key into activeFilters and emits
+  onFilterChange(key: keyof WordCloudFilters, value: string): void {
+    const parsed = value ? parseInt(value, 10) : null;
+    const updated: WordCloudFilters = { ...this.activeFilters(), [key]: parsed };
+    this.activeFilters.set(updated);
+    this.filtersChange.emit(updated);
   }
 }

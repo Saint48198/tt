@@ -21,48 +21,80 @@
 
   <!-- Word Cloud Container with Filters Overlay -->
   <div class="word-cloud-container">
-    <!-- Filters Overlay -->
-    <div class="word-cloud-filters" [class.minimized]="filtersMinimized()">
-      <button class="filters-toggle" (click)="toggleFilters()" type="button">
-        <mat-icon>{{ filtersMinimized() ? 'tune' : 'close' }}</mat-icon>
-      </button>
+    <!-- Filters Panel -->
+    @if (showFilters()) {
+      <div class="word-cloud-filters" [class.minimized]="filtersMinimized()">
+        <!-- Panel toggle button -->
+        <button
+          class="filters-toggle"
+          (click)="toggleFilters()"
+          type="button"
+          [title]="filtersMinimized() ? 'Show filters' : 'Hide filters'"
+        >
+          <mat-icon>{{ filtersMinimized() ? 'tune' : 'close' }}</mat-icon>
+        </button>
 
-      @if (!filtersMinimized()) {
-        <div class="filter-groups">
-          <div class="filter-group">
-            <mat-form-field>
-              <mat-label>Year</mat-label>
-              <select
-                matNativeControl
-                [value]="selectedYear() || ''"
-                (change)="onYearChange($any($event.target).value)"
-              >
-                <option value="">All Years</option>
-                @for (year of availableYears(); track year) {
-                  <option [value]="year">{{ year }}</option>
-                }
-              </select>
-            </mat-form-field>
-          </div>
+        @if (!filtersMinimized()) {
+          <div class="filter-panel">
+            <!-- Time Group -->
+            <div class="filter-group-section">
+              <button class="filter-group-header" type="button" (click)="toggleGroup('time')">
+                <mat-icon class="group-icon">calendar_today</mat-icon>
+                <span>Time</span>
+                <mat-icon class="chevron" [class.expanded]="timeGroupExpanded()"
+                  >chevron_right</mat-icon
+                >
+              </button>
+              @if (timeGroupExpanded()) {
+                <div class="filter-group-body">
+                  <mat-form-field appearance="outline" class="filter-field">
+                    <mat-label>Year</mat-label>
+                    <select
+                      matNativeControl
+                      [value]="filters().year || ''"
+                      (change)="onFilterChange('year', $any($event.target).value)"
+                    >
+                      <option value="">All</option>
+                      @for (year of availableYears(); track year) {
+                        <option [value]="year">{{ year }}</option>
+                      }
+                    </select>
+                  </mat-form-field>
+                </div>
+              }
+            </div>
 
-          <div class="filter-group">
-            <mat-form-field>
-              <mat-label>Country</mat-label>
-              <select
-                matNativeControl
-                [value]="selectedCountry() || ''"
-                (change)="onCountryChange($any($event.target).value)"
-              >
-                <option value="">All Countries</option>
-                @for (country of availableCountries(); track country.id) {
-                  <option [value]="country.id">{{ country.name }}</option>
-                }
-              </select>
-            </mat-form-field>
+            <!-- Location Group -->
+            <div class="filter-group-section">
+              <button class="filter-group-header" type="button" (click)="toggleGroup('location')">
+                <mat-icon class="group-icon">public</mat-icon>
+                <span>Location</span>
+                <mat-icon class="chevron" [class.expanded]="locationGroupExpanded()"
+                  >chevron_right</mat-icon
+                >
+              </button>
+              @if (locationGroupExpanded()) {
+                <div class="filter-group-body">
+                  <mat-form-field appearance="outline" class="filter-field">
+                    <mat-label>Country</mat-label>
+                    <select
+                      matNativeControl
+                      [value]="filters().countryId || ''"
+                      (change)="onFilterChange('countryId', $any($event.target).value)"
+                    >
+                      <option value="">All</option>
+                      @for (country of availableCountries(); track country.id) {
+                        <option [value]="country.id">{{ country.name }}</option>
+                      }
+                    </select>
+                  </mat-form-field>
+                </div>
+              }
+            </div>
           </div>
-        </div>
-      }
-    </div>
+        }
+      </div>
+    }
 
     <!-- D3 renders SVG here -->
     <div class="word-cloud-empty" [class.visible]="!loading() && noResults()">
