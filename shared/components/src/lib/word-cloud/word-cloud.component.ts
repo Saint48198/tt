@@ -5,13 +5,14 @@ import {
   ViewChild,
   ElementRef,
   AfterViewInit,
-  AfterContentChecked,
   OnDestroy,
   ViewEncapsulation,
   ChangeDetectionStrategy,
   signal,
   inject,
   DestroyRef,
+  effect,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
@@ -22,7 +23,7 @@ import { of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { WordCloudItem } from './word-cloud.types';
 import * as d3 from 'd3';
-import { WordCloudDataService } from '../services/word-cloud-data.service';
+import { WordCloudService } from './word-cloud.service';
 
 interface CloudWord {
   text: string;
@@ -42,7 +43,7 @@ interface CloudWord {
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WordCloudComponent implements AfterViewInit, AfterContentChecked, OnDestroy {
+export class WordCloudComponent implements AfterViewInit, OnDestroy {
   /** Array of items with text and count */
   items = input.required<WordCloudItem[]>();
 
@@ -98,34 +99,52 @@ export class WordCloudComponent implements AfterViewInit, AfterContentChecked, O
     this.filtersMinimized.update((v) => !v);
   }
 
-  private wordCloudDataService = inject(WordCloudDataService);
+  private wordCloudService = inject(WordCloudService);
   private destroyRef = inject(DestroyRef);
 
   @ViewChild('wordCloudContainer') wordCloudContainer!: ElementRef<HTMLDivElement>;
 
+  // Internal filter state (driven by both the dropdown UI and parent inputs)
+  private activeYear = signal<number | null>(null);
+  private activeCountry = signal<number | null>(null);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private cloudLayout: any;
-  private lastItemsLength = 0;
+  private viewReady = false;
+
+  // Internal items signal — holds the currently displayed words (filtered or unfiltered)
+  private displayItems = signal<WordCloudItem[]>([]);
+
+  constructor() {
+    // Watch internal filter signals and re-fetch data whenever they change
+    effect(() => {
+      const year = this.activeYear();
+      const country = this.activeCountry();
+      untracked(() => {
+        if (this.viewReady) {
+          this.fetchAndRender(year, country);
+        }
+      });
+    });
+
+    // Re-render when displayItems change
+    effect(() => {
+      const items = this.displayItems();
+      untracked(() => {
+        if (this.viewReady) {
+          this.generateWordCloud(items);
+        }
+      });
+    });
+  }
 
   ngAfterViewInit(): void {
-    // Load filter options first
+    this.viewReady = true;
     this.loadFilterOptions();
-    // Store the initial unfiltered count
+    // Seed displayItems with whatever was passed in initially
+    this.displayItems.set(this.items());
     this.unfilteredCount.set(this.items().length);
-    this.generateWordCloud();
-    this.lastItemsLength = this.items().length;
   }
-
-  ngAfterContentChecked(): void {
-    // Re-render if items count changed
-    const currentLength = this.items().length;
-    if (currentLength !== this.lastItemsLength && this.viewReady) {
-      this.lastItemsLength = currentLength;
-      this.generateWordCloud();
-    }
-  }
-
-  private viewReady = true;
 
   ngOnDestroy(): void {
     if (this.cloudLayout) {
@@ -133,8 +152,21 @@ export class WordCloudComponent implements AfterViewInit, AfterContentChecked, O
     }
   }
 
-  private generateWordCloud(): void {
-    const items = this.items();
+  private fetchAndRender(year: number | null, country: number | null): void {
+    if (year || country) {
+      this.wordCloudService
+        .getTagFrequencies(year ?? undefined, country ?? undefined)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((items) => {
+          this.displayItems.set(items);
+        });
+    } else {
+      // No filters — revert to the items passed in by the parent
+      this.displayItems.set(this.items());
+    }
+  }
+
+  private generateWordCloud(items: WordCloudItem[]): void {
     if (!items || items.length === 0) {
       return;
     }
@@ -159,14 +191,21 @@ export class WordCloudComponent implements AfterViewInit, AfterContentChecked, O
     const height = this.height();
 
     // Create word data with random positions
-    const cloudData: CloudWord[] = items.map((item) => ({
-      text: item.text,
-      count: item.count,
-      size: sizeScale(item.count),
-      x: (Math.random() - 0.5) * width * 0.8,
-      y: (Math.random() - 0.5) * height * 0.8,
-      rotate: 0,
-    }));
+    const maxRadius = Math.sqrt(Math.pow(width * 0.4, 2) + Math.pow(height * 0.4, 2));
+    const cloudData: CloudWord[] = items.map((item) => {
+      const x = (Math.random() - 0.5) * width * 0.8;
+      const y = (Math.random() - 0.5) * height * 0.8;
+      const distFromCenter = Math.sqrt(x * x + y * y);
+      const isEdge = distFromCenter / maxRadius > 0.7;
+      return {
+        text: item.text,
+        count: item.count,
+        size: sizeScale(item.count),
+        x,
+        y,
+        rotate: isEdge && Math.random() < 0.125 ? 90 : 0,
+      };
+    });
 
     const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
 
@@ -237,8 +276,8 @@ export class WordCloudComponent implements AfterViewInit, AfterContentChecked, O
 
   // Load available years, countries, and total tag count from the database
   private loadFilterOptions(): void {
-    this.wordCloudDataService
-      .getWordCloudInitialData()
+    this.wordCloudService
+      .getInitialData()
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         tap((data) => {
@@ -261,11 +300,13 @@ export class WordCloudComponent implements AfterViewInit, AfterContentChecked, O
   // Filter methods
   onYearChange(value: string): void {
     const year = value ? parseInt(value, 10) : null;
+    this.activeYear.set(year);
     this.yearChange.emit(year);
   }
 
   onCountryChange(value: string): void {
     const countryId = value ? parseInt(value, 10) : null;
+    this.activeCountry.set(countryId);
     this.countryChange.emit(countryId);
   }
 }
