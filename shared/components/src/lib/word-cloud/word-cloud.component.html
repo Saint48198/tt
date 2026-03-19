@@ -65,6 +65,10 @@
     </div>
 
     <!-- D3 renders SVG here -->
+    <div class="word-cloud-empty" [class.visible]="!loading() && noResults()">
+      <mat-icon>cloud_off</mat-icon>
+      <p>No tags found for the selected filters.</p>
+    </div>
     <div #wordCloudContainer></div>
   </div>
 </div>

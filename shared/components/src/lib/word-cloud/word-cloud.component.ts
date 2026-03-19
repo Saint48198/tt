@@ -115,6 +115,12 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   // Internal items signal — holds the currently displayed words (filtered or unfiltered)
   private displayItems = signal<WordCloudItem[]>([]);
 
+  // True while the initial items haven't been set yet
+  loading = signal(true);
+
+  // True when the service returned no results for the current filters
+  noResults = signal(false);
+
   constructor() {
     // Watch internal filter signals and re-fetch data whenever they change
     effect(() => {
@@ -127,12 +133,16 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
       });
     });
 
-    // Re-render when displayItems change
+    // Re-render when displayItems change (only after view is ready)
     effect(() => {
       const items = this.displayItems();
       untracked(() => {
-        if (this.viewReady) {
-          this.generateWordCloud(items);
+        if (!this.viewReady) return;
+        this.loading.set(false);
+        this.noResults.set(items.length === 0);
+        if (items.length > 0) {
+          // Defer one tick so Angular can unhide the container before D3 renders
+          setTimeout(() => this.generateWordCloud(items));
         }
       });
     });
@@ -141,9 +151,14 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.viewReady = true;
     this.loadFilterOptions();
-    // Seed displayItems with whatever was passed in initially
-    this.displayItems.set(this.items());
-    this.unfilteredCount.set(this.items().length);
+    const initial = this.items();
+    this.unfilteredCount.set(initial.length);
+    this.loading.set(false);
+    this.noResults.set(initial.length === 0);
+    this.displayItems.set(initial);
+    if (initial.length > 0) {
+      setTimeout(() => this.generateWordCloud(initial));
+    }
   }
 
   ngOnDestroy(): void {
@@ -190,22 +205,94 @@ export class WordCloudComponent implements AfterViewInit, OnDestroy {
     const width = this.width();
     const height = this.height();
 
-    // Create word data with random positions
-    const maxRadius = Math.sqrt(Math.pow(width * 0.4, 2) + Math.pow(height * 0.4, 2));
-    const cloudData: CloudWord[] = items.map((item) => {
-      const x = (Math.random() - 0.5) * width * 0.8;
-      const y = (Math.random() - 0.5) * height * 0.8;
-      const distFromCenter = Math.sqrt(x * x + y * y);
-      const isEdge = distFromCenter / maxRadius > 0.7;
-      return {
-        text: item.text,
-        count: item.count,
-        size: sizeScale(item.count),
-        x,
-        y,
-        rotate: isEdge && Math.random() < 0.125 ? 90 : 0,
-      };
-    });
+    // Measure each word's bounding box using a hidden SVG
+    const measureSvg = d3
+      .select(container)
+      .append('svg')
+      .attr('width', 0)
+      .attr('height', 0)
+      .style('position', 'absolute')
+      .style('visibility', 'hidden');
+
+    const placed: { x: number; y: number; w: number; h: number; rotate: number }[] = [];
+    const cloudData: CloudWord[] = [];
+    const maxRadius = Math.sqrt((width / 2) ** 2 + (height / 2) ** 2);
+    const padding = 2;
+
+    for (const item of items) {
+      const size = sizeScale(item.count);
+      // Candidate rotation — only allow vertical for edge placements, ~12.5% chance
+      const candidateRotate = Math.random() < 0.125 ? 90 : 0;
+
+      // Measure text dimensions
+      const measurer = measureSvg
+        .append('text')
+        .style('font-size', `${size}px`)
+        .style('font-weight', '500')
+        .text(item.text);
+      const bbox = (measurer.node() as SVGTextElement).getBBox();
+      measurer.remove();
+
+      const tw = candidateRotate === 90 ? bbox.height : bbox.width;
+      const th = candidateRotate === 90 ? bbox.width : bbox.height;
+
+      // Archimedean spiral outward from center
+      let placed_x: number | null = null;
+      let placed_y: number | null = null;
+      let finalRotate = candidateRotate;
+
+      for (let t = 0; t < 500; t++) {
+        const angle = t * 0.25;
+        const r = t * 1.2;
+        const cx = r * Math.cos(angle);
+        const cy = r * (height / width) * Math.sin(angle);
+
+        // Stay within canvas bounds (coords are relative to centre)
+        if (
+          Math.abs(cx) + tw / 2 > width / 2 - padding ||
+          Math.abs(cy) + th / 2 > height / 2 - padding
+        ) {
+          continue;
+        }
+
+        // Only allow vertical for edge words
+        const dist = Math.sqrt(cx * cx + cy * cy);
+        const isEdge = dist / maxRadius > 0.7;
+        const rotate = isEdge ? candidateRotate : 0;
+        const w = rotate === 90 ? bbox.height : bbox.width;
+        const h = rotate === 90 ? bbox.width : bbox.height;
+
+        // Check collision against already-placed words
+        const overlaps = placed.some((p) => {
+          return (
+            Math.abs(cx - p.x) < (w + p.w) / 2 + padding &&
+            Math.abs(cy - p.y) < (h + p.h) / 2 + padding
+          );
+        });
+
+        if (!overlaps) {
+          placed_x = cx;
+          placed_y = cy;
+          finalRotate = rotate;
+          placed.push({ x: cx, y: cy, w, h, rotate });
+          break;
+        }
+      }
+
+      // Only add the word if it could be placed
+      if (placed_x !== null && placed_y !== null) {
+        cloudData.push({
+          text: item.text,
+          count: item.count,
+          size,
+          x: placed_x,
+          y: placed_y,
+          rotate: finalRotate,
+        });
+      }
+    }
+
+    measureSvg.remove();
 
     const svg = d3.select(container).append('svg').attr('width', width).attr('height', height);
 
