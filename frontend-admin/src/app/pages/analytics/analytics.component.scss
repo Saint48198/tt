@@ -223,6 +223,41 @@
     gap: 0.4rem;
     font-size: 0.8rem;
     color: #4b5563;
+    transition:
+      opacity 0.2s,
+      font-weight 0.1s;
+    user-select: none;
+    border-radius: 4px;
+    padding: 2px 6px;
+
+    &:hover {
+      background: rgba(102, 126, 234, 0.08);
+    }
+  }
+
+  .entity-filter-clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.5rem auto 0;
+    padding: 0.25rem 0.75rem;
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: #667eea;
+    cursor: pointer;
+    transition: background 0.15s;
+    width: fit-content;
+
+    &:hover {
+      background: rgba(102, 126, 234, 0.2);
+    }
+
+    .entity-filter-clear-icon {
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
   }
 
   .legend-swatch {

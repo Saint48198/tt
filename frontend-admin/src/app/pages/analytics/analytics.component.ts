@@ -55,6 +55,7 @@ export class AnalyticsComponent implements OnDestroy {
   analytics = signal<AnalyticsData | null>(null);
   wordCloudItems = signal<WordCloudItem[]>([]);
   wordCloudFilters = signal<WordCloudFilters>({});
+  selectedEntity = signal<string | null>(null);
 
   private resizeObserver?: ResizeObserver;
   private resizeDebounceTimer?: ReturnType<typeof setTimeout>;
@@ -189,13 +190,9 @@ export class AnalyticsComponent implements OnDestroy {
       .domain(data.map((d) => d.name))
       .range(['#667eea', '#764ba2', '#f093fb', '#4fd1c5', '#f6ad55', '#fc8181']);
 
-    const svg = d3
-      .select(el)
-      .append('svg')
-      .attr('width', width)
-      .attr('height', height)
-      .append('g')
-      .attr('transform', `translate(${width / 2},${height / 2})`);
+    const svgRoot = d3.select(el).append('svg').attr('width', width).attr('height', height);
+
+    const svg = svgRoot.append('g').attr('transform', `translate(${width / 2},${height / 2})`);
 
     const pie = d3
       .pie<EntityBreakdown>()
@@ -212,9 +209,63 @@ export class AnalyticsComponent implements OnDestroy {
       .innerRadius(radius * 0.55)
       .outerRadius(radius + 8);
 
+    const selectedArc = d3
+      .arc<d3.PieArcDatum<EntityBreakdown>>()
+      .innerRadius(radius * 0.55)
+      .outerRadius(radius + 12);
+
     const tooltip = d3.select(el).append('div').attr('class', 'chart-tooltip').style('opacity', 0);
 
-    svg
+    // Helper to sync visual state after selection changes
+    const applySelectionState = (selected: string | null) => {
+      // Update slices
+      svg
+        .selectAll<SVGPathElement, d3.PieArcDatum<EntityBreakdown>>('path')
+        .transition()
+        .duration(200)
+        .attr('d', (d) =>
+          selected === null || d.data.name === selected
+            ? selected === d.data.name
+              ? selectedArc(d)
+              : arc(d)
+            : arc(d)
+        )
+        .style('opacity', (d) => (selected === null || d.data.name === selected ? 1 : 0.3));
+
+      // Update legend items
+      d3.select(el)
+        .selectAll<HTMLDivElement, EntityBreakdown>('.legend-item')
+        .style('opacity', (d) => (selected === null || d.name === selected ? 1 : 0.4))
+        .style('font-weight', (d) => (d.name === selected ? '600' : '400'));
+
+      // Update centre text
+      if (selected !== null) {
+        const item = data.find((d) => d.name === selected);
+        centerTotal.text(item ? item.value.toLocaleString() : '');
+        centerLabel.text(selected);
+      } else {
+        const total = data.reduce((sum, d) => sum + d.value, 0);
+        centerTotal.text(total.toLocaleString());
+        centerLabel.text('Total Records');
+      }
+
+      // Show/hide the clear-filter badge
+      d3.select(el)
+        .select('.entity-filter-clear')
+        .style('display', selected ? 'inline-flex' : 'none');
+    };
+
+    const toggleSelection = (name: string) => {
+      const current = this.selectedEntity();
+      const next = current === name ? null : name;
+      this.selectedEntity.set(next);
+      applySelectionState(next);
+    };
+
+    // Capture component reference for use inside D3 callbacks
+    const getSelectedEntity = () => this.selectedEntity();
+
+    const paths = svg
       .selectAll('path')
       .data(pie(data))
       .enter()
@@ -225,45 +276,89 @@ export class AnalyticsComponent implements OnDestroy {
       .attr('stroke-width', 2)
       .style('cursor', 'pointer')
       .on('mouseover', function (event, d) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr('d', hoverArc as unknown as string);
+        const activeFilter = getSelectedEntity();
+        // Only expand on hover if no filter is active, or this is the active slice
+        if (activeFilter === null || activeFilter === d.data.name) {
+          d3.select<SVGPathElement, d3.PieArcDatum<EntityBreakdown>>(this as SVGPathElement)
+            .transition()
+            .duration(200)
+            .attr('d', hoverArc as unknown as string);
+        }
         tooltip.transition().duration(200).style('opacity', 1);
         tooltip
           .html(`<strong>${d.data.name}</strong><br/>${d.data.value.toLocaleString()}`)
           .style('left', `${event.offsetX + 10}px`)
           .style('top', `${event.offsetY - 28}px`);
       })
-      .on('mouseout', function () {
-        d3.select(this)
+      .on('mouseout', function (_event, d) {
+        const activeFilter = getSelectedEntity();
+        // Restore: if this slice is the active selection use selectedArc, otherwise normal arc
+        const targetArc = activeFilter === d.data.name ? selectedArc : arc;
+        d3.select<SVGPathElement, d3.PieArcDatum<EntityBreakdown>>(this as SVGPathElement)
           .transition()
           .duration(200)
-          .attr('d', arc as unknown as string);
+          .attr('d', targetArc as unknown as string);
         tooltip.transition().duration(300).style('opacity', 0);
+      })
+      .on('click', (_event, d) => {
+        tooltip.transition().duration(100).style('opacity', 0);
+        toggleSelection(d.data.name);
       });
 
+    void paths; // suppress unused warning
+
     const total = data.reduce((sum, d) => sum + d.value, 0);
-    svg
+    const centerTotal = svg
       .append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', '-0.2em')
       .attr('class', 'donut-total')
       .text(total.toLocaleString());
-    svg
+    const centerLabel = svg
       .append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', '1.2em')
       .attr('class', 'donut-label')
       .text('Total Records');
 
+    // Clear-filter badge (hidden by default)
+    const clearBadge = d3
+      .select(el)
+      .append('div')
+      .attr('class', 'entity-filter-clear')
+      .style('display', 'none')
+      .style('cursor', 'pointer')
+      .on('click', () => {
+        this.selectedEntity.set(null);
+        applySelectionState(null);
+      });
+    clearBadge.append('span').attr('class', 'entity-filter-clear-icon').text('✕');
+    clearBadge.append('span').attr('class', 'entity-filter-clear-label').text('Clear filter');
+
     const legend = d3.select(el).append('div').attr('class', 'chart-legend');
 
     data.forEach((d) => {
-      const item = legend.append('div').attr('class', 'legend-item');
+      const item = legend
+        .append('div')
+        .attr('class', 'legend-item')
+        .datum(d)
+        .style('cursor', 'pointer')
+        .on('click', () => toggleSelection(d.name))
+        .on('mouseenter', function () {
+          d3.select(this).style('text-decoration', 'underline');
+        })
+        .on('mouseleave', function () {
+          d3.select(this).style('text-decoration', 'none');
+        });
       item.append('span').attr('class', 'legend-swatch').style('background', colors(d.name));
       item.append('span').text(`${d.name} (${d.value.toLocaleString()})`);
     });
+
+    // Restore previous selection state if there was one (e.g. after resize re-render)
+    const existing = this.selectedEntity();
+    if (existing) {
+      applySelectionState(existing);
+    }
   }
 
   // ─── Bar Chart: Photos by Month ───
