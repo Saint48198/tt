@@ -13,6 +13,38 @@
   width: 100%;
 }
 
+// ── Suggest Caption ──
+.suggest-caption-section {
+  margin-top: -4px;
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggested-captions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.caption-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.caption-option-btn {
+  text-align: left;
+  justify-content: flex-start;
+  white-space: normal;
+  height: auto;
+  min-height: 36px;
+  padding: 6px 12px;
+  line-height: 1.4;
+  font-size: 0.875rem;
+}
+
 // ── Tags ──
 .tags-section {
   margin-top: 4px;

@@ -16,6 +16,54 @@
     <mat-hint>Describe the photo</mat-hint>
   </mat-form-field>
 
+  <!-- Suggest Caption -->
+  @if (state.photo().url) {
+    <div class="suggest-caption-section">
+      @if (suggestingCaption()) {
+        <button mat-stroked-button disabled class="suggest-btn">
+          <mat-spinner diameter="18"></mat-spinner>
+          Generating captions…
+        </button>
+      } @else {
+        <button
+          mat-stroked-button
+          (click)="suggestCaption()"
+          class="suggest-btn"
+          matTooltip="Use AI to generate caption ideas based on the photo"
+        >
+          <mat-icon>auto_awesome</mat-icon>
+          Suggest Caption
+        </button>
+      }
+
+      @if (suggestCaptionError()) {
+        <div class="suggest-error">
+          <mat-icon class="error-icon">error_outline</mat-icon>
+          <span>{{ suggestCaptionError() }}</span>
+          <button mat-button color="primary" (click)="suggestCaption()">Retry</button>
+        </div>
+      }
+
+      @if (suggestedCaptions().length > 0) {
+        <div class="suggested-captions">
+          <span class="suggested-label">Click to use:</span>
+          <div class="caption-options">
+            @for (caption of suggestedCaptions(); track caption) {
+              <button
+                mat-stroked-button
+                class="caption-option-btn"
+                (click)="applySuggestedCaption(caption)"
+                matTooltip="Use this caption"
+              >
+                {{ caption }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
   <!-- Tags -->
   <div class="tags-section">
     <mat-form-field appearance="outline" class="full-width">

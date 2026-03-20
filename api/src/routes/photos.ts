@@ -162,10 +162,24 @@ router.get('/api/photos/:entityType/:entityId', async (req: Request, res: Respon
 // POST /api/photos/suggest-titles
 router.post('/api/photos/suggest-titles', async (req: Request, res: Response) => {
   try {
-    const { imageBase64, mimeType, hints } = req.body || {};
+    const { imageBase64, imageUrl, mimeType, hints } = req.body || {};
+
+    let base64 = imageBase64;
+
+    // If a URL is provided instead of base64, fetch the image server-side
+    if (!base64 && imageUrl) {
+      const imgResp = await fetch(imageUrl);
+      if (!imgResp.ok) {
+        return res.status(400).json({ error: 'Failed to fetch image from URL' });
+      }
+      const contentType = imgResp.headers.get('content-type') || 'image/jpeg';
+      const arrayBuffer = await imgResp.arrayBuffer();
+      const b64 = Buffer.from(arrayBuffer).toString('base64');
+      base64 = `data:${contentType};base64,${b64}`;
+    }
 
     const result = await photoService.suggestTitles({
-      imageBase64,
+      imageBase64: base64,
       mimeType,
       hints,
     });

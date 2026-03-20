@@ -33,10 +33,48 @@ export class DetailsTabComponent {
 
   tagsInput = '';
 
+  // Suggest caption state
+  suggestedCaptions = signal<string[]>([]);
+  suggestingCaption = signal(false);
+  suggestCaptionError = signal<string | null>(null);
+
   // Suggest tags state
   suggestedTags = signal<string[]>([]);
   suggestingTags = signal(false);
   suggestError = signal<string | null>(null);
+
+  suggestCaption(): void {
+    const url = this.state.photo().url;
+    if (!url) return;
+
+    this.suggestingCaption.set(true);
+    this.suggestCaptionError.set(null);
+    this.suggestedCaptions.set([]);
+
+    const hints: Record<string, unknown> = {};
+    const tags = this.state.tags();
+    if (tags.length) hints['tags'] = tags;
+
+    this.http
+      .post<{ suggestions: string[] }>('/api/photos/suggest-titles', { imageUrl: url, hints })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.suggestedCaptions.set(res.suggestions || []);
+          this.suggestingCaption.set(false);
+        },
+        error: (err) => {
+          const msg = err?.error?.error || err?.message || 'Failed to suggest captions';
+          this.suggestCaptionError.set(msg);
+          this.suggestingCaption.set(false);
+        },
+      });
+  }
+
+  applySuggestedCaption(caption: string): void {
+    this.state.caption.set(caption);
+    this.suggestedCaptions.set([]);
+  }
 
   suggestTags(): void {
     const url = this.state.photo().url;

@@ -272,8 +272,10 @@ class PhotoService {
 
   private async pickFreeGenerateModel(apiKey: string): Promise<string> {
     if (this.cachedModelId) return this.cachedModelId;
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || '';
     const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+      projectId ? { headers: { 'x-goog-user-project': projectId } } : undefined
     );
     if (!resp.ok) throw new Error(`ListModels failed: ${resp.statusText}`);
     const json = (await resp.json()) as { models?: any[] };
@@ -295,10 +297,19 @@ class PhotoService {
   }
 
   public async suggestTitles(request: SuggestTitlesRequest): Promise<{ suggestions: string[] }> {
-    const { imageBase64, mimeType = 'image/jpeg', hints = {} } = request;
+    const { imageBase64, hints = {} } = request;
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) throw new Error('Missing GEMINI_API_KEY');
     if (!imageBase64) throw new Error('imageBase64 is required');
+
+    // Detect MIME type from data URL prefix if present, then strip prefix so
+    // Gemini receives raw base64 only (data URL prefix causes a 400 error).
+    const mimeType = imageBase64.startsWith('data:')
+      ? imageBase64.slice(5, imageBase64.indexOf(';'))
+      : (request.mimeType ?? 'image/jpeg');
+    const rawBase64 = imageBase64.startsWith('data:')
+      ? imageBase64.slice(imageBase64.indexOf(',') + 1)
+      : imageBase64;
 
     const modelId = await this.pickFreeGenerateModel(apiKey);
     const prompt = [
@@ -321,7 +332,7 @@ class PhotoService {
         {
           parts: [
             { text: `${prompt}${hintText ? `\nHints: ${hintText}` : ''}` },
-            { inline_data: { mime_type: mimeType, data: imageBase64 } },
+            { inline_data: { mime_type: mimeType, data: rawBase64 } },
           ],
         },
       ],
@@ -330,13 +341,27 @@ class PhotoService {
       `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelId)}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(process.env.GOOGLE_CLOUD_PROJECT_ID
+            ? { 'x-goog-user-project': process.env.GOOGLE_CLOUD_PROJECT_ID }
+            : {}),
+        },
         body: JSON.stringify(body),
       }
     );
     if (!resp.ok) {
       const t = await resp.text();
-      throw new Error(`Gemini call failed: ${t}`);
+      let errorMessage = `Gemini call failed: ${t}`;
+      try {
+        const parsed = JSON.parse(t);
+        if (parsed?.error?.message) {
+          errorMessage = parsed.error.message;
+        }
+      } catch {
+        // not JSON, use raw text
+      }
+      throw new Error(errorMessage);
     }
     const data = (await resp.json()) as {
       candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;

@@ -560,8 +560,7 @@ export class PhotosListComponent implements OnInit, AfterViewInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result: PhotoEditDialogResult | undefined) => {
         if (result?.updated) {
-          // Reload from page 1 to refresh data
-          this.loadPhotos();
+          this.loadPhotos(this.currentPage);
         }
       });
   }

@@ -16,6 +16,7 @@ class TagService {
   private apiKey: string;
   private apiSecret: string;
   private initialized = false;
+  private cachedModelId: string | null = null;
 
   private constructor() {
     this.cloudName = process.env.CLOUDINARY_CLOUD_NAME || '';
@@ -111,6 +112,40 @@ class TagService {
   }
 
   /**
+   * Dynamically pick an available free Gemini model that supports generateContent.
+   * Caches the result so subsequent calls skip the list request.
+   */
+  private async pickFreeGenerateModel(apiKey: string): Promise<string> {
+    if (this.cachedModelId) return this.cachedModelId;
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || '';
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+      projectId ? { headers: { 'x-goog-user-project': projectId } } : undefined
+    );
+    if (!resp.ok) {
+      // Fall back to flash if listing fails
+      return 'gemini-2.0-flash';
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const json = (await resp.json()) as { models?: any[] };
+    const models = json?.models ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const free = models.find((m: any) => {
+      const supports =
+        m.supportedGenerationMethods?.includes('generateContent') ||
+        m.availableMethods?.includes('generateContent');
+      const isPro = /(^|[-])pro($|[-])/i.test(m.baseModelId || m.name || '');
+      return supports && !isPro;
+    });
+    if (!free) return 'gemini-2.0-flash';
+    const id =
+      free.baseModelId ||
+      (free.name?.startsWith('models/') ? free.name.slice('models/'.length) : free.name);
+    this.cachedModelId = id || 'gemini-2.0-flash';
+    return this.cachedModelId!;
+  }
+
+  /**
    * Suggest tags using Google Vision API
    * Analyzes an image and returns suggested tags
    */
@@ -138,18 +173,31 @@ class TagService {
       ],
     };
 
-    // Use gemini-2.0-flash as default model
-    const modelId = 'gemini-2.0-flash';
+    // Dynamically pick an available free model (avoids hitting quota on a single model)
+    const modelId = await this.pickFreeGenerateModel(apiKey);
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || '';
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
     const resp = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(projectId ? { 'x-goog-user-project': projectId } : {}),
+      },
       body: JSON.stringify(body),
     });
 
     if (!resp.ok) {
       const errorText = await resp.text();
-      throw new Error(`Gemini API error: ${errorText}`);
+      let errorMessage = `Gemini API error: ${errorText}`;
+      try {
+        const parsed = JSON.parse(errorText);
+        if (parsed?.error?.message) {
+          errorMessage = parsed.error.message;
+        }
+      } catch {
+        // not JSON, use raw text
+      }
+      throw new Error(errorMessage);
     }
 
     const data = (await resp.json()) as {
