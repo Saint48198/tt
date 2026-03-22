@@ -117,10 +117,8 @@ class TagService {
    */
   private async pickFreeGenerateModel(apiKey: string): Promise<string> {
     if (this.cachedModelId) return this.cachedModelId;
-    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || '';
     const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
-      projectId ? { headers: { 'x-goog-user-project': projectId } } : undefined
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
     );
     if (!resp.ok) {
       // Fall back to flash if listing fails
@@ -175,13 +173,11 @@ class TagService {
 
     // Dynamically pick an available free model (avoids hitting quota on a single model)
     const modelId = await this.pickFreeGenerateModel(apiKey);
-    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || '';
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
     const resp = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(projectId ? { 'x-goog-user-project': projectId } : {}),
       },
       body: JSON.stringify(body),
     });

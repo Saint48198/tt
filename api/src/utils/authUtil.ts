@@ -9,7 +9,10 @@ export interface JWTPayload {
 }
 
 export async function authenticateRequest(req: Request, res: Response): Promise<JWTPayload | null> {
-  const authToken = req.cookies?.auth_token;
+  // Accept token from cookie or Authorization: Bearer <token> header
+  const authToken =
+    req.cookies?.auth_token ||
+    (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
 
   if (!authToken) {
     res.status(401).json({ error: 'Unauthorized' });

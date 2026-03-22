@@ -272,10 +272,8 @@ class PhotoService {
 
   private async pickFreeGenerateModel(apiKey: string): Promise<string> {
     if (this.cachedModelId) return this.cachedModelId;
-    const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || '';
     const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
-      projectId ? { headers: { 'x-goog-user-project': projectId } } : undefined
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`
     );
     if (!resp.ok) throw new Error(`ListModels failed: ${resp.statusText}`);
     const json = (await resp.json()) as { models?: any[] };
@@ -343,9 +341,6 @@ class PhotoService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(process.env.GOOGLE_CLOUD_PROJECT_ID
-            ? { 'x-goog-user-project': process.env.GOOGLE_CLOUD_PROJECT_ID }
-            : {}),
         },
         body: JSON.stringify(body),
       }
