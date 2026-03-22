@@ -125,6 +125,8 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       doubleClickZoom: this.enableZoom,
       touchZoom: this.enableZoom,
       attributionControl: this.showAttribution,
+      // Keep GeoJSON overlays visible when the map repeats across world copies
+      worldCopyJump: true,
     });
 
     // Add tile layer (OpenStreetMap)
@@ -261,43 +263,140 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       const style = overlayData.style || defaultStyle;
       const hasLink = !!overlayData.link;
 
-      const geoJsonLayer = L.geoJSON(overlayData.geoJson as GeoJSON.GeoJsonObject, {
-        style: () => style,
-        interactive: overlayData.interactive !== undefined ? overlayData.interactive : true,
-        onEachFeature: (feature, layer) => {
-          if (feature.properties && feature.properties.name) {
-            layer.bindTooltip(feature.properties.name);
-          }
+      // Render at -360, 0, and +360 so overlays appear on every world copy
+      [-360, 0, 360].forEach((lngOffset) => {
+        const geoJson =
+          lngOffset === 0
+            ? (overlayData.geoJson as GeoJSON.GeoJsonObject)
+            : this.shiftGeoJsonLng(overlayData.geoJson as GeoJSON.GeoJsonObject, lngOffset);
 
-          if (hasLink) {
-            // Pointer cursor on hover
-            layer.on('mouseover', () => {
-              const el = (layer as any)._path || (layer as any).getElement?.();
-              if (el) el.style.cursor = 'pointer';
-            });
-            layer.on('mouseout', () => {
-              const el = (layer as any)._path || (layer as any).getElement?.();
-              if (el) el.style.cursor = '';
-            });
-            // Emit click event
-            layer.on('click', () => {
-              this.overlayClick.emit({
-                link: overlayData.link!,
-                name: feature.properties?.name,
-                overlay: overlayData,
+        const geoJsonLayer = L.geoJSON(geoJson, {
+          style: () => style,
+          // Make all copies interactive so clicks on ghost copies also work
+          interactive: overlayData.interactive !== undefined ? overlayData.interactive : true,
+          onEachFeature: (feature, layer) => {
+            if (feature.properties && feature.properties.name) {
+              layer.bindTooltip(feature.properties.name);
+            }
+
+            if (hasLink) {
+              // Ensure the underlying SVG/Canvas element accepts pointer events once it's added
+              layer.on('add', () => {
+                const el = (layer as any)._path || (layer as any).getElement?.();
+                if (el) {
+                  // Make sure pointer events are enabled (some CSS resets may disable them)
+                  el.style.pointerEvents = 'auto';
+                }
               });
-            });
-          }
-        },
-      });
+              // Pointer cursor on hover
+              layer.on('mouseover', () => {
+                const el = (layer as any)._path || (layer as any).getElement?.();
+                if (el) el.style.cursor = 'pointer';
+              });
+              layer.on('mouseout', () => {
+                const el = (layer as any)._path || (layer as any).getElement?.();
+                if (el) el.style.cursor = '';
+              });
+              // Emit click event
+              layer.on('click', () => {
+                this.overlayClick.emit({
+                  link: overlayData.link!,
+                  name: feature.properties?.name,
+                  overlay: overlayData,
+                });
+              });
+            }
+          },
+        });
 
-      geoJsonLayer.addTo(this.map);
-      this.overlayLayers.push(geoJsonLayer);
+        geoJsonLayer.addTo(this.map);
+
+        // Ensure each feature's element accepts pointer events and is above tiles/markers
+        (geoJsonLayer as any).eachLayer((l: L.Layer) => {
+          // Bring vector paths to front so they receive pointer events
+          try {
+            // Some layer types support bringToFront
+            if ((l as any).bringToFront) (l as any).bringToFront();
+          } catch (e) {
+            /* ignore */
+          }
+
+          // Ensure pointer events are enabled on the underlying element
+          const el = (l as any)._path || (l as any).getElement?.();
+          if (el) {
+            // Ensure vector element receives pointer events and is above tiles/markers
+            el.style.pointerEvents = 'auto';
+          }
+        });
+
+        this.overlayLayers.push(geoJsonLayer);
+      });
     });
 
     if (this.fitBounds) {
       this.fitMapBounds();
     }
+  }
+
+  /**
+   * Returns a deep-cloned copy of the GeoJSON with all longitudes shifted by lngOffset.
+   * Used to render overlays on repeated world copies (±360°).
+   */
+  private shiftGeoJsonLng(
+    geoJson: GeoJSON.GeoJsonObject,
+    lngOffset: number
+  ): GeoJSON.GeoJsonObject {
+    const shiftCoord = (c: number[]): number[] => [c[0] + lngOffset, ...c.slice(1)];
+
+    const shiftRing = (ring: number[][]): number[][] => ring.map(shiftCoord);
+
+    const shiftGeometry = (geometry: GeoJSON.Geometry): GeoJSON.Geometry => {
+      switch (geometry.type) {
+        case 'Point':
+          return {
+            ...geometry,
+            coordinates: shiftCoord(geometry.coordinates as number[]) as [number, number],
+          };
+        case 'MultiPoint':
+        case 'LineString':
+          return { ...geometry, coordinates: (geometry.coordinates as number[][]).map(shiftCoord) };
+        case 'MultiLineString':
+        case 'Polygon':
+          return {
+            ...geometry,
+            coordinates: (geometry.coordinates as number[][][]).map(shiftRing),
+          };
+        case 'MultiPolygon':
+          return {
+            ...geometry,
+            coordinates: (geometry.coordinates as number[][][][]).map((poly) =>
+              poly.map(shiftRing)
+            ),
+          };
+        case 'GeometryCollection':
+          return { ...geometry, geometries: geometry.geometries.map(shiftGeometry) };
+        default:
+          return geometry;
+      }
+    };
+
+    const shiftFeature = (feature: GeoJSON.Feature): GeoJSON.Feature => ({
+      ...feature,
+      geometry: shiftGeometry(feature.geometry),
+    });
+
+    if (geoJson.type === 'FeatureCollection') {
+      const fc = geoJson as GeoJSON.FeatureCollection;
+      return {
+        type: 'FeatureCollection',
+        features: fc.features.map(shiftFeature),
+      } as GeoJSON.FeatureCollection;
+    }
+    if (geoJson.type === 'Feature') {
+      return shiftFeature(geoJson as GeoJSON.Feature);
+    }
+    // Plain geometry
+    return shiftGeometry(geoJson as GeoJSON.Geometry);
   }
 
   private fitMapBounds(): void {
