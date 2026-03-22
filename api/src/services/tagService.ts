@@ -238,7 +238,7 @@ class TagService {
   }
 
   /**
-   * Normalize tag string
+   * Normalize tag string: lowercase, replace spaces with dashes, strip non-alphanumeric
    */
   private normalizeTag(s: string): string {
     return s
@@ -246,6 +246,72 @@ class TagService {
       .replace(/[^a-z0-9]+/g, ' ')
       .trim()
       .replace(/\s+/g, '-');
+  }
+
+  /**
+   * Clean up all tags in the database:
+   *  - Normalise every tag name (lowercase, spaces → dashes)
+   *  - Re-point photo_tags rows from the old tag to the canonical tag
+   *  - Delete duplicate / now-empty tag rows
+   */
+  public async cleanupTags(): Promise<{ removed: number; updated: number }> {
+    await this.ensureTable();
+    const client = await db.pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const { rows: allTags } = await client.query<{ id: number; name: string }>(
+        'SELECT id, name FROM tags ORDER BY id'
+      );
+
+      let updated = 0;
+      let removed = 0;
+
+      // Build a map: normalised name → canonical tag id (lowest id wins)
+      const canonical = new Map<string, number>();
+      for (const tag of allTags) {
+        const norm = this.normalizeTag(tag.name);
+        if (!canonical.has(norm)) {
+          canonical.set(norm, tag.id);
+        }
+      }
+
+      // Step 1: re-point and delete duplicates first (avoids unique constraint on rename)
+      for (const tag of allTags) {
+        const norm = this.normalizeTag(tag.name);
+        const canonicalId = canonical.get(norm)!;
+        if (tag.id === canonicalId) continue;
+
+        await client.query(
+          `UPDATE photo_tags SET tag_id = $1
+           WHERE tag_id = $2
+             AND photo_id NOT IN (
+               SELECT photo_id FROM photo_tags WHERE tag_id = $1
+             )`,
+          [canonicalId, tag.id]
+        );
+        await client.query('DELETE FROM photo_tags WHERE tag_id = $1', [tag.id]);
+        await client.query('DELETE FROM tags WHERE id = $1', [tag.id]);
+        removed++;
+      }
+
+      // Step 2: rename surviving tags using a temp prefix to avoid collisions mid-rename
+      for (const [, id] of canonical) {
+        await client.query('UPDATE tags SET name = $1 WHERE id = $2', [`__tmp_${id}__`, id]);
+      }
+      for (const [norm, id] of canonical) {
+        await client.query('UPDATE tags SET name = $1 WHERE id = $2', [norm, id]);
+        updated++;
+      }
+
+      await client.query('COMMIT');
+      return { removed, updated };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 
   /**

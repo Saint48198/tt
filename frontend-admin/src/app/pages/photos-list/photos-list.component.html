@@ -171,7 +171,13 @@
     <div class="masonry-grid" [class.hidden]="viewMode() !== 'masonry'">
       @for (photo of filteredPhotos(); track photo.url) {
         <div class="photo-card mat-elevation-z2">
-          <div class="photo-image-wrapper" (click)="openEditDialog(photo)">
+          <div
+            class="photo-image-wrapper"
+            (click)="openEditDialog(photo)"
+            (keydown.enter)="openEditDialog(photo)"
+            tabindex="0"
+            role="button"
+          >
             <lib-image-loader
               [src]="photo.url"
               [alt]="photo.caption || 'Photo'"
@@ -187,7 +193,12 @@
             </div>
 
             <!-- Actions overlay -->
-            <div class="photo-actions" (click)="$event.stopPropagation()">
+            <div
+              class="photo-actions"
+              (click)="$event.stopPropagation()"
+              (keydown.enter)="$event.stopPropagation()"
+              tabindex="-1"
+            >
               <button
                 mat-icon-button
                 [matMenuTriggerFor]="photoMenu"

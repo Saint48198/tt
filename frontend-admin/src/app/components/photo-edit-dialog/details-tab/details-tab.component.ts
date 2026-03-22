@@ -1,6 +1,5 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -9,7 +8,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import {
+  MatAutocompleteModule,
+  MatAutocompleteSelectedEvent,
+} from '@angular/material/autocomplete';
 import { PhotoEditStateService } from '../photo-edit-state.service';
+import { TagService } from '../../../services/tag.service';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'app-details-tab',
@@ -22,16 +28,51 @@ import { PhotoEditStateService } from '../photo-edit-state.service';
     MatChipsModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    MatAutocompleteModule,
   ],
   templateUrl: './details-tab.component.html',
   styleUrl: './details-tab.component.scss',
 })
 export class DetailsTabComponent {
-  private readonly http = inject(HttpClient);
+  private readonly tagService = inject(TagService);
   private readonly destroyRef = inject(DestroyRef);
   readonly state = inject(PhotoEditStateService);
 
   tagsInput = '';
+
+  // Autocomplete
+  tagSuggestions = signal<string[]>([]);
+  private tagSearch$ = new Subject<string>();
+
+  constructor() {
+    this.tagSearch$
+      .pipe(
+        debounceTime(200),
+        distinctUntilChanged(),
+        switchMap((query) => this.tagService.searchTags(query)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((tags) => {
+        const current = this.state.tags();
+        this.tagSuggestions.set(tags.filter((t) => !current.includes(t)));
+      });
+  }
+
+  onTagInputChange(value: string): void {
+    // Only search on the last segment (after a comma)
+    const parts = value.split(',');
+    const last = parts[parts.length - 1].trim();
+    this.tagSearch$.next(last);
+  }
+
+  onTagAutocompleteSelected(event: MatAutocompleteSelectedEvent): void {
+    const selected = event.option.value as string;
+    const parts = this.tagsInput.split(',');
+    parts[parts.length - 1] = selected;
+    this.tagsInput = parts.join(', ');
+    this.tagSuggestions.set([]);
+    this.addTag();
+  }
 
   // Suggest caption state
   suggestedCaptions = signal<string[]>([]);
@@ -55,12 +96,12 @@ export class DetailsTabComponent {
     const tags = this.state.tags();
     if (tags.length) hints['tags'] = tags;
 
-    this.http
-      .post<{ suggestions: string[] }>('/api/photos/suggest-titles', { imageUrl: url, hints })
+    this.tagService
+      .suggestTitles(url, hints)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
-          this.suggestedCaptions.set(res.suggestions || []);
+        next: (suggestions) => {
+          this.suggestedCaptions.set(suggestions);
           this.suggestingCaption.set(false);
         },
         error: (err) => {
@@ -84,14 +125,13 @@ export class DetailsTabComponent {
     this.suggestError.set(null);
     this.suggestedTags.set([]);
 
-    this.http
-      .post<{ tags: string[] }>('/api/tags/suggest', { imageUrl: url })
+    this.tagService
+      .suggestTags(url)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
+        next: (tags) => {
           const current = this.state.tags();
-          const filtered = (res.tags || []).filter((t) => !current.includes(t));
-          this.suggestedTags.set(filtered);
+          this.suggestedTags.set(tags.filter((t) => !current.includes(t)));
           this.suggestingTags.set(false);
         },
         error: (err) => {

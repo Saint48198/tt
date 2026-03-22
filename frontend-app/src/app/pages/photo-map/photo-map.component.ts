@@ -1,20 +1,20 @@
-import { Component, DestroyRef, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { Location } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { switchMap, tap, catchError } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
-import { MapComponent, MapMarker } from '@shared/components';
+import { MapComponent, MapMarker, LightboxComponent, LightboxPhoto } from '@shared/components';
 import { PhotoService, MapPhoto } from '../../services/photo.service';
 import * as L from 'leaflet';
 
 @Component({
   selector: 'app-photo-map',
-  imports: [MapComponent],
+  imports: [MapComponent, LightboxComponent],
   templateUrl: './photo-map.component.html',
   styleUrl: './photo-map.component.scss',
 })
-export class PhotoMapComponent implements OnInit {
+export class PhotoMapComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private location = inject(Location);
   private photoService = inject(PhotoService);
@@ -26,6 +26,23 @@ export class PhotoMapComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   title = signal('Photos on Map');
+
+  // Lightbox state
+  lightboxOpen = signal(false);
+  lightboxIndex = signal(0);
+  lightboxPhotos = signal<LightboxPhoto[]>([]);
+
+  private popupClickHandler = (event: MouseEvent) => {
+    const btn = (event.target as HTMLElement).closest<HTMLElement>('[data-lightbox-url]');
+    if (!btn) return;
+    const url = btn.dataset['lightboxUrl'];
+    if (!url) return;
+    const caption = btn.dataset['lightboxCaption'] || undefined;
+    // Build a single-photo array for the lightbox
+    this.lightboxPhotos.set([{ url, caption }]);
+    this.lightboxIndex.set(0);
+    this.lightboxOpen.set(true);
+  };
 
   /** Available years derived from loaded photos, sorted descending */
   availableYears = computed<number[]>(() => {
@@ -68,10 +85,24 @@ export class PhotoMapComponent implements OnInit {
         title: photo.caption || locationText,
         popup: `
           <div style="text-align:center;min-width:160px;max-width:240px;">
-            <img src="${photo.url}" alt="${photo.caption || 'Photo'}"
-              style="width:100%;max-height:160px;object-fit:cover;border-radius:6px;margin-bottom:6px;" />
+            <button
+              data-lightbox-url="${photo.url}"
+              data-lightbox-caption="${photo.caption || ''}"
+              style="display:block;width:100%;padding:0;border:none;background:none;cursor:zoom-in;"
+              title="View full photo"
+            >
+              <img src="${photo.url}" alt="${photo.caption || 'Photo'}"
+                style="width:100%;max-height:160px;object-fit:cover;border-radius:6px;margin-bottom:6px;" />
+            </button>
             ${photo.caption ? `<p style="margin:4px 0;font-weight:600;font-size:0.9em;">${photo.caption}</p>` : ''}
             <p style="margin:2px 0;color:#6b7280;font-size:0.8em;">${locationText}</p>
+            <button
+              data-lightbox-url="${photo.url}"
+              data-lightbox-caption="${photo.caption || ''}"
+              style="display:inline-block;margin-top:6px;padding:4px 10px;font-size:0.8em;color:#667eea;background:none;border:1px solid #667eea;border-radius:4px;cursor:pointer;font-weight:500;"
+            >
+              🔍 View full photo
+            </button>
           </div>
         `,
         icon: L.icon({
@@ -89,6 +120,10 @@ export class PhotoMapComponent implements OnInit {
 
   hasMarkers = computed(() => this.markers().length > 0);
 
+  onLightboxClose(): void {
+    this.lightboxOpen.set(false);
+  }
+
   goBack(): void {
     this.location.back();
   }
@@ -97,7 +132,12 @@ export class PhotoMapComponent implements OnInit {
     this.selectedYear.set(year);
   }
 
+  ngOnDestroy(): void {
+    document.removeEventListener('click', this.popupClickHandler);
+  }
+
   ngOnInit(): void {
+    document.addEventListener('click', this.popupClickHandler);
     let currentRoute: ActivatedRoute | null = this.route;
     while (currentRoute) {
       const uname = currentRoute.snapshot.paramMap.get('username');

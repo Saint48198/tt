@@ -71,8 +71,10 @@
       <input
         matInput
         [(ngModel)]="tagsInput"
+        (ngModelChange)="onTagInputChange($event)"
         (keydown)="onTagKeydown($event)"
         placeholder="Type a tag and press Enter..."
+        [matAutocomplete]="tagAuto"
       />
       <mat-icon matPrefix>label</mat-icon>
       <button
@@ -86,6 +88,15 @@
       </button>
       <mat-hint>Press Enter or comma to add</mat-hint>
     </mat-form-field>
+
+    <mat-autocomplete
+      #tagAuto="matAutocomplete"
+      (optionSelected)="onTagAutocompleteSelected($event)"
+    >
+      @for (tag of tagSuggestions(); track tag) {
+        <mat-option [value]="tag">{{ tag }}</mat-option>
+      }
+    </mat-autocomplete>
 
     <mat-chip-set class="tags-chip-set">
       @for (tag of state.tags(); track tag) {

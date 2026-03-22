@@ -193,4 +193,19 @@ router.post('/api/tags/suggest', async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/tags/cleanup
+router.post('/api/tags/cleanup', async (_req: Request, res: Response) => {
+  try {
+    const result = await tagService.cleanupTags();
+    return res.status(200).json({
+      message: 'Tags cleaned up successfully',
+      ...result,
+    });
+  } catch (error) {
+    console.error('Failed to clean up tags:', error);
+    const message = error instanceof Error ? error.message : 'Failed to clean up tags';
+    return res.status(500).json({ error: message });
+  }
+});
+
 export default router;

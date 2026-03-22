@@ -62,5 +62,13 @@
       [showAttribution]="true"
     >
     </lib-map>
+
+    <lib-lightbox
+      [photos]="lightboxPhotos()"
+      [open]="lightboxOpen()"
+      [currentIndex]="lightboxIndex()"
+      (closed)="onLightboxClose()"
+      (indexChange)="lightboxIndex.set($event)"
+    ></lib-lightbox>
   }
 </div>
