@@ -20,6 +20,7 @@ import {
   PhotosByEntity,
   EntityGrowth,
   CountriesPerRegion,
+  PhotosByCountry,
 } from '../../services/analytics.service';
 import { DashboardService, DashboardStats } from '../../services/dashboard.service';
 import { WordCloudService, WordCloudItem } from '../../services/word-cloud.service';
@@ -48,6 +49,7 @@ export class AnalyticsComponent implements OnDestroy {
   @ViewChild('countriesRegion') countriesRegionEl?: ElementRef<HTMLDivElement>;
   @ViewChild('photosYear') photosYearEl?: ElementRef<HTMLDivElement>;
   @ViewChild('entityGrowth') entityGrowthEl?: ElementRef<HTMLDivElement>;
+  @ViewChild('photosCountry') photosCountryEl?: ElementRef<HTMLDivElement>;
 
   loading = signal(true);
   error = signal<string | null>(null);
@@ -56,6 +58,15 @@ export class AnalyticsComponent implements OnDestroy {
   wordCloudItems = signal<WordCloudItem[]>([]);
   wordCloudFilters = signal<WordCloudFilters>({});
   selectedEntity = signal<string | null>(null);
+  excludeUS = signal(false);
+
+  toggleExcludeUS(): void {
+    this.excludeUS.set(!this.excludeUS());
+    const current = this.analytics();
+    if (current) {
+      Promise.resolve().then(() => this.renderPhotosByCountry(current.photosByCountry ?? []));
+    }
+  }
 
   private resizeObserver?: ResizeObserver;
   private resizeDebounceTimer?: ReturnType<typeof setTimeout>;
@@ -148,6 +159,7 @@ export class AnalyticsComponent implements OnDestroy {
       this.countriesRegionEl,
       this.photosYearEl,
       this.entityGrowthEl,
+      this.photosCountryEl,
     ].filter((el): el is ElementRef<HTMLDivElement> => !!el);
 
     this.renderEntityDonut(data.entityBreakdown);
@@ -156,6 +168,7 @@ export class AnalyticsComponent implements OnDestroy {
     this.renderCountriesPerRegion(data.countriesPerRegion);
     this.renderPhotosPerYear(data.photosPerYear);
     this.renderEntityGrowth(data.entityGrowth);
+    this.renderPhotosByCountry(data.photosByCountry ?? []);
   }
 
   /** Cancel D3 transitions and remove all D3-managed DOM from chart containers */
@@ -176,7 +189,8 @@ export class AnalyticsComponent implements OnDestroy {
 
   // ... (rest of the chart rendering methods are unchanged)
   // ─── Donut Chart: Entity Breakdown ───
-  private renderEntityDonut(data: EntityBreakdown[]): void {
+  private renderEntityDonut(rawData: EntityBreakdown[]): void {
+    const data = rawData.filter((d) => d.name !== 'Photos');
     const el = this.entityDonutEl?.nativeElement;
     if (!el || !data.length) return;
     this.cleanupChartElement(el);
@@ -432,7 +446,7 @@ export class AnalyticsComponent implements OnDestroy {
     svg
       .append('g')
       .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom(x))
+      .call(d3.axisBottom(x).tickValues(data.map((d) => d.date).filter((_, i) => i % 5 === 0)))
       .selectAll('text')
       .attr('transform', 'rotate(-45)')
       .style('text-anchor', 'end')
@@ -775,5 +789,89 @@ export class AnalyticsComponent implements OnDestroy {
       item.append('span').attr('class', 'legend-swatch').style('background', colorMap[key]);
       item.append('span').text(key.charAt(0).toUpperCase() + key.slice(1));
     });
+  }
+
+  // ─── Bar Chart: Photos by Country ───
+  private renderPhotosByCountry(rawData: PhotosByCountry[]): void {
+    const data = this.excludeUS() ? rawData.filter((d) => d.country !== 'United States') : rawData;
+    const el = this.photosCountryEl?.nativeElement;
+    if (!el || !data.length) return;
+    this.cleanupChartElement(el);
+
+    const margin = { top: 20, right: 20, bottom: 100, left: 55 };
+    const width = el.clientWidth - margin.left - margin.right;
+    const height = 320 - margin.top - margin.bottom;
+
+    const svg = d3
+      .select(el)
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const x = d3
+      .scaleBand()
+      .domain(data.map((d) => d.country))
+      .range([0, width])
+      .padding(0.25);
+
+    const y = d3
+      .scaleLinear()
+      .domain([0, d3.max(data, (d) => d.count) || 1])
+      .nice()
+      .range([height, 0]);
+
+    const gridAxis = d3
+      .axisLeft(y)
+      .tickSize(-width)
+      .tickFormat(() => '');
+    svg.append('g').attr('class', 'grid').call(gridAxis);
+
+    const tooltip = d3.select(el).append('div').attr('class', 'chart-tooltip').style('opacity', 0);
+
+    svg
+      .selectAll('.bar')
+      .data(data)
+      .enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', (d) => x(d.country) ?? 0)
+      .attr('width', x.bandwidth())
+      .attr('y', height)
+      .attr('height', 0)
+      .attr('fill', '#667eea')
+      .attr('rx', 3)
+      .style('cursor', 'pointer')
+      .on('mouseover', function (event, d) {
+        d3.select(this).attr('fill', '#4338ca');
+        tooltip.transition().duration(200).style('opacity', 1);
+        tooltip
+          .html(`<strong>${d.country}</strong><br/>${d.count.toLocaleString()} photos`)
+          .style('left', `${event.offsetX + 10}px`)
+          .style('top', `${event.offsetY - 28}px`);
+      })
+      .on('mouseout', function () {
+        d3.select(this).attr('fill', '#667eea');
+        tooltip.transition().duration(300).style('opacity', 0);
+      })
+      .transition()
+      .duration(800)
+      .delay((_, i) => i * 40)
+      .attr('y', (d) => y(d.count))
+      .attr('height', (d) => height - y(d.count));
+
+    // X axis — show every 5th label to avoid crowding
+    svg
+      .append('g')
+      .attr('transform', `translate(0,${height})`)
+      .call(d3.axisBottom(x).tickValues(data.map((d) => d.country).filter((_, i) => i % 5 === 0)))
+      .selectAll('text')
+      .attr('transform', 'rotate(-40)')
+      .style('text-anchor', 'end')
+      .attr('dx', '-0.5em')
+      .attr('dy', '0.15em');
+
+    svg.append('g').call(d3.axisLeft(y).ticks(5));
   }
 }

@@ -30,12 +30,18 @@ export interface CountriesPerRegion {
   count: number;
 }
 
+export interface PhotosByCountry {
+  country: string;
+  count: number;
+}
+
 export interface AnalyticsData {
   entityBreakdown: EntityBreakdown[];
   photosByMonth: TimeSeriesPoint[];
   photosByEntity: PhotosByEntity[];
   countriesPerRegion: CountriesPerRegion[];
   photosPerYear: TimeSeriesPoint[];
+  photosByCountry: PhotosByCountry[];
   entityGrowth: EntityGrowth[];
 }
 

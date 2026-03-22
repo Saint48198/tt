@@ -64,9 +64,9 @@
         <div #entityDonut class="chart-container"></div>
       </div>
 
-      <!-- Photos by Month -->
+      <!-- Photos by Capture Month -->
       <div class="chart-card">
-        <h2><i class="fa-solid fa-chart-bar"></i> Photos by Month</h2>
+        <h2><i class="fa-solid fa-chart-bar"></i> Photos by Capture Month</h2>
         <div #photosBar class="chart-container"></div>
       </div>
 
@@ -92,6 +92,18 @@
       <div class="chart-card span-2">
         <h2><i class="fa-solid fa-layer-group"></i> Entity Growth Over Time</h2>
         <div #entityGrowth class="chart-container"></div>
+      </div>
+
+      <!-- Photos by Country -->
+      <div class="chart-card span-2">
+        <div class="chart-card-header">
+          <h2><i class="fa-solid fa-camera-retro"></i> Photos by Country</h2>
+          <button class="toggle-btn" [class.active]="excludeUS()" (click)="toggleExcludeUS()">
+            <i class="fa-solid fa-filter"></i>
+            {{ excludeUS() ? 'Showing without US' : 'Exclude US' }}
+          </button>
+        </div>
+        <div #photosCountry class="chart-container chart-container-tall"></div>
       </div>
     </div>
 

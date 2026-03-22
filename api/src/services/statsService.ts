@@ -29,12 +29,18 @@ interface CountriesPerRegion {
   count: number;
 }
 
+interface PhotosByCountry {
+  country: string;
+  count: number;
+}
+
 export interface AnalyticsData {
   entityBreakdown: EntityBreakdown[];
   photosByMonth: TimeSeriesPoint[];
   photosByEntity: PhotosByEntity[];
   countriesPerRegion: CountriesPerRegion[];
   photosPerYear: TimeSeriesPoint[];
+  photosByCountry: PhotosByCountry[];
   entityGrowth: {
     month: string;
     countries: number;
@@ -91,6 +97,7 @@ class StatsService {
       photosByEntity,
       countriesPerRegion,
       photosPerYear,
+      photosByCountry,
       entityGrowth,
     ] = await Promise.all([
       this.getEntityBreakdown(),
@@ -98,6 +105,7 @@ class StatsService {
       this.getPhotosByEntity(),
       this.getCountriesPerRegion(),
       this.getPhotosPerYear(),
+      this.getPhotosByCountry(),
       this.getEntityGrowth(),
     ]);
 
@@ -107,6 +115,7 @@ class StatsService {
       photosByEntity,
       countriesPerRegion,
       photosPerYear,
+      photosByCountry,
       entityGrowth,
     };
   }
@@ -138,14 +147,14 @@ class StatsService {
     return results;
   }
 
-  /** Bar chart: photos created per month (last 12 months) */
+  /** Bar chart: photos by capture date per month */
   private async getPhotosByMonth(): Promise<TimeSeriesPoint[]> {
     try {
       const rows = await db.all<{ month: string; count: string }>(
         `SELECT TO_CHAR(created_date, 'YYYY-MM') AS month, COUNT(*) AS count
          FROM photos
          WHERE disabled_date IS NULL
-           AND created_date >= NOW() - INTERVAL '12 months'
+           AND created_date IS NOT NULL
          GROUP BY TO_CHAR(created_date, 'YYYY-MM')
          ORDER BY month`
       );
@@ -232,6 +241,25 @@ class StatsService {
       return rows.map((r) => ({ date: r.year, count: Number(r.count) }));
     } catch (err) {
       console.error('Failed to get photos per year:', err);
+      return [];
+    }
+  }
+
+  /** Scatter plot: all-time photo count per country */
+  private async getPhotosByCountry(): Promise<PhotosByCountry[]> {
+    try {
+      const rows = await db.all<{ country: string; count: string }>(
+        `SELECT c.name AS country, COUNT(p.id) AS count
+         FROM photos p
+         JOIN countries c ON p.country_id = c.id
+         WHERE p.disabled_date IS NULL
+           AND c.disabled_date IS NULL
+         GROUP BY c.name
+         ORDER BY count DESC`
+      );
+      return rows.map((r) => ({ country: r.country, count: Number(r.count) }));
+    } catch (err) {
+      console.error('Failed to get photos by country:', err);
       return [];
     }
   }
