@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>toSlug — Quick tester</title>
+    <style>
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          Arial;
+        padding: 24px;
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin-top: 0;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      input[type='text'] {
+        flex: 1;
+        padding: 8px 10px;
+        font-size: 16px;
+      }
+      button {
+        padding: 8px 12px;
+        font-size: 14px;
+      }
+      .output {
+        margin-top: 16px;
+        padding: 12px;
+        background: #f6f7fb;
+        border: 1px solid #e1e4ee;
+        border-radius: 6px;
+        word-break: break-all;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      small {
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>toSlug tester</h1>
+    <p>
+      Type or paste text below and click <strong>Slugify</strong> (or press Enter) to get a
+      URL-friendly slug.
+    </p>
+
+    <label for="source">Text to slugify <small>(press Enter to slugify)</small></label>
+    <div class="row">
+      <input
+        id="source"
+        type="text"
+        placeholder="e.g. Hello World! — nice &amp; easy"
+        aria-label="Text to slugify"
+      />
+      <button id="slugify">Slugify</button>
+      <button id="clear">Clear</button>
+    </div>
+
+    <div class="output" aria-live="polite" id="result">Your slug will appear here.</div>
+    <div style="margin-top: 8px; display: flex; gap: 8px">
+      <button id="copy">Copy slug</button>
+      <button id="example">Use example text</button>
+    </div>
+
+    <script>
+      // Browser version of the toSlug function (same logic as your Node script)
+      function toSlug(str) {
+        return String(str)
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, '-') // replace spaces with dash
+          .replace(/[^a-z0-9-]/g, '') // remove non-alphanumeric except dash
+          .replace(/-+/g, '-'); // collapse multiple dashes
+      }
+
+      const src = document.getElementById('source');
+      const btn = document.getElementById('slugify');
+      const out = document.getElementById('result');
+      const copyBtn = document.getElementById('copy');
+      const clearBtn = document.getElementById('clear');
+      const exampleBtn = document.getElementById('example');
+
+      function show(text) {
+        out.textContent = text;
+      }
+
+      function makeSlug() {
+        const value = src.value || '';
+        const slug = toSlug(value);
+        show(slug || '(empty)');
+      }
+
+      btn.addEventListener('click', makeSlug);
+      src.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          makeSlug();
+        }
+      });
+
+      copyBtn.addEventListener('click', async () => {
+        const text = out.textContent || '';
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.textContent = 'Copied!';
+          setTimeout(() => (copyBtn.textContent = 'Copy slug'), 1000);
+        } catch (err) {
+          alert('Copy failed — select and copy manually.');
+        }
+      });
+
+      clearBtn.addEventListener('click', () => {
+        src.value = '';
+        show('Your slug will appear here.');
+        src.focus();
+      });
+
+      exampleBtn.addEventListener('click', () => {
+        src.value = '  Multiple   Spaces! & special — Example: Café con leche ';
+        makeSlug();
+      });
+
+      // Live preview (optional): update as user types but keep button behavior too
+      let timeout = null;
+      src.addEventListener('input', () => {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          const s = src.value;
+          show(toSlug(s) || '(empty)');
+        }, 250);
+      });
+    </script>
+  </body>
+</html>
