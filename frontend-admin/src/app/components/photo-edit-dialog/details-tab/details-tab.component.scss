@@ -82,11 +82,16 @@
   gap: 8px;
 }
 
-.suggest-btn {
-  align-self: flex-start;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.suggest-btn,
+.suggest-btn:disabled .container-content {
+  align-self: flex-start !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.suggest-btn mat-spinner {
+  display: inline-block;
 }
 
 .suggest-error {

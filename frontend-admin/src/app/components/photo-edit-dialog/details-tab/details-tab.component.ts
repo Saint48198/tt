@@ -44,6 +44,10 @@ export class DetailsTabComponent {
   tagSuggestions = signal<string[]>([]);
   private tagSearch$ = new Subject<string>();
 
+  private normalizeTag(t: string): string {
+    return t.trim().toLowerCase().replace(/\s+/g, '-');
+  }
+
   constructor() {
     this.tagSearch$
       .pipe(
@@ -54,21 +58,36 @@ export class DetailsTabComponent {
       )
       .subscribe((tags) => {
         const current = this.state.tags();
-        this.tagSuggestions.set(tags.filter((t) => !current.includes(t)));
+        const currentNorm = current.map((t) => this.normalizeTag(t));
+        const suggestions = tags
+          .map((t) => this.normalizeTag(t))
+          .filter((t) => !currentNorm.includes(t));
+
+        this.tagSuggestions.set(suggestions);
       });
   }
 
   onTagInputChange(value: string): void {
-    // Only search on the last segment (after a comma)
+    // Only search on the last segment (after a comma). Normalize the last segment
+    // (lowercase + replace spaces with dashes) as the user types.
     const parts = value.split(',');
-    const last = parts[parts.length - 1].trim();
-    this.tagSearch$.next(last);
+    const lastIndex = parts.length - 1;
+    const lastRaw = parts[lastIndex].trim();
+    if (lastRaw) {
+      const lastNorm = this.normalizeTag(lastRaw);
+      parts[lastIndex] = lastNorm;
+      this.tagsInput = parts.join(', ');
+      this.tagSearch$.next(lastNorm);
+    } else {
+      // Empty last segment — just search with empty string
+      this.tagSearch$.next('');
+    }
   }
 
   onTagAutocompleteSelected(event: MatAutocompleteSelectedEvent): void {
     const selected = event.option.value as string;
     const parts = this.tagsInput.split(',');
-    parts[parts.length - 1] = selected;
+    parts[parts.length - 1] = this.normalizeTag(selected);
     this.tagsInput = parts.join(', ');
     this.tagSuggestions.set([]);
     this.addTag();
@@ -131,7 +150,12 @@ export class DetailsTabComponent {
       .subscribe({
         next: (tags) => {
           const current = this.state.tags();
-          this.suggestedTags.set(tags.filter((t) => !current.includes(t)));
+          const currentNorm = current.map((t) => this.normalizeTag(t));
+          const suggestions = tags
+            .map((t) => this.normalizeTag(t))
+            .filter((t) => !currentNorm.includes(t));
+
+          this.suggestedTags.set(suggestions);
           this.suggestingTags.set(false);
         },
         error: (err) => {
@@ -143,17 +167,19 @@ export class DetailsTabComponent {
   }
 
   addSuggestedTag(tag: string): void {
+    const normTag = this.normalizeTag(tag);
     const current = this.state.tags();
-    if (!current.includes(tag)) {
-      this.state.tags.set([...current, tag]);
+    const currentNorm = current.map((t) => this.normalizeTag(t));
+    if (!currentNorm.includes(normTag)) {
+      this.state.tags.set([...current, normTag]);
     }
-    this.suggestedTags.update((list) => list.filter((t) => t !== tag));
+    this.suggestedTags.update((list) => list.filter((t) => t !== normTag));
   }
 
   addTag(): void {
     const parts = this.tagsInput
       .split(',')
-      .map((t) => t.trim())
+      .map((t) => this.normalizeTag(t))
       .filter(Boolean);
     const current = this.state.tags();
     const updated = [...current];

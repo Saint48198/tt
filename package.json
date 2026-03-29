@@ -17,7 +17,8 @@
     "lint:fix": "npx nx run-many -t lint --all -- --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,html,scss,css,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,html,scss,css,md}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "merge-tags": "node tools/merge-tags.js"
   },
   "private": true,
   "devDependencies": {

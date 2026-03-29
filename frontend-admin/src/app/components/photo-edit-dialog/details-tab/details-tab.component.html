@@ -121,8 +121,10 @@
       <div class="suggest-tags-section">
         @if (suggestingTags()) {
           <button mat-stroked-button disabled class="suggest-btn">
-            <mat-spinner diameter="18"></mat-spinner>
-            Analyzing image…
+            <span class="container-content">
+              <mat-spinner diameter="18" class="spinner"></mat-spinner>
+              Analyzing image…
+            </span>
           </button>
         } @else {
           <button
