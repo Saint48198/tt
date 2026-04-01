@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { AdminPhoto } from '../../interfaces';
 
 /**
@@ -24,6 +24,28 @@ export class PhotoEditStateService {
   // ── Saving state ──
   readonly saving = signal(false);
 
+  // ── Initial snapshot (set on init, used for dirty checking) ──
+  private initialCaption = '';
+  private initialTags: string[] = [];
+  private initialLatitude: number | null = null;
+  private initialLongitude: number | null = null;
+  private initialCityId: number | null = null;
+  private initialAttractionId: number | null = null;
+  private initialStateId: number | null = null;
+  private initialCountryId: number | null = null;
+
+  readonly hasChanges = computed(
+    () =>
+      this.caption() !== this.initialCaption ||
+      JSON.stringify([...this.tags()].sort()) !== JSON.stringify([...this.initialTags].sort()) ||
+      this.latitude() !== this.initialLatitude ||
+      this.longitude() !== this.initialLongitude ||
+      this.cityId() !== this.initialCityId ||
+      this.attractionId() !== this.initialAttractionId ||
+      this.stateId() !== this.initialStateId ||
+      this.countryId() !== this.initialCountryId
+  );
+
   /**
    * Initialize the state from an AdminPhoto object.
    */
@@ -38,5 +60,15 @@ export class PhotoEditStateService {
     this.stateId.set(photo.state_id ?? null);
     this.countryId.set(photo.country_id ?? null);
     this.countryName.set(photo.country_name || '');
+
+    // Store initial snapshot for dirty checking
+    this.initialCaption = photo.caption || '';
+    this.initialTags = [...(photo.tags || [])];
+    this.initialLatitude = photo.latitude ?? null;
+    this.initialLongitude = photo.longitude ?? null;
+    this.initialCityId = photo.city_id ?? null;
+    this.initialAttractionId = photo.attraction_id ?? null;
+    this.initialStateId = photo.state_id ?? null;
+    this.initialCountryId = photo.country_id ?? null;
   }
 }

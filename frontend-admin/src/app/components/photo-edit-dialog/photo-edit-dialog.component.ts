@@ -1,11 +1,17 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
+import { filter } from 'rxjs';
 import { AdminPhoto } from '../../interfaces';
 import { PhotosService } from '../../services/photos.service';
 import { StatesService } from '../../services/states.service';
@@ -16,6 +22,10 @@ import { LocationTabComponent } from './location-tab/location-tab.component';
 import { InfoTabComponent } from './info-tab/info-tab.component';
 import { ImageLoaderComponent } from '@shared/components';
 import { PhotoEditStateService } from './photo-edit-state.service';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogData,
+} from '../confirm-dialog/confirm-dialog.component';
 
 export interface PhotoEditDialogData {
   photo: AdminPhoto;
@@ -52,6 +62,7 @@ export class PhotoEditDialogComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly dialog = inject(MatDialog);
   readonly state = inject(PhotoEditStateService);
 
   private currentUser: UserPayload | null = null;
@@ -63,12 +74,62 @@ export class PhotoEditDialogComponent implements OnInit {
   ngOnInit(): void {
     this.state.init(this.data.photo);
 
+    // Prevent the dialog from closing on backdrop click or Escape key
+    this.dialogRef.disableClose = true;
+
+    // Intercept backdrop clicks
+    this.dialogRef
+      .backdropClick()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.tryClose());
+
+    // Intercept Escape key
+    this.dialogRef
+      .keydownEvents()
+      .pipe(
+        filter((e) => e.key === 'Escape'),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => this.tryClose());
+
     this.authService.currentUser$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((u) => (this.currentUser = u));
 
     // Auto-populate state from keywords if state is not already set
     this.autoPopulateStateFromKeywords();
+  }
+
+  /** Attempt to close — prompts for confirmation if there are unsaved changes. */
+  private tryClose(): void {
+    if (!this.state.hasChanges()) {
+      this.dialogRef.close({ updated: false });
+      return;
+    }
+
+    const data: ConfirmDialogData = {
+      title: 'Discard Changes?',
+      message: 'You have unsaved changes. Are you sure you want to close without saving?',
+      confirmText: 'Discard',
+      cancelText: 'Keep Editing',
+      icon: 'warning',
+      color: 'warn',
+    };
+
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data,
+        width: '420px',
+        disableClose: true,
+        autoFocus: false,
+        panelClass: 'confirm-dialog-panel',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirmed) => confirmed === true),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => this.dialogRef.close({ updated: false }));
   }
 
   /**
@@ -188,6 +249,6 @@ export class PhotoEditDialogComponent implements OnInit {
   }
 
   cancel(): void {
-    this.dialogRef.close({ updated: false });
+    this.tryClose();
   }
 }
