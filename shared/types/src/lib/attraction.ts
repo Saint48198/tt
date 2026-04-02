@@ -43,7 +43,7 @@ export interface AttractionListParams {
   page?: number;
   limit?: number;
   all?: boolean;
-  sortBy?: 'name' | 'lat' | 'lng' | 'wiki_term' | 'country_name';
+  sortBy?: 'name' | 'lat' | 'lng' | 'wiki_term' | 'country_name' | 'last_visited' | 'updated_date';
   sortOrder?: 'asc' | 'desc';
   includeDisabled?: boolean;
 }

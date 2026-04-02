@@ -25,6 +25,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AttractionsService } from '../../services/attractions.service';
 import { CountriesService } from '../../services/countries.service';
@@ -51,6 +52,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
     MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
+    MatButtonToggleModule,
     MatDialogModule,
   ],
   templateUrl: './attractions-list.component.html',
@@ -75,6 +77,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
     'lat',
     'lng',
     'last_visited',
+    'updated_date',
     'actions',
   ];
   dataSource = new MatTableDataSource<Attraction>([]);
@@ -162,7 +165,14 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
       .getAttractions({
         page,
         limit,
-        sortBy: this.currentSortBy() as 'name' | 'lat' | 'lng' | 'wiki_term' | 'country_name',
+        sortBy: this.currentSortBy() as
+          | 'name'
+          | 'lat'
+          | 'lng'
+          | 'wiki_term'
+          | 'country_name'
+          | 'last_visited'
+          | 'updated_date',
         sortOrder: this.currentSortOrder(),
         search: this.searchQuery() || undefined,
         includeDisabled: this.includeDisabled(),
@@ -240,6 +250,18 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
     const sortBy = event.active || 'name';
     const sortOrder = (event.direction || 'asc') as 'asc' | 'desc';
     this.saveSort(sortBy, sortOrder);
+    this.reload((this.paginator?.pageIndex || 0) + 1);
+  }
+
+  onSortFieldChange(field: string): void {
+    this.saveSort(field, this.currentSortOrder());
+    if (this.paginator) this.paginator.firstPage();
+    this.reload();
+  }
+
+  toggleSortOrder(): void {
+    const newOrder = this.currentSortOrder() === 'asc' ? 'desc' : 'asc';
+    this.saveSort(this.currentSortBy(), newOrder);
     this.reload((this.paginator?.pageIndex || 0) + 1);
   }
 

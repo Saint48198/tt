@@ -16,32 +16,64 @@
     </div>
   </div>
 
-  <div class="search-bar">
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-icon matPrefix>search</mat-icon>
-      <mat-label>Search attractions...</mat-label>
-      <input
-        matInput
-        [value]="searchQuery()"
-        (input)="onSearch($any($event.target).value)"
-        placeholder="Search by name or country"
-      />
-      @if (searchQuery()) {
-        <button matSuffix mat-icon-button (click)="clearSearch()">
-          <mat-icon>close</mat-icon>
-        </button>
-      }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="country-filter">
-      <mat-label>Country</mat-label>
-      <mat-select [value]="selectedCountryId()" (selectionChange)="onCountryChange($event.value)">
-        <mat-option [value]="null">All Countries</mat-option>
-        @for (country of countries(); track country.id) {
-          <mat-option [value]="country.id">{{ country.name }}</mat-option>
+  <div class="filters-bar">
+    <div class="filters-row">
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-icon matPrefix>search</mat-icon>
+        <mat-label>Search attractions...</mat-label>
+        <input
+          matInput
+          [value]="searchQuery()"
+          (input)="onSearch($any($event.target).value)"
+          placeholder="Search by name or country"
+        />
+        @if (searchQuery()) {
+          <button matSuffix mat-icon-button (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
         }
-      </mat-select>
-    </mat-form-field>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="country-filter" subscriptSizing="dynamic">
+        <mat-label>Country</mat-label>
+        <mat-select [value]="selectedCountryId()" (selectionChange)="onCountryChange($event.value)">
+          <mat-option [value]="null">All Countries</mat-option>
+          @for (country of countries(); track country.id) {
+            <mat-option [value]="country.id">{{ country.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="filters-row-secondary">
+      <div class="sort-group">
+        <mat-button-toggle-group
+          [value]="currentSortBy()"
+          (change)="onSortFieldChange($event.value)"
+          hideSingleSelectionIndicator
+          class="sort-field-toggle"
+        >
+          <mat-button-toggle value="name" matTooltip="Sort by name">Name</mat-button-toggle>
+          <mat-button-toggle value="last_visited" matTooltip="Sort by last visited">
+            Last Visited
+          </mat-button-toggle>
+          <mat-button-toggle value="updated_date" matTooltip="Sort by last updated">
+            Last Updated
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+        <button
+          class="sort-dir-btn"
+          (click)="toggleSortOrder()"
+          [matTooltip]="currentSortOrder() === 'asc' ? 'Ascending' : 'Descending'"
+        >
+          <i
+            class="fa-solid {{
+              currentSortOrder() === 'asc' ? 'fa-arrow-up-1-9' : 'fa-arrow-down-1-9'
+            }}"
+          ></i>
+        </button>
+      </div>
+    </div>
   </div>
 
   <div class="table-container mat-elevation-z2">
@@ -97,6 +129,14 @@
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Visited</th>
         <td mat-cell *matCellDef="let attraction">
           {{ attraction.last_visited ? (attraction.last_visited | date: 'yyyy-MM') : 'Never' }}
+        </td>
+      </ng-container>
+
+      <!-- Last Updated Column -->
+      <ng-container matColumnDef="updated_date">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Last Updated</th>
+        <td mat-cell *matCellDef="let attraction">
+          {{ attraction.updated_date ? (attraction.updated_date | date: 'yyyy-MM-dd') : '—' }}
         </td>
       </ng-container>
 

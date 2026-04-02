@@ -25,18 +25,81 @@
   }
 }
 
-.search-bar {
+.filters-bar {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
 
-  .search-field {
-    flex: 1;
+  .filters-row {
+    display: flex;
+    gap: 1rem;
+    align-items: stretch;
+    flex-wrap: wrap;
+
+    .search-field {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .country-filter {
+      width: 240px;
+      flex-shrink: 0;
+    }
   }
 
-  .country-filter {
-    width: 240px;
-    flex-shrink: 0;
+  .filters-row-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+}
+
+.sort-group {
+  display: flex;
+  align-items: center;
+
+  .sort-field-toggle {
+    ::ng-deep {
+      .mat-button-toggle-label-content {
+        padding: 0 10px;
+        line-height: 34px;
+        font-size: 0.8rem;
+      }
+
+      .mat-pseudo-checkbox {
+        display: none !important;
+      }
+
+      // Remove right border-radius on last toggle so it connects flush to sort button
+      .mat-button-toggle:last-of-type .mat-button-toggle-button {
+        border-radius: 0;
+      }
+    }
+  }
+
+  .sort-dir-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    width: 36px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-left: none;
+    border-radius: 0 16px 16px 0;
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: #f3f4f6;
+    }
+
+    .fa-solid {
+      font-size: 14px;
+      color: #374151;
+    }
   }
 }
 
