@@ -6,6 +6,13 @@ interface AttractionType {
   slug: string;
 }
 
+interface AttractionAlias {
+  id: number;
+  attraction_id: number;
+  alias: string;
+  created_date?: string;
+}
+
 interface Attraction {
   id: number;
   name: string;
@@ -21,6 +28,7 @@ interface Attraction {
   created_date?: string;
   updated_date?: string;
   disabled_date?: string;
+  aliases?: AttractionAlias[];
 }
 
 interface ListAttractionsOptions {
@@ -227,7 +235,7 @@ class AttractionService {
 
     const baseSelect = `
       SELECT attractions.id, attractions.name, attractions.lat, attractions.lng,
-             attractions.wiki_term, attractions.state_id,
+             attractions.last_visited, attractions.wiki_term, attractions.state_id,
              attractions.created_date, attractions.updated_date, attractions.disabled_date,
              countries.name AS country_name,
              states.name AS state_name
@@ -298,6 +306,7 @@ class AttractionService {
     );
     if (attraction) {
       await this.attachTypes([attraction]);
+      await this.attachAliases([attraction]);
     }
     return attraction;
   }
@@ -340,6 +349,83 @@ class AttractionService {
       [id]
     );
     return { success: result.rowCount > 0, changes: result.rowCount };
+  }
+
+  /**
+   * Attach aliases array to each attraction in a single query.
+   */
+  private async attachAliases(attractions: Attraction[]): Promise<void> {
+    if (attractions.length === 0) return;
+    const ids = attractions.map((a) => a.id);
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+    const aliases = await db.all<AttractionAlias>(
+      `SELECT * FROM attraction_aliases WHERE attraction_id IN (${placeholders}) ORDER BY alias`,
+      ids
+    );
+    const aliasMap = new Map<number, AttractionAlias[]>();
+    for (const a of aliases) {
+      if (!aliasMap.has(a.attraction_id)) aliasMap.set(a.attraction_id, []);
+      aliasMap.get(a.attraction_id)!.push(a);
+    }
+    for (const attraction of attractions) {
+      attraction.aliases = aliasMap.get(attraction.id) || [];
+    }
+  }
+
+  // --- Attraction Alias CRUD ---
+
+  public async getAliases(attractionId: number | string): Promise<AttractionAlias[]> {
+    return db.all<AttractionAlias>(
+      'SELECT * FROM attraction_aliases WHERE attraction_id = $1 ORDER BY alias',
+      [attractionId]
+    );
+  }
+
+  public async addAlias(attractionId: number | string, alias: string): Promise<{ id: number }> {
+    const result = await db.run(
+      'INSERT INTO attraction_aliases (attraction_id, alias) VALUES ($1, $2) RETURNING id',
+      [attractionId, alias.trim()]
+    );
+    return { id: result.rows[0].id };
+  }
+
+  public async removeAlias(aliasId: number | string): Promise<{ success: boolean }> {
+    const result = await db.run('DELETE FROM attraction_aliases WHERE id = $1', [aliasId]);
+    return { success: result.rowCount > 0 };
+  }
+
+  /**
+   * Find an attraction by name or alias — mirrors cityService.findCityByAlias.
+   */
+  public async findAttractionByAlias(name: string): Promise<Attraction | undefined> {
+    const lower = name.toLowerCase().trim();
+
+    let attraction = await db.get<Attraction>(
+      `SELECT attractions.*, countries.name AS country_name, states.name AS state_name
+       FROM attractions
+       LEFT JOIN countries ON attractions.country_id = countries.id
+       LEFT JOIN states   ON attractions.state_id   = states.id
+       WHERE attractions.disabled_date IS NULL
+         AND LOWER(attractions.name) = $1`,
+      [lower]
+    );
+    if (attraction) return attraction;
+
+    const aliasRow = await db.get<{ attraction_id: number }>(
+      `SELECT attraction_id FROM attraction_aliases WHERE LOWER(alias) = $1`,
+      [lower]
+    );
+    if (aliasRow) {
+      attraction = await db.get<Attraction>(
+        `SELECT attractions.*, countries.name AS country_name, states.name AS state_name
+         FROM attractions
+         LEFT JOIN countries ON attractions.country_id = countries.id
+         LEFT JOIN states   ON attractions.state_id   = states.id
+         WHERE attractions.id = $1 AND attractions.disabled_date IS NULL`,
+        [aliasRow.attraction_id]
+      );
+    }
+    return attraction;
   }
 }
 

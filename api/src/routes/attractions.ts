@@ -193,7 +193,6 @@ router.put('/api/attractions/:id', async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Failed to update attraction.' });
   }
 });
-
 // DELETE /api/attractions/:id
 router.delete('/api/attractions/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -211,5 +210,64 @@ router.delete('/api/attractions/:id', async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Failed to delete attraction.' });
   }
 });
+
+// --- Attraction Alias Routes ---
+
+// GET /api/attractions/:id/aliases
+router.get('/api/attractions/:id/aliases', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const aliases = await attractionService.getAliases(id);
+    return res.status(200).json({ aliases });
+  } catch (error) {
+    console.error('Failed to fetch aliases:', error);
+    return res.status(500).json({ error: 'Failed to fetch aliases' });
+  }
+});
+
+// POST /api/attractions/:id/aliases
+router.post('/api/attractions/:id/aliases', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { alias } = req.body;
+
+  if (!alias || typeof alias !== 'string' || !alias.trim()) {
+    return res.status(400).json({ error: 'Alias is required.' });
+  }
+
+  try {
+    const attraction = await attractionService.getAttractionById(id);
+    if (!attraction) {
+      return res.status(404).json({ error: 'Attraction not found.' });
+    }
+
+    const result = await attractionService.addAlias(id, alias);
+    return res.status(201).json({ id: result.id });
+  } catch (error) {
+    console.error('Failed to add alias:', error);
+    const message = error instanceof Error ? error.message : '';
+    if (message.includes('unique') || message.includes('duplicate')) {
+      return res.status(409).json({ error: 'This alias already exists for this attraction.' });
+    }
+    return res.status(500).json({ error: 'Failed to add alias.' });
+  }
+});
+
+// DELETE /api/attractions/:attractionId/aliases/:aliasId
+router.delete(
+  '/api/attractions/:attractionId/aliases/:aliasId',
+  async (req: Request, res: Response) => {
+    const { aliasId } = req.params;
+    try {
+      const result = await attractionService.removeAlias(aliasId);
+      if (!result.success) {
+        return res.status(404).json({ error: 'Alias not found.' });
+      }
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Failed to remove alias:', error);
+      return res.status(500).json({ error: 'Failed to remove alias.' });
+    }
+  }
+);
 
 export default router;

@@ -230,3 +230,107 @@
   --mdc-snackbar-container-color: #dc2626;
   --mdc-snackbar-supporting-text-color: white;
 }
+
+// Aliases section
+.aliases-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem 2rem;
+  margin-top: 1.5rem;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.25rem;
+    font-size: 1.125rem;
+    color: #1f2937;
+
+    mat-icon {
+      color: #6b7280;
+    }
+  }
+}
+
+.aliases-description {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.aliases-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  min-height: 32px;
+}
+
+.alias-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #e5e7eb;
+  color: #374151;
+  border-radius: 16px;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.alias-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background-color: #dc2626;
+    color: white;
+  }
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.no-aliases {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.alias-add-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.alias-input {
+  flex: 1;
+}
+
+.alias-add-btn {
+  margin-top: 0.35rem;
+  height: 56px;
+  white-space: nowrap;
+
+  mat-icon {
+    margin-right: 0.25rem;
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+  }
+}

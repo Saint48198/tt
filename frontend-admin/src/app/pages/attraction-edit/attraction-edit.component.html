@@ -161,6 +161,66 @@
       }
     </form>
 
+    @if (isEditMode()) {
+      <div class="aliases-section mat-elevation-z2">
+        <h2>
+          <mat-icon>label</mat-icon>
+          Aliases
+        </h2>
+        <p class="aliases-description">
+          Alternative names used to match this attraction during photo upload (e.g. local names,
+          transliterations, common abbreviations).
+        </p>
+
+        <div class="aliases-list">
+          @for (alias of aliases(); track alias.id) {
+            <span class="alias-pill">
+              {{ alias.alias }}
+              <button
+                class="alias-remove-btn"
+                (click)="confirmDeleteAlias(alias)"
+                matTooltip="Remove alias"
+                aria-label="Remove alias {{ alias.alias }}"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </span>
+          }
+          @if (aliases().length === 0) {
+            <span class="no-aliases">No aliases added yet.</span>
+          }
+        </div>
+
+        <div class="alias-add-row">
+          <mat-form-field appearance="outline" class="alias-input">
+            <mat-label>New Alias</mat-label>
+            <input
+              matInput
+              [value]="newAlias()"
+              (input)="newAlias.set($any($event.target).value)"
+              (keydown)="onAliasInputKeydown($event)"
+              placeholder="e.g. Grand Canyon, GC"
+            />
+          </mat-form-field>
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="addAlias()"
+            [disabled]="addingAlias() || !newAlias().trim()"
+            class="alias-add-btn"
+          >
+            @if (addingAlias()) {
+              <mat-spinner diameter="18" class="button-spinner"></mat-spinner>
+            } @else {
+              <mat-icon>add</mat-icon>
+            }
+            Add
+          </button>
+        </div>
+      </div>
+    }
+
     @if (hasCoordinates()) {
       <div class="map-section mat-elevation-z2">
         <h2>

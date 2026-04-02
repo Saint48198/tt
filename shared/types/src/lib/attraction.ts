@@ -1,3 +1,10 @@
+export interface AttractionAlias {
+  id: number;
+  attraction_id: number;
+  alias: string;
+  created_date?: string;
+}
+
 export interface AttractionType {
   id: number;
   name: string;
@@ -19,6 +26,7 @@ export interface Attraction {
   created_date?: string;
   updated_date?: string;
   disabled_date?: string;
+  aliases?: AttractionAlias[];
 }
 
 export interface AttractionListResponse {

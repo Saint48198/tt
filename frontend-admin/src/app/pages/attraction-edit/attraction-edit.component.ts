@@ -12,6 +12,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_FORMATS } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { forkJoin, of } from 'rxjs';
 import { switchMap, tap, catchError } from 'rxjs/operators';
 import { MapComponent, MapMarker } from '@shared/components';
@@ -21,7 +23,7 @@ import { CountriesService } from '../../services/countries.service';
 import { StatesService } from '../../services/states.service';
 import { GeocodeService } from '../../services/geocode.service';
 import { InfoService, InfoResult } from '../../services/info.service';
-import { Country, State, AttractionType } from '../../interfaces';
+import { Country, State, AttractionType, AttractionAlias } from '../../interfaces';
 
 const MONTH_YEAR_FORMATS = {
   parse: { dateInput: 'MM/YYYY' },
@@ -48,6 +50,8 @@ const MONTH_YEAR_FORMATS = {
     MatSnackBarModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatTooltipModule,
+    MatDialogModule,
     MapComponent,
     PhotoGalleryComponent,
   ],
@@ -65,6 +69,7 @@ export class AttractionEditComponent implements OnInit {
   private readonly geocodeService = inject(GeocodeService);
   private readonly infoService = inject(InfoService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly COUNTRIES_WITH_STATES = ['United States', 'United States of America', 'Canada'];
@@ -86,6 +91,11 @@ export class AttractionEditComponent implements OnInit {
   mapCenter = signal<[number, number]>([39.8283, -98.5795]);
   hasCoordinates = signal(false);
   attractionTypes = signal<AttractionType[]>([]);
+
+  // Alias management
+  aliases = signal<AttractionAlias[]>([]);
+  newAlias = signal('');
+  addingAlias = signal(false);
 
   ngOnInit(): void {
     this.initForm();
@@ -154,6 +164,11 @@ export class AttractionEditComponent implements OnInit {
               wiki_term: attraction.wiki_term || '',
             });
             this.updateMapFromForm();
+            if (attraction.aliases) {
+              this.aliases.set(attraction.aliases);
+            } else {
+              this.loadAliases();
+            }
           }
         }),
         // Determine if we need to load states for the current country
@@ -398,4 +413,93 @@ export class AttractionEditComponent implements OnInit {
       },
     });
   }
+
+  // --- Alias Management ---
+
+  private loadAliases(): void {
+    if (!this.attractionId) return;
+    this.attractionsService
+      .getAliases(this.attractionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (res) => this.aliases.set(res.aliases) });
+  }
+
+  addAlias(): void {
+    const alias = this.newAlias().trim();
+    if (!alias || !this.attractionId) return;
+
+    this.addingAlias.set(true);
+    this.attractionsService
+      .addAlias(this.attractionId, alias)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.newAlias.set('');
+          this.addingAlias.set(false);
+          this.loadAliases();
+          this.snackBar.open(`Alias "${alias}" added`, 'Close', { duration: 3000 });
+        },
+        error: (err) => {
+          this.addingAlias.set(false);
+          const msg = err?.error?.error || 'Failed to add alias';
+          this.snackBar.open(msg, 'Close', { duration: 5000, panelClass: 'error-snackbar' });
+        },
+      });
+  }
+
+  confirmDeleteAlias(alias: AttractionAlias): void {
+    const dialogRef = this.dialog.open(ConfirmDeleteAttractionAliasDialogComponent, {
+      width: '400px',
+      data: { aliasName: alias.alias },
+    });
+
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((confirmed) => {
+        if (confirmed && this.attractionId) {
+          this.attractionsService
+            .removeAlias(this.attractionId, alias.id)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.aliases.update((list) => list.filter((a) => a.id !== alias.id));
+                this.snackBar.open(`Alias "${alias.alias}" removed`, 'Close', { duration: 3000 });
+              },
+              error: () => {
+                this.snackBar.open('Failed to remove alias', 'Close', {
+                  duration: 5000,
+                  panelClass: 'error-snackbar',
+                });
+              },
+            });
+        }
+      });
+  }
+
+  onAliasInputKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.addAlias();
+    }
+  }
+}
+
+@Component({
+  selector: 'app-confirm-delete-attraction-alias-dialog',
+  imports: [MatDialogModule, MatButtonModule],
+  template: `
+    <h2 mat-dialog-title>Delete Alias</h2>
+    <mat-dialog-content>
+      Are you sure you want to delete the alias
+      <strong>"{{ data.aliasName }}"</strong>?
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button [mat-dialog-close]="false">Cancel</button>
+      <button mat-raised-button color="warn" [mat-dialog-close]="true">Delete</button>
+    </mat-dialog-actions>
+  `,
+})
+export class ConfirmDeleteAttractionAliasDialogComponent {
+  readonly data: { aliasName: string } = inject(MAT_DIALOG_DATA);
 }

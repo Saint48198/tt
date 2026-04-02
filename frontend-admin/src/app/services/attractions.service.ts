@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   Attraction,
+  AttractionAlias,
   AttractionType,
   AttractionListResponse,
   AttractionListParams,
@@ -145,5 +146,24 @@ export class AttractionsService {
    */
   getNationalParks(page = 1, limit = 25): Observable<AttractionListResponse> {
     return this.getAttractions({ page, limit });
+  }
+
+  // --- Alias methods ---
+
+  /** Get all aliases for an attraction */
+  getAliases(attractionId: number): Observable<{ aliases: AttractionAlias[] }> {
+    return this.http.get<{ aliases: AttractionAlias[] }>(`${this.apiUrl}/${attractionId}/aliases`);
+  }
+
+  /** Add an alias to an attraction */
+  addAlias(attractionId: number, alias: string): Observable<{ id: number }> {
+    return this.http.post<{ id: number }>(`${this.apiUrl}/${attractionId}/aliases`, { alias });
+  }
+
+  /** Remove an alias from an attraction */
+  removeAlias(attractionId: number, aliasId: number): Observable<{ success: boolean }> {
+    return this.http.delete<{ success: boolean }>(
+      `${this.apiUrl}/${attractionId}/aliases/${aliasId}`
+    );
   }
 }

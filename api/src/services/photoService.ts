@@ -459,11 +459,12 @@ class PhotoService {
       if (!state_id && city?.state_id) state_id = city.state_id;
     }
     if (!resolvedCountryId && attraction_id) {
-      const attr = await db.get<{ country_id: number }>(
-        'SELECT country_id FROM attractions WHERE id = $1',
+      const attr = await db.get<{ country_id: number; state_id: number | null }>(
+        'SELECT country_id, state_id FROM attractions WHERE id = $1',
         [attraction_id]
       );
       resolvedCountryId = attr?.country_id || null;
+      if (!state_id && attr?.state_id) state_id = attr.state_id;
     }
     // Last resort: extract country slug from S3 key (uploads/{country-slug}/{uuid}.ext)
     if (!resolvedCountryId && photo_id) {
@@ -513,6 +514,15 @@ class PhotoService {
     if (params.tags && params.tags.length > 0) {
       await this.setTagsForPhoto(newId, params.tags);
     }
+
+    // Update last_visited on any linked entities based on the photo's capture date
+    await this.updateLastVisitedFromPhoto(
+      newId,
+      city_id,
+      attraction_id,
+      state_id,
+      resolvedCountryId
+    );
 
     return { id: newId };
   }
@@ -1169,11 +1179,16 @@ class PhotoService {
           params.push(city.state_id);
         }
       } else if (effectiveAttractionId) {
-        const attr = await db.get<{ country_id: number }>(
-          'SELECT country_id FROM attractions WHERE id = $1',
+        const attr = await db.get<{ country_id: number; state_id: number | null }>(
+          'SELECT country_id, state_id FROM attractions WHERE id = $1',
           [effectiveAttractionId]
         );
         resolvedCountryId = attr?.country_id || null;
+        // Auto-resolve state from attraction if not explicitly provided
+        if (stateId === undefined && attr?.state_id) {
+          setClauses.push(`state_id = $${idx++}`);
+          params.push(attr.state_id);
+        }
       }
       setClauses.push(`country_id = $${idx++}`);
       params.push(resolvedCountryId);
@@ -1198,9 +1213,10 @@ class PhotoService {
 
   /**
    * Update last_visited on city, state, attraction, and country linked to a photo,
-   * using the photo's created_date (capture date) as the visit date.
-   * Does nothing if the photo has no capture date.
-   * Only updates last_visited when the capture date is more recent than what is already stored.
+   * using the photo's created_date (EXIF capture date) as the visit date.
+   * Falls back to created_at (upload timestamp) when created_date is null.
+   * Does nothing if the photo has neither date.
+   * Only updates last_visited when the resolved date is more recent than what is already stored.
    */
   private async updateLastVisitedFromPhoto(
     photoId: number,
@@ -1210,24 +1226,26 @@ class PhotoService {
     countryId?: number | null
   ): Promise<void> {
     try {
-      // Fetch the photo's current state (including any auto-resolved IDs and created_date)
+      // Fetch the photo's current state (including IDs, created_date and created_at fallback)
       const photo = await db.get<{
         created_date: string | null;
+        created_at: string | null;
         city_id: number | null;
         attraction_id: number | null;
         state_id: number | null;
         country_id: number | null;
       }>(
-        'SELECT created_date, city_id, attraction_id, state_id, country_id FROM photos WHERE id = $1',
+        'SELECT created_date, created_at, city_id, attraction_id, state_id, country_id FROM photos WHERE id = $1',
         [photoId]
       );
 
       if (!photo) return;
 
-      // Only update last_visited if the photo has a capture date — skip if missing
-      if (!photo.created_date) return;
+      // Prefer the EXIF capture date; fall back to the upload timestamp
+      const visitDate = photo.created_date || photo.created_at;
 
-      const visitDate = photo.created_date;
+      // Nothing to do if there is no date at all
+      if (!visitDate) return;
 
       // Determine effective IDs — prefer the explicitly passed values, fall back to what's stored
       const effectiveCityId = cityId !== undefined ? cityId : photo.city_id;
