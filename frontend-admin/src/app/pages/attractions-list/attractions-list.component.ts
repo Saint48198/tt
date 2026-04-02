@@ -29,7 +29,12 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AttractionsService } from '../../services/attractions.service';
 import { CountriesService } from '../../services/countries.service';
-import { Attraction, AttractionListResponse, Country } from '../../interfaces';
+import {
+  Attraction,
+  AttractionListParams,
+  AttractionListResponse,
+  Country,
+} from '../../interfaces';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
@@ -165,14 +170,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
       .getAttractions({
         page,
         limit,
-        sortBy: this.currentSortBy() as
-          | 'name'
-          | 'lat'
-          | 'lng'
-          | 'wiki_term'
-          | 'country_name'
-          | 'last_visited'
-          | 'updated_date',
+        sortBy: this.currentSortBy() as AttractionListParams['sortBy'],
         sortOrder: this.currentSortOrder(),
         search: this.searchQuery() || undefined,
         includeDisabled: this.includeDisabled(),
