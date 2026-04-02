@@ -29,12 +29,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AttractionsService } from '../../services/attractions.service';
 import { CountriesService } from '../../services/countries.service';
-import {
-  Attraction,
-  AttractionListParams,
-  AttractionListResponse,
-  Country,
-} from '../../interfaces';
+import { Attraction, AttractionListParams, AttractionListResponse, Country } from '@shared/types';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog.component';
 
 @Component({
