@@ -21,11 +21,24 @@
     }
   </div>
 
-  <!-- Loading -->
+  <!-- Loading skeleton -->
   @if (loading()) {
-    <div class="loading-state">
-      <div class="loading-spinner"></div>
-      <p>Loading trips...</p>
+    <div class="trip-grid">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="trip-card-skeleton">
+          <div class="skeleton-card-header">
+            <div class="skeleton skeleton-name"></div>
+            <div class="skeleton skeleton-date"></div>
+          </div>
+          <div class="skeleton skeleton-notes-line"></div>
+          <div class="skeleton skeleton-notes-line short"></div>
+          <div class="skeleton-card-footer">
+            <div class="skeleton skeleton-badge"></div>
+            <div class="skeleton skeleton-badge"></div>
+            <div class="skeleton skeleton-badge"></div>
+          </div>
+        </div>
+      }
     </div>
   }
 

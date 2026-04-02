@@ -1,10 +1,5 @@
 <div class="photo-map-page">
-  @if (loading()) {
-    <div class="loading-overlay">
-      <div class="loading-spinner"></div>
-      <span>Loading photos...</span>
-    </div>
-  } @else if (error()) {
+  @if (error()) {
     <div class="error-overlay">
       <span class="error-icon">😕</span>
       <h2>{{ error() }}</h2>
@@ -60,9 +55,7 @@
       [enableDrag]="true"
       [enableClustering]="true"
       [showAttribution]="true"
-    >
-    </lib-map>
-
+    ></lib-map>
     <lib-lightbox
       [photos]="lightboxPhotos()"
       [open]="lightboxOpen()"

@@ -154,11 +154,18 @@
     </section>
   }
 
-  <!-- Loading -->
+  <!-- Loading skeleton -->
   @if (loading()) {
-    <div class="loading-state">
-      <div class="loading-spinner"></div>
-      <p>Loading...</p>
+    <div class="card-grid">
+      @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+        <div class="skeleton-entity-card">
+          <div class="skeleton skeleton-entity-icon"></div>
+          <div class="skeleton-entity-lines">
+            <div class="skeleton skeleton-entity-name"></div>
+            <div class="skeleton skeleton-entity-sub"></div>
+          </div>
+        </div>
+      }
     </div>
   } @else {
     <!-- Countries List -->

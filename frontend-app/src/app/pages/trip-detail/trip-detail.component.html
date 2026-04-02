@@ -2,11 +2,35 @@
   <!-- Back button -->
   <button class="back-btn" (click)="goBack()">← Back to Trips</button>
 
-  <!-- Loading -->
+  <!-- Loading skeleton -->
   @if (loading()) {
-    <div class="loading-state">
-      <div class="loading-spinner"></div>
-      <p>Loading trip...</p>
+    <div class="trip-detail-skeleton">
+      <div class="skeleton skeleton-trip-title"></div>
+      <div class="skeleton skeleton-trip-dates"></div>
+
+      <div class="skeleton-notes-card">
+        <div class="skeleton skeleton-section-title"></div>
+        <div class="skeleton skeleton-text-line"></div>
+        <div class="skeleton skeleton-text-line skeleton-text-line--short"></div>
+      </div>
+
+      <div class="skeleton-itinerary">
+        <div class="skeleton skeleton-section-title"></div>
+        @for (day of [1, 2, 3]; track day) {
+          <div class="skeleton-day-group">
+            <div class="skeleton skeleton-day-label"></div>
+            @for (item of [1, 2]; track item) {
+              <div class="skeleton-plan-row">
+                <div class="skeleton skeleton-plan-icon"></div>
+                <div class="skeleton-plan-lines">
+                  <div class="skeleton skeleton-plan-type"></div>
+                  <div class="skeleton skeleton-plan-summary"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
     </div>
   }
 

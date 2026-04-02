@@ -10,3 +10,15 @@
   </main>
   <lib-footer [links]="footerLinks"></lib-footer>
 </div>
+
+@if (isNavigating()) {
+  <div class="page-loader-overlay" aria-live="polite" aria-label="Loading page">
+    <div class="page-loader-card">
+      <div class="page-loader-dots">
+        <div class="page-loader-dot"></div>
+        <div class="page-loader-dot"></div>
+        <div class="page-loader-dot"></div>
+      </div>
+    </div>
+  </div>
+}

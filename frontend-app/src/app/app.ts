@@ -1,6 +1,14 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import {
+  RouterModule,
+  Router,
+  NavigationEnd,
+  NavigationStart,
+  NavigationCancel,
+  NavigationError,
+} from '@angular/router';
 import { AsyncPipe } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { HeaderComponent, FooterComponent } from '@shared/components';
 import { AuthService } from '@shared/services';
 import { filter, map, startWith } from 'rxjs';
@@ -44,6 +52,22 @@ export class App implements OnInit {
         { label: 'My Trips', path: `${prefix}/trips` },
       ];
     })
+  );
+
+  /** True while the router is resolving a navigation */
+  protected isNavigating = toSignal(
+    this.router.events.pipe(
+      filter(
+        (e) =>
+          e instanceof NavigationStart ||
+          e instanceof NavigationEnd ||
+          e instanceof NavigationCancel ||
+          e instanceof NavigationError
+      ),
+      map((e) => e instanceof NavigationStart),
+      startWith(false)
+    ),
+    { initialValue: false }
   );
 
   ngOnInit(): void {
