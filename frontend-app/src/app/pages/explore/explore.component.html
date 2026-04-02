@@ -143,8 +143,9 @@
         width="100%"
         [enableZoom]="true"
         [enableScrollZoom]="false"
-        [enableDrag]="true"
+        [enableDrag]="false"
         [fitBounds]="
+          level() === 'states' ||
           (level() === 'cities' && !!selectedState()) ||
           (countryMapOverlays.length === 0 && countryMapMarkers().length > 1)
         "
@@ -214,6 +215,7 @@
 
     <!-- States List -->
     @if (level() === 'states') {
+      <h2 class="section-subtitle">States, Provinces &amp; Territories</h2>
       <app-entity-list
         [items]="stateItems()"
         emptyMessage="No states found for this country."
@@ -224,6 +226,7 @@
 
     <!-- Cities List -->
     @if (level() === 'cities') {
+      <h2 class="section-subtitle">Cities</h2>
       <app-entity-list
         [items]="cityItems()"
         emptyMessage="No cities found."

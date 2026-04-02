@@ -270,6 +270,15 @@
   width: 35%;
 }
 
+// Section subtitle (e.g. "Cities" below the state map)
+.section-subtitle {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.01em;
+}
+
 // Empty state
 .empty-state {
   grid-column: 1 / -1;

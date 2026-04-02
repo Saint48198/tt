@@ -66,6 +66,8 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   private markerLayers: L.Marker[] = [];
   private clusterGroup: L.MarkerClusterGroup | null = null;
   private overlayLayers: L.GeoJSON[] = [];
+  /** Only the lngOffset === 0 copies — used for fitBounds to avoid ±360 ghost copies inflating the bounds */
+  private centerOverlayLayers: L.GeoJSON[] = [];
   private initialized = false;
   private lastOverlaysRef: MapOverlay[] | null = null;
   private lastMarkersRef: MapMarker[] | null = null;
@@ -96,7 +98,9 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     }
 
     if (changes['center'] || changes['zoom']) {
-      if (this.map) {
+      // When fitBounds is active the fitted view takes priority — don't
+      // let a recomputed (but value-identical) center/zoom reference reset it.
+      if (this.map && !this.fitBounds) {
         this.map.setView(this.center, this.zoom);
       }
     }
@@ -249,6 +253,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     // Clear existing overlays
     this.overlayLayers.forEach((overlay) => overlay.remove());
     this.overlayLayers = [];
+    this.centerOverlayLayers = [];
 
     // Add new overlays
     this.overlays.forEach((overlayData) => {
@@ -330,6 +335,10 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
         });
 
         this.overlayLayers.push(geoJsonLayer);
+        // Track only the centre copy for bounds fitting
+        if (lngOffset === 0) {
+          this.centerOverlayLayers.push(geoJsonLayer);
+        }
       });
     });
 
@@ -413,9 +422,10 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       bounds.push(markerGroup.getBounds());
     }
 
-    // Add overlay bounds
-    if (this.overlayLayers.length > 0) {
-      this.overlayLayers.forEach((layer) => {
+    // Add overlay bounds — use center copies only (lngOffset=0) so the
+    // ±360 ghost copies don't inflate the bounds to show the world 3×
+    if (this.centerOverlayLayers.length > 0) {
+      this.centerOverlayLayers.forEach((layer) => {
         bounds.push(layer.getBounds());
       });
     }
@@ -428,7 +438,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
       }
 
       this.map.fitBounds(combinedBounds, {
-        padding: [50, 50],
+        padding: [20, 20],
       });
     }
   }

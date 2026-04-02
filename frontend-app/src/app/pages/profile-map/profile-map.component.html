@@ -1,8 +1,11 @@
 <div class="profile-map">
   @if (loading()) {
-    <div class="loading-overlay">
-      <div class="loading-spinner"></div>
-      <span>Loading profile...</span>
+    <div class="profile-banner profile-banner--skeleton">
+      <div class="skeleton-banner-title">
+        <div class="skeleton skeleton-banner-icon"></div>
+        <div class="skeleton skeleton-banner-label"></div>
+      </div>
+      <div class="skeleton skeleton-banner-count"></div>
     </div>
   } @else if (error()) {
     <div class="error-overlay">
@@ -38,7 +41,7 @@
       width="100%"
       [fitBounds]="hasMarkers()"
       [enableZoom]="true"
-      [enableDrag]="true"
+      [enableDrag]="false"
       [showAttribution]="true"
     >
     </lib-map>

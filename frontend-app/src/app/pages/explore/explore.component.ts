@@ -10,7 +10,7 @@ import {
 import { Location } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, Subject, EMPTY } from 'rxjs';
-import { takeUntil, switchMap, tap, finalize } from 'rxjs/operators';
+import { takeUntil, switchMap, tap, finalize, catchError } from 'rxjs/operators';
 import {
   MapComponent,
   MapMarker,
@@ -274,11 +274,9 @@ export class ExploreComponent implements OnInit, OnDestroy {
       case 'countries':
         return 'Visited Countries';
       case 'states':
-        return `${country?.name ?? ''} — States`;
+        return country?.name ?? '';
       case 'cities':
-        return state
-          ? `${state.name}, ${country?.name ?? ''} — Cities`
-          : `${country?.name ?? ''} — Cities`;
+        return state ? `${state.name}, ${country?.name ?? ''}` : `${country?.name ?? ''}`;
       case 'attractions':
         return `${country?.name ?? ''} — Attractions`;
       case 'city':
@@ -376,6 +374,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
           this.loadStateOverlays(country, states);
           return EMPTY;
         }
+        this.states.set([]); // ensure no stale state data from a previous country
         return this.loadCitiesForCountry$(country.id);
       })
     );
@@ -395,10 +394,8 @@ export class ExploreComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Load GeoJSON overlays for visited states (US and Canada only) */
+  /** Load GeoJSON overlays for visited states/provinces (any country that has a GeoJSON mapping) */
   private loadStateOverlays(country: ExploreCountry, states: ExploreState[]): void {
-    if (!this.isStateCountry(country)) return;
-
     const abbr = (country.abbreviation || '').toUpperCase();
     const name = country.name.toLowerCase();
     const geoKey = abbr === 'CA' || abbr === 'CAN' || name.includes('canada') ? 'CA' : 'US';
@@ -410,6 +407,10 @@ export class ExploreComponent implements OnInit, OnDestroy {
       .getStateOutlines(geoKey, stateNames)
       .pipe(
         takeUntil(this.destroy$),
+        catchError((err) => {
+          console.error('Failed to load state outlines for', country.name, err);
+          return EMPTY;
+        }),
         tap((geoJson) => {
           if (geoJson.features.length > 0) {
             const countryAbbr = country.abbreviation || country.name;
@@ -435,6 +436,14 @@ export class ExploreComponent implements OnInit, OnDestroy {
                 link: `${this.baseUrl()}/${countryAbbr}/${stateAbbr}`,
               };
             });
+
+            // If a state was already selected before the GeoJSON arrived (URL navigation),
+            // filter down to just that state now that overlays are populated.
+            const alreadySelected = this.selectedState();
+            if (alreadySelected) {
+              this.filterOverlaysToState(alreadySelected);
+            }
+
             this.cdr.detectChanges();
           }
         })
@@ -565,6 +574,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
 
     this.selectedCountry.set(country);
     this.selectedState.set(null);
+    this.states.set([]); // clear stale states from any previous country
     this.loading.set(true);
 
     this.loadCountryDrillDown$(country)
@@ -691,8 +701,8 @@ export class ExploreComponent implements OnInit, OnDestroy {
       this.selectedState.set(null);
       this.detailService.reset();
       const country = this.selectedCountry();
-      if (country && this.isStateCountry(country) && this.states().length > 0) {
-        // Restore all state overlays (US / Canada only)
+      if (country && this.states().length > 0) {
+        // Country has states — restore all state overlays
         this.loadStateOverlays(country, this.states());
         this.level.set('states');
       } else {
