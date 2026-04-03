@@ -96,6 +96,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.restoreSort();
+    this.restoreFromUrl(); // URL params override localStorage
     this.loading.set(true);
 
     // Load countries first, resolve ?country= from URL, then load attractions
@@ -194,20 +195,51 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
     this.fetchAttractions(page).pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
-  private updateCountryUrl(countryId: number | null): void {
-    const country = countryId ? this.countries().find((c) => c.id === countryId) : null;
-    const encodedName = country ? country.name.toLowerCase().replace(/\s+/g, '-') : null;
+  private restoreFromUrl(): void {
+    const params = this.route.snapshot.queryParamMap;
+
+    const search = params.get('search');
+    if (search) this.searchQuery.set(search);
+
+    const validSortFields: string[] = [
+      'name',
+      'lat',
+      'lng',
+      'wiki_term',
+      'country_name',
+      'last_visited',
+      'updated_date',
+    ];
+    const sortBy = params.get('sortBy');
+    if (sortBy && validSortFields.includes(sortBy)) {
+      this.currentSortBy.set(sortBy);
+    }
+
+    const sortOrder = params.get('sortOrder');
+    if (sortOrder === 'asc' || sortOrder === 'desc') this.currentSortOrder.set(sortOrder);
+  }
+
+  private updateUrlParams(): void {
+    const country = this.selectedCountryId()
+      ? this.countries().find((c) => c.id === this.selectedCountryId())
+      : null;
+    const encodedCountry = country ? country.name.toLowerCase().replace(/\s+/g, '-') : null;
+
     this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { country: encodedName },
-      queryParamsHandling: 'merge',
+      queryParams: {
+        search: this.searchQuery() || null,
+        country: encodedCountry,
+        sortBy: this.currentSortBy() !== 'name' ? this.currentSortBy() : null,
+        sortOrder: this.currentSortOrder() !== 'asc' ? this.currentSortOrder() : null,
+      },
       replaceUrl: true,
     });
   }
 
   onCountryChange(countryId: number | null): void {
     this.selectedCountryId.set(countryId);
-    this.updateCountryUrl(countryId);
+    this.updateUrlParams();
     if (this.paginator) {
       this.paginator.firstPage();
     }
@@ -220,6 +252,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
       clearTimeout(this.searchTimeout);
     }
     this.searchTimeout = setTimeout(() => {
+      this.updateUrlParams();
       if (this.paginator) {
         this.paginator.firstPage();
       }
@@ -229,6 +262,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
 
   clearSearch(): void {
     this.searchQuery.set('');
+    this.updateUrlParams();
     if (this.paginator) {
       this.paginator.firstPage();
     }
@@ -243,11 +277,13 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
     const sortBy = event.active || 'name';
     const sortOrder = (event.direction || 'asc') as 'asc' | 'desc';
     this.saveSort(sortBy, sortOrder);
+    this.updateUrlParams();
     this.reload((this.paginator?.pageIndex || 0) + 1);
   }
 
   onSortFieldChange(field: string): void {
     this.saveSort(field, this.currentSortOrder());
+    this.updateUrlParams();
     if (this.paginator) this.paginator.firstPage();
     this.reload();
   }
@@ -255,6 +291,7 @@ export class AttractionsListComponent implements OnInit, AfterViewInit {
   toggleSortOrder(): void {
     const newOrder = this.currentSortOrder() === 'asc' ? 'desc' : 'asc';
     this.saveSort(this.currentSortBy(), newOrder);
+    this.updateUrlParams();
     this.reload((this.paginator?.pageIndex || 0) + 1);
   }
 
