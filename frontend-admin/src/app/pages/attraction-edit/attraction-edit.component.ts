@@ -72,8 +72,6 @@ export class AttractionEditComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
-  private readonly COUNTRIES_WITH_STATES = ['United States', 'United States of America', 'Canada'];
-
   form!: FormGroup;
   isEditMode = signal(false);
   loading = signal(false);
@@ -86,7 +84,8 @@ export class AttractionEditComponent implements OnInit {
   states = signal<State[]>([]);
   loadingStates = signal(false);
   selectedCountryName = signal<string>('');
-  showStates = computed(() => this.COUNTRIES_WITH_STATES.includes(this.selectedCountryName()));
+  // Show the state field whenever the selected country has any states in the DB.
+  showStates = computed(() => this.states().length > 0 || this.loadingStates());
   mapMarkers = signal<MapMarker[]>([]);
   mapCenter = signal<[number, number]>([39.8283, -98.5795]);
   hasCoordinates = signal(false);
@@ -171,14 +170,14 @@ export class AttractionEditComponent implements OnInit {
             }
           }
         }),
-        // Determine if we need to load states for the current country
+        // Load states for the current country (if any)
         switchMap(({ countries, attraction }) => {
           const countryId = attraction?.country_id;
           const country = countryId
             ? countries.countries.find((c) => c.id === countryId)
             : undefined;
 
-          if (country && this.COUNTRIES_WITH_STATES.includes(country.name)) {
+          if (country) {
             this.selectedCountryName.set(country.name);
             this.loadingStates.set(true);
             return this.statesService.getAllStates('name').pipe(
@@ -224,8 +223,8 @@ export class AttractionEditComponent implements OnInit {
   }
 
   /**
-   * When the user changes country after initial load, reload states if US/Canada
-   * or clear them otherwise. Uses switchMap to cancel any in-flight states request.
+   * When the user changes country after initial load, reload states for the
+   * newly selected country. Uses switchMap to cancel any in-flight request.
    */
   private listenForCountryChanges(): void {
     this.form
@@ -235,27 +234,26 @@ export class AttractionEditComponent implements OnInit {
         tap((countryId) => {
           const country = this.countries().find((c) => c.id === countryId);
           this.selectedCountryName.set(country?.name || '');
+          // Reset state selection whenever the country changes
+          this.form.get('state_id')?.setValue(null, { emitEvent: false });
         }),
         switchMap((countryId) => {
-          if (this.showStates()) {
-            this.loadingStates.set(true);
-            return this.statesService.getAllStates('name').pipe(
-              tap((res) => {
-                this.states.set(
-                  res.states.filter((s) => Number(s.country_id) === Number(countryId))
-                );
-                this.loadingStates.set(false);
-              }),
-              catchError(() => {
-                this.states.set([]);
-                this.loadingStates.set(false);
-                return of(undefined);
-              })
-            );
+          if (!countryId) {
+            this.states.set([]);
+            return of(undefined);
           }
-          this.states.set([]);
-          this.form.get('state_id')?.setValue(null);
-          return of(undefined);
+          this.loadingStates.set(true);
+          return this.statesService.getAllStates('name').pipe(
+            tap((res) => {
+              this.states.set(res.states.filter((s) => Number(s.country_id) === Number(countryId)));
+              this.loadingStates.set(false);
+            }),
+            catchError(() => {
+              this.states.set([]);
+              this.loadingStates.set(false);
+              return of(undefined);
+            })
+          );
         })
       )
       .subscribe();

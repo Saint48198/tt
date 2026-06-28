@@ -219,8 +219,12 @@ class AttractionService {
     }
 
     if (state_id !== undefined && !Number.isNaN(state_id)) {
-      whereClauses.push(`attractions.state_id = $${paramIdx++}`);
+      // Include attractions explicitly assigned to this state OR country-wide
+      // attractions (state_id IS NULL) so they don't get hidden when a photo
+      // has a state selected.
+      whereClauses.push(`(attractions.state_id = $${paramIdx} OR attractions.state_id IS NULL)`);
       params.push(state_id);
+      paramIdx++;
     }
 
     if (search && search.trim()) {
@@ -269,8 +273,11 @@ class AttractionService {
       countParams.push(country_id);
     }
     if (state_id !== undefined && !Number.isNaN(state_id)) {
-      countWhereClauses.push(`attractions.state_id = $${countParamIdx++}`);
+      countWhereClauses.push(
+        `(attractions.state_id = $${countParamIdx} OR attractions.state_id IS NULL)`
+      );
       countParams.push(state_id);
+      countParamIdx++;
     }
     if (search && search.trim()) {
       countWhereClauses.push(

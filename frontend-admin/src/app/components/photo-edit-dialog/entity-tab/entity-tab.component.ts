@@ -1,6 +1,6 @@
 import { Component, DestroyRef, inject, signal, computed, OnInit } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, combineLatest } from 'rxjs';
 import { switchMap, tap, skip } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -89,12 +89,13 @@ export class EntityTabComponent implements OnInit {
   loadingEntities = signal(false);
 
   constructor() {
-    // Reactive pipeline: whenever stateId changes, reload cities + attractions
-    toObservable(this.state.stateId)
+    // Reactive pipeline: whenever countryId OR stateId changes, reload cities + attractions.
+    // (Listening to stateId alone misses country changes where stateId stays null,
+    //  e.g. switching to a country whose photos have no assigned state.)
+    combineLatest([toObservable(this.state.countryId), toObservable(this.state.stateId)])
       .pipe(
         tap(() => this.loadingEntities.set(true)),
-        switchMap((stateId) => {
-          const countryId = this.state.countryId();
+        switchMap(([countryId, stateId]) => {
           const cityParams: {
             country_id?: number;
             state_id?: number;
