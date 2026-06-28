@@ -13,7 +13,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
-import { lastValueFrom, firstValueFrom } from 'rxjs';
+import { lastValueFrom, firstValueFrom, finalize } from 'rxjs';
 import { PhotosService } from '../../services/photos.service';
 import { CountriesService } from '../../services/countries.service';
 import { GeocodeService } from '../../services/geocode.service';
@@ -832,10 +832,12 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
 
     this.photosService
       .uploadPhotos(rawFiles, country, exifData)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.uploading.set(false))
+      )
       .subscribe({
         next: (res) => {
-          this.uploading.set(false);
           this.uploadProgress.set(100);
           this.processingStage.set('done');
 
@@ -884,17 +886,15 @@ export class BulkUploadDialogComponent implements OnInit, OnDestroy {
           });
         },
         error: (err) => {
-          this.uploading.set(false);
           this.processingStage.set('idle');
+          const errorMessage = err?.error?.error || err?.message || 'Upload failed';
           // Mark uploading files as error
           this.files.update((files) =>
             files.map((f) =>
-              f.status === 'uploading'
-                ? { ...f, status: 'error' as const, errorMessage: 'Upload failed' }
-                : f
+              f.status === 'uploading' ? { ...f, status: 'error' as const, errorMessage } : f
             )
           );
-          this.snackBar.open(err?.error?.error || 'Upload failed', 'Close', { duration: 5000 });
+          this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
         },
       });
   }

@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>GPX Photo Geotagging</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          Arial;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 24px;
+        background: #f5f5f5;
+        color: #333;
+      }
+      h1 {
+        margin: 0 0 8px;
+      }
+      .subtitle {
+        color: #666;
+        margin: 0 0 24px;
+      }
+      .card {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .card-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #999;
+        margin: 0 0 12px;
+        letter-spacing: 0.05em;
+      }
+      .drop-zone {
+        border: 2px dashed #ccc;
+        border-radius: 6px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .drop-zone:hover,
+      .drop-zone.dragover {
+        background: #f0f7ff;
+        border-color: #2196f3;
+      }
+      .drop-zone .icon {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 10px;
+      }
+      input[type='file'] {
+        display: none;
+      }
+      .file-info {
+        margin-top: 12px;
+        font-size: 0.9rem;
+        display: none;
+      }
+      .file-info.show {
+        display: block;
+      }
+      .file-badge {
+        display: inline-block;
+        background: #e3f2fd;
+        padding: 4px 12px;
+        border-radius: 20px;
+        color: #1976d2;
+        font-weight: 600;
+        margin-right: 12px;
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      label {
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      input[type='number'] {
+        width: 100px;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+      .buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .btn-primary {
+        background: #2196f3;
+        color: white;
+      }
+      .btn-primary:hover:not(:disabled) {
+        background: #1976d2;
+      }
+      .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .btn-secondary {
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        color: #333;
+      }
+      .btn-secondary:hover {
+        background: #eeeeee;
+      }
+      .banner {
+        padding: 12px 16px;
+        border-radius: 4px;
+        margin-top: 12px;
+        display: none;
+        font-size: 0.9rem;
+      }
+      .banner.show {
+        display: block;
+      }
+      .banner.success {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+      }
+      .banner.error {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ffcdd2;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin-top: 12px;
+      }
+      th {
+        background: #f5f5f5;
+        padding: 8px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid #ddd;
+      }
+      td {
+        padding: 6px 8px;
+        border-bottom: 1px solid #eee;
+      }
+      tr:hover td {
+        background: #fafafa;
+      }
+      .status-ok {
+        color: #2e7d32;
+        font-weight: 600;
+      }
+      .status-ok::before {
+        content: '✓ ';
+      }
+      .status-fail {
+        color: #c62828;
+        font-weight: 600;
+      }
+      .status-fail::before {
+        content: '✗ ';
+      }
+      .preview-section {
+        display: none;
+      }
+      .preview-section.show {
+        display: block;
+      }
+      .stats {
+        display: flex;
+        gap: 24px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+      }
+      .stat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .stat-label {
+        color: #999;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .stat-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📍 GPX Photo Geotagging</h1>
+    <p class="subtitle">
+      Embed GPS coordinates from a GPX track into JPEG and RAW (CR2) photo metadata by matching
+      timestamps
+    </p>
+
+    <div class="card">
+      <div class="card-title">1. Load GPX Track</div>
+      <div class="drop-zone" id="gpx-zone">
+        <span class="icon">🗺️</span>
+        <p><strong>Drop GPX file here</strong> or click to browse</p>
+      </div>
+      <input type="file" id="gpx-file" accept=".gpx" />
+      <div class="file-info" id="gpx-info">
+        <span class="file-badge" id="gpx-name"></span>
+        <span id="gpx-points"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">2. Load Photos</div>
+      <div style="margin-bottom: 16px">
+        <label style="display: block; margin-bottom: 8px">Choose how to load photos:</label>
+        <div style="display: flex; gap: 12px">
+          <label
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              cursor: pointer;
+              font-weight: normal;
+            "
+          >
+            <input type="radio" name="file-mode" value="upload" checked />
+            <span>Upload (download results)</span>
+          </label>
+          <label
+            style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              cursor: pointer;
+              font-weight: normal;
+            "
+          >
+            <input type="radio" name="file-mode" value="direct" />
+            <span>Direct File Access (update in place)</span>
+          </label>
+        </div>
+      </div>
+
+      <div id="upload-mode">
+        <div class="drop-zone" id="img-zone">
+          <span class="icon">📸</span>
+          <p><strong>Drop JPEG or CR2 files here</strong> or click to browse</p>
+        </div>
+        <input type="file" id="img-files" accept=".jpg,.jpeg,.cr2" multiple />
+        <div class="file-info" id="img-info">
+          <span class="file-badge" id="img-count"></span>
+        </div>
+      </div>
+
+      <div id="direct-mode" style="display: none">
+        <button
+          class="btn-secondary"
+          id="btn-select-files"
+          style="width: 100%; padding: 40px 20px; border: 2px dashed #ccc; background: #f9f9f9"
+        >
+          <span style="font-size: 2.5rem; display: block; margin-bottom: 10px">📁</span>
+          <strong>Click to select files for direct update</strong>
+        </button>
+        <div class="file-info" id="direct-info">
+          <span class="file-badge" id="direct-count"></span>
+        </div>
+        <div
+          style="
+            background: #f0f7ff;
+            border: 1px solid #b3e5fc;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #01579b;
+          "
+        >
+          <strong>ℹ️ Direct File Access Mode:</strong>
+          <ul style="margin: 8px 0 0 0; padding-left: 20px">
+            <li>Browser will ask for permission to update these files</li>
+            <li>Files will be updated in place - no download needed</li>
+            <li>Works best with files on your local computer or accessible drives</li>
+            <li>If access is denied, you can use "Upload" mode instead</li>
+          </ul>
+        </div>
+      </div>
+
+      <p style="font-size: 0.85rem; color: #999; margin-top: 8px">
+        ⚠️ <strong>System Requirement:</strong> This tool requires <code>exiftool</code> to be
+        installed on the server. Please ensure it's installed before using this feature.
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">3. Settings</div>
+      <div class="controls">
+        <label for="offset">Camera UTC offset (hours):</label>
+        <input type="number" id="offset" value="0" step="0.5" />
+        <span style="color: #999; font-size: 0.85rem"
+          >For matching photos to GPS track. Downloaded files will use UTC timestamps from
+          GPX.</span
+        >
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">4. Run</div>
+      <div class="buttons">
+        <button class="btn-primary" id="btn-preview" disabled>Preview</button>
+        <button class="btn-primary" id="btn-download" disabled>Download Geotagged Photos</button>
+      </div>
+      <div class="banner" id="banner"></div>
+    </div>
+
+    <div class="card preview-section" id="preview-section">
+      <div class="card-title">Preview Results</div>
+      <div class="stats" id="stats"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Photo</th>
+            <th>Photo Time (UTC adjusted)</th>
+            <th>GPS (lat, lon)</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+
+    <script>
+      let gpxFile = null;
+      let photos = [];
+      let fileHandles = []; // For direct mode
+      let fileMode = 'upload'; // 'upload' or 'direct'
+
+      function loadGpx(file) {
+        gpxFile = file;
+        document.getElementById('gpx-name').textContent = file.name;
+        document.getElementById('gpx-points').textContent = 'Ready';
+        document.getElementById('gpx-info').classList.add('show');
+        updateButtons();
+      }
+
+      function loadPhotos(files) {
+        photos = files;
+        fileHandles = []; // Clear handles when loading from upload
+        document.getElementById('img-count').textContent = files.length + ' photo(s)';
+        document.getElementById('img-info').classList.add('show');
+        updateButtons();
+      }
+
+      function loadDirectPhotos(handles) {
+        fileHandles = handles;
+        photos = []; // Clear traditional files
+        document.getElementById('direct-count').textContent = handles.length + ' photo(s)';
+        document.getElementById('direct-info').classList.add('show');
+        updateButtons();
+      }
+
+      function updateButtons() {
+        const ok = gpxFile && (photos.length > 0 || fileHandles.length > 0);
+        document.getElementById('btn-preview').disabled = !ok;
+        document.getElementById('btn-download').disabled = !ok;
+      }
+
+      function showPreview(results, failed) {
+        const total = results.length + failed.length;
+        document.getElementById('stats').innerHTML = `
+          <div class="stat-item"><span class="stat-label">Total Photos</span><span class="stat-value">${total}</span></div>
+          <div class="stat-item"><span class="stat-label">Matched</span><span class="stat-value" style="color: #2e7d32;">${results.length}</span></div>
+          <div class="stat-item"><span class="stat-label">No Match</span><span class="stat-value" style="color: #c62828;">${failed.length}</span></div>
+        `;
+
+        const tbody = document.getElementById('results-body');
+        let html = '';
+
+        html += results
+          .map(
+            (r) => `<tr>
+          <td><span class="status-ok">Matched</span></td>
+          <td>${r.name}</td>
+          <td>${r.time}</td>
+          <td>${r.latHem}${r.lat}, ${r.lonHem}${r.lon}</td>
+          <td>${r.gap}</td>
+        </tr>`
+          )
+          .join('');
+
+        html += failed
+          .map(
+            (f) => `<tr style="opacity: 0.7;">
+          <td><span class="status-fail">Failed</span></td>
+          <td>${f.name}</td>
+          <td colspan="3"><small style="color: #666;">${f.reason}</small></td>
+        </tr>`
+          )
+          .join('');
+
+        tbody.innerHTML = html;
+        document.getElementById('preview-section').classList.add('show');
+      }
+
+      function showBanner(msg, type) {
+        const b = document.getElementById('banner');
+        b.textContent = msg;
+        b.className = 'banner show ' + type;
+        // Show errors for longer (10 seconds) so users can read them
+        const duration = type === 'error' ? 10000 : 5000;
+        setTimeout(() => b.classList.remove('show'), duration);
+      }
+
+      // File mode selection
+      document.querySelectorAll('input[name="file-mode"]').forEach((radio) => {
+        radio.addEventListener('change', (e) => {
+          fileMode = e.target.value;
+          document.getElementById('upload-mode').style.display =
+            fileMode === 'upload' ? 'block' : 'none';
+          document.getElementById('direct-mode').style.display =
+            fileMode === 'direct' ? 'block' : 'none';
+
+          // Update button label
+          const btn = document.getElementById('btn-download');
+          btn.textContent =
+            fileMode === 'direct' ? 'Update Files in Place' : 'Download Geotagged Photos';
+
+          photos = [];
+          fileHandles = [];
+          document.getElementById('img-info').classList.remove('show');
+          document.getElementById('direct-info').classList.remove('show');
+          updateButtons();
+        });
+      });
+
+      // Direct file selection
+      document.getElementById('btn-select-files').addEventListener('click', async () => {
+        if (!('showOpenFilePicker' in window)) {
+          showBanner(
+            'Your browser does not support File System Access API. Please use Chrome/Edge 86+ or Safari 16.4+',
+            'error'
+          );
+          return;
+        }
+
+        try {
+          const handles = await window.showOpenFilePicker({
+            types: [
+              {
+                description: 'Photo Files',
+                accept: {
+                  'image/jpeg': ['.jpg', '.jpeg'],
+                  'image/x-canon-cr2': ['.cr2'],
+                },
+              },
+            ],
+            multiple: true,
+          });
+          loadDirectPhotos(handles);
+        } catch (e) {
+          if (e && e.name !== 'AbortError') {
+            showBanner('Error selecting files: ' + (e.message || String(e)), 'error');
+          }
+        }
+      });
+
+      // Load GPX
+      const gpxZone = document.getElementById('gpx-zone');
+      const gpxFileInput = document.getElementById('gpx-file');
+      gpxZone.addEventListener('click', () => gpxFileInput.click());
+      gpxZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        gpxZone.classList.add('dragover');
+      });
+      gpxZone.addEventListener('dragleave', () => gpxZone.classList.remove('dragover'));
+      gpxZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        gpxZone.classList.remove('dragover');
+        if (e.dataTransfer.files[0]) loadGpx(e.dataTransfer.files[0]);
+      });
+      gpxFileInput.addEventListener('change', () => {
+        if (gpxFileInput.files[0]) loadGpx(gpxFileInput.files[0]);
+      });
+
+      // Load photos
+      const imgZone = document.getElementById('img-zone');
+      const imgFiles = document.getElementById('img-files');
+      imgZone.addEventListener('click', () => imgFiles.click());
+      imgZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        imgZone.classList.add('dragover');
+      });
+      imgZone.addEventListener('dragleave', () => imgZone.classList.remove('dragover'));
+      imgZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        imgZone.classList.remove('dragover');
+        loadPhotos(Array.from(e.dataTransfer.files));
+      });
+      imgFiles.addEventListener('change', () => loadPhotos(Array.from(imgFiles.files)));
+
+      // Preview button
+      document.getElementById('btn-preview').addEventListener('click', async () => {
+        if (!gpxFile || (photos.length === 0 && fileHandles.length === 0)) return;
+
+        const formData = new FormData();
+        formData.append('offset', document.getElementById('offset').value || '0');
+        formData.append('preview', 'true');
+        formData.append('gpx', gpxFile);
+
+        if (fileMode === 'direct') {
+          for (const handle of fileHandles) {
+            const file = await handle.getFile();
+            formData.append('images', file);
+          }
+        } else {
+          for (const photo of photos) {
+            formData.append('images', photo);
+          }
+        }
+
+        try {
+          showBanner('Processing...', 'success');
+          const response = await fetch('/api/gpx-geotag', {
+            method: 'POST',
+            body: formData,
+            timeout: 60000,
+          });
+
+          if (!response.ok) {
+            const err = await response
+              .json()
+              .catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
+            throw new Error(err.error || `Server error: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          showPreview(data.updated || [], data.failed || []);
+          showBanner('✓ Preview ready', 'success');
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          showBanner('Error: ' + msg, 'error');
+        }
+      });
+
+      // Download button (or update in place for direct mode)
+      document.getElementById('btn-download').addEventListener('click', async () => {
+        if (!gpxFile || (photos.length === 0 && fileHandles.length === 0)) return;
+
+        const formData = new FormData();
+        formData.append('offset', document.getElementById('offset').value || '0');
+        formData.append('gpx', gpxFile);
+
+        let imageMap = {}; // For direct mode: map filename to handle
+        if (fileMode === 'direct') {
+          for (const handle of fileHandles) {
+            const file = await handle.getFile();
+            formData.append('images', file);
+            imageMap[file.name] = handle;
+          }
+        } else {
+          for (const photo of photos) {
+            formData.append('images', photo);
+          }
+        }
+
+        try {
+          showBanner(
+            fileMode === 'direct'
+              ? 'Processing and updating files...'
+              : 'Processing and downloading...',
+            'success'
+          );
+          const response = await fetch('/api/gpx-geotag', {
+            method: 'POST',
+            body: formData,
+            timeout: 60000,
+          });
+
+          if (!response.ok) {
+            const err = await response
+              .json()
+              .catch(() => ({ error: `HTTP ${response.status}: ${response.statusText}` }));
+            throw new Error(err.error || `Server error: ${response.statusText}`);
+          }
+
+          if (fileMode === 'direct') {
+            // In direct mode, get the ZIP and extract files back to original handles
+            const blob = await response.blob();
+            const zip = await JSZip.loadAsync(blob);
+
+            let successCount = 0;
+            let failCount = 0;
+            let errors = [];
+
+            for (const handle of fileHandles) {
+              const file = await handle.getFile();
+              const entry = zip.file(file.name);
+
+              if (entry) {
+                try {
+                  // File was successfully updated
+                  const data = await entry.async('arraybuffer');
+                  const writable = await handle.createWritable();
+                  await writable.write(data);
+                  await writable.close();
+                  successCount++;
+                } catch (writeErr) {
+                  failCount++;
+                  const errMsg = writeErr instanceof Error ? writeErr.message : String(writeErr);
+                  errors.push(`${file.name}: ${errMsg}`);
+                  console.error(`Failed to write ${file.name}:`, writeErr);
+                }
+              } else {
+                failCount++;
+                errors.push(`${file.name}: No updated file in response`);
+              }
+            }
+
+            if (successCount > 0) {
+              showBanner(
+                `✓ Updated ${successCount} file(s)${failCount > 0 ? `, ${failCount} failed` : ''}!`,
+                'success'
+              );
+            } else if (failCount > 0) {
+              showBanner(
+                `✗ Failed to update files. ${errors.length > 0 ? 'Errors: ' + errors.join('; ') : 'Check browser permissions and try again.'}`,
+                'error'
+              );
+            }
+          } else {
+            // In upload mode, download the ZIP
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'geotagged-photos.zip';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showBanner('✓ Download complete!', 'success');
+          }
+        } catch (e) {
+          const errorMsg = e instanceof Error ? e.message : String(e);
+          const isPermissionError =
+            errorMsg.toLowerCase().includes('permission') ||
+            errorMsg.toLowerCase().includes('access') ||
+            errorMsg.toLowerCase().includes('not allowed');
+
+          if (isPermissionError) {
+            showBanner(
+              `✗ File access denied. Switch to "Upload" mode or ensure you have write permissions.`,
+              'error'
+            );
+          } else {
+            showBanner(`✗ Error: ${errorMsg.substring(0, 100)}`, 'error');
+          }
+          console.error('Update error:', e);
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -114,6 +114,11 @@ interface BulkRemovePhotosRequest {
   photos: { url: string }[];
   userId: string;
 }
+
+const IMAGE_METADATA_TIMEOUT_MS = 30_000;
+const IMAGE_OPTIMIZATION_TIMEOUT_MS = 90_000;
+const S3_UPLOAD_TIMEOUT_MS = 120_000;
+const EXIF_EXTRACTION_TIMEOUT_MS = 30_000;
 interface PhotosByEntityResponse {
   photos: Array<{
     id: number;
@@ -190,16 +195,56 @@ class PhotoService {
   /**
    * Upload a file buffer to S3 and return the object key.
    */
-  private async uploadToS3(filePath: string, key: string, contentType: string): Promise<void> {
+  private async uploadToS3(
+    filePath: string,
+    key: string,
+    contentType: string,
+    timeoutMs = S3_UPLOAD_TIMEOUT_MS
+  ): Promise<void> {
+    console.log(`[photoService] s3 sending key=${key} file=${filePath}`);
     const body = fs.readFileSync(filePath);
-    await this.s3.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: body,
-        ContentType: contentType,
-      })
-    );
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      await this.s3.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+          Body: body,
+          ContentType: contentType,
+        }),
+        { abortSignal: controller.signal }
+      );
+    } catch (error) {
+      if ((error as { name?: string })?.name === 'AbortError') {
+        throw new Error(`S3 upload timed out after ${timeoutMs}ms`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  private async withTimeout<T>(
+    operationName: string,
+    timeoutMs: number,
+    task: () => Promise<T>
+  ): Promise<T> {
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+
+    try {
+      return await Promise.race([
+        task(),
+        new Promise<T>((_, reject) => {
+          timeoutHandle = setTimeout(() => {
+            reject(new Error(`${operationName} timed out after ${timeoutMs}ms`));
+          }, timeoutMs);
+        }),
+      ]);
+    } finally {
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+    }
   }
 
   /**
@@ -954,8 +999,24 @@ class PhotoService {
     // Process files sequentially to avoid memory/sharp concurrency issues
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
+      console.log(
+        `[photoService] ▶ file ${i + 1}/${files.length} — ${file.newFilename} path=${file.filepath}`
+      );
+
+      // Verify the temp file actually exists before doing anything
+      if (!fs.existsSync(file.filepath)) {
+        console.error(`[photoService] ✖ temp file missing: ${file.filepath}`);
+        throw new Error(`Temp file missing: ${file.filepath}`);
+      }
+      const tempStat = fs.statSync(file.filepath);
+      console.log(`[photoService]   temp file size=${tempStat.size} bytes`);
+
       // Extract EXIF metadata before optimization (which may strip it)
-      const serverExif = await this.extractExifMetadata(file.filepath);
+      console.log(`[photoService]   stage=exif-extract`);
+      const serverExif = await this.withTimeout('EXIF extraction', EXIF_EXTRACTION_TIMEOUT_MS, () =>
+        this.extractExifMetadata(file.filepath)
+      );
+      console.log(`[photoService]   stage=exif-extract done`);
       // Merge with client-provided EXIF (client data is fallback when server extraction returns empty,
       // e.g. after canvas resize in the browser strips metadata)
       const clientExif = clientExifData?.[i] || {};
@@ -1003,55 +1064,76 @@ class PhotoService {
       const exifTags = exif.keywords || [];
       const mergedTags = [...new Set([...userTags, ...exifTags])];
 
-      // Optimize image
       const optimizedPath = `/tmp/optimized-${file.newFilename}`;
-      const finalPath = await this.optimizeImage(file.filepath, optimizedPath);
+      let finalPath = file.filepath;
 
-      // Determine format and content type
-      const imgMeta = await sharp(finalPath)
-        .metadata()
-        .catch(() => ({ format: 'jpeg' as const }));
-      const format = imgMeta.format === 'png' ? 'png' : 'jpeg';
-      const contentType = format === 'png' ? 'image/png' : 'image/jpeg';
-      const ext = format === 'png' ? 'png' : 'jpg';
-
-      // Build S3 key with country folder structure
-      const s3Key = this.buildS3Key(ext, country);
-
-      // Upload to S3
-      await this.uploadToS3(finalPath, s3Key, contentType);
-
-      // Generate public URL for immediate use
-      const publicUrl = this.getPublicUrl(s3Key);
-
-      // Clean up temp files
       try {
-        fs.unlinkSync(file.filepath);
-      } catch {
-        console.warn('Failed to delete temp file:', file.filepath);
-      }
-      if (finalPath !== file.filepath) {
+        // Optimize image with an upper bound so malformed images do not block the request.
+        console.log(`[photoService]   stage=optimize`);
+        finalPath = await this.withTimeout(
+          'Image optimization',
+          IMAGE_OPTIMIZATION_TIMEOUT_MS,
+          () => this.optimizeImage(file.filepath, optimizedPath)
+        );
+        console.log(`[photoService]   stage=optimize done finalPath=${finalPath}`);
+
+        // Determine format and content type
+        console.log(`[photoService]   stage=sharp-metadata`);
+        const imgMeta = await this.withTimeout(
+          'Image metadata read',
+          IMAGE_METADATA_TIMEOUT_MS,
+          () =>
+            sharp(finalPath)
+              .metadata()
+              .catch(() => ({ format: 'jpeg' as const }))
+        );
+        console.log(`[photoService]   stage=sharp-metadata done format=${imgMeta.format}`);
+        const format = imgMeta.format === 'png' ? 'png' : 'jpeg';
+        const contentType = format === 'png' ? 'image/png' : 'image/jpeg';
+        const ext = format === 'png' ? 'png' : 'jpg';
+
+        // Build S3 key with country folder structure
+        const s3Key = this.buildS3Key(ext, country);
+
+        // Upload to S3
+        console.log(`[photoService]   stage=s3-upload key=${s3Key}`);
+        await this.uploadToS3(finalPath, s3Key, contentType);
+        console.log(`[photoService]   stage=s3-upload done`);
+
+        // Generate public URL for immediate use
+        const publicUrl = this.getPublicUrl(s3Key);
+
+        uploadResults.push({
+          public_id: s3Key,
+          secure_url: publicUrl,
+          url: publicUrl,
+          format,
+          created_at: new Date().toISOString(),
+          created_date: dateTaken || new Date().toISOString(),
+          original_filename: file.originalFilename || file.newFilename,
+          tags: mergedTags,
+          context: { custom: { caption: effectiveTitle, alt: description } },
+          exif,
+        });
+        console.log(`[photoService]   ✔ file ${i + 1}/${files.length} complete url=${publicUrl}`);
+      } finally {
+        // Always clean temp files, including timeout/error paths.
         try {
-          fs.unlinkSync(finalPath);
+          fs.unlinkSync(file.filepath);
         } catch {
-          console.warn('Failed to delete optimized file:', finalPath);
+          console.warn('[photoService] Failed to delete temp file:', file.filepath);
+        }
+        if (finalPath !== file.filepath) {
+          try {
+            fs.unlinkSync(finalPath);
+          } catch {
+            console.warn('[photoService] Failed to delete optimized file:', finalPath);
+          }
         }
       }
-
-      uploadResults.push({
-        public_id: s3Key,
-        secure_url: publicUrl,
-        url: publicUrl,
-        format,
-        created_at: new Date().toISOString(),
-        created_date: dateTaken || new Date().toISOString(),
-        original_filename: file.originalFilename || file.newFilename,
-        tags: mergedTags,
-        context: { custom: { caption: effectiveTitle, alt: description } },
-        exif,
-      });
     }
 
+    console.log(`[photoService] ✔ uploadPhotos complete — ${uploadResults.length} image(s)`);
     return { success: true, images: uploadResults };
   }
 

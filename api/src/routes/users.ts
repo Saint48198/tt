@@ -162,7 +162,7 @@ router.put('/api/users/:id/password', async (req: Request, res: Response) => {
 /**
  * POST /api/users/:id/avatar - Upload a profile icon image
  */
-router.post('/api/users/:id/avatar', async (req: Request, res: Response): Promise<any> => {
+router.post('/api/users/:id/avatar', async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!id) {
@@ -179,68 +179,82 @@ router.post('/api/users/:id/avatar', async (req: Request, res: Response): Promis
     filter: ({ mimetype }) => !!mimetype && mimetype.startsWith('image/'),
   });
 
-  form.parse(req, async (err: any, _fields: any, files: any) => {
-    if (err) {
-      console.error('Avatar upload parse error:', err);
-      if (err.code === 1009) {
-        return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
-      }
-      return res.status(500).json({ error: 'Error parsing upload' });
-    }
+  try {
+    form.on('error', (err) => console.error('[avatar] form:error', err));
+    form.on('aborted', () => console.error('[avatar] form:aborted (client disconnected)'));
+    form.on('file', (name, file) => {
+      console.log(
+        `[avatar] form:file name=${name} originalFilename=${file.originalFilename} size=${file.size}`
+      );
+    });
+    req.on('aborted', () => console.error('[avatar] req:aborted'));
+    req.on('error', (err) => console.error('[avatar] req:error', err));
 
-    const fileField = files.file;
+    const { files } = await new Promise<{ files: unknown }>((resolve, reject) => {
+      form.parse(req, (err, _fields, parsedFiles) => {
+        if (err) return reject(err);
+        return resolve({ files: parsedFiles });
+      });
+    });
+
+    const filesObj = (files || {}) as Record<string, unknown>;
+    const fileField = filesObj['file'];
     const file = Array.isArray(fileField) ? fileField[0] : fileField;
 
-    if (!file) {
+    if (
+      !file ||
+      typeof file !== 'object' ||
+      typeof (file as { filepath?: unknown }).filepath !== 'string'
+    ) {
       return res.status(400).json({ error: 'No image file provided' });
     }
 
+    const uploadedFile = file as { filepath: string };
+
+    // Resize and convert to webp
+    const filename = `avatar-${id}-${Date.now()}.webp`;
+    const outputPath = path.join(AVATARS_DIR, filename);
+
+    await sharp(uploadedFile.filepath)
+      .resize(256, 256, { fit: 'cover' })
+      .webp({ quality: 85 })
+      .toFile(outputPath);
+
+    // Clean up temp file
     try {
-      // Resize and convert to webp
-      const filename = `avatar-${id}-${Date.now()}.webp`;
-      const outputPath = path.join(AVATARS_DIR, filename);
+      fs.unlinkSync(uploadedFile.filepath);
+    } catch {
+      /* ignore */
+    }
 
-      await sharp(file.filepath)
-        .resize(256, 256, { fit: 'cover' })
-        .webp({ quality: 85 })
-        .toFile(outputPath);
-
-      // Clean up temp file
-      try {
-        fs.unlinkSync(file.filepath);
-      } catch {
-        /* ignore */
-      }
-
-      // Delete old avatar file if it exists
-      const existingUser = await userService.getUserById(id);
-      if (existingUser?.profile_icon) {
-        const oldFilename = existingUser.profile_icon.split('/').pop();
-        if (oldFilename) {
-          const oldPath = path.join(AVATARS_DIR, oldFilename);
-          try {
-            fs.unlinkSync(oldPath);
-          } catch {
-            /* ignore */
-          }
+    // Delete old avatar file if it exists
+    const existingUser = await userService.getUserById(id);
+    if (existingUser?.profile_icon) {
+      const oldFilename = existingUser.profile_icon.split('/').pop();
+      if (oldFilename) {
+        const oldPath = path.join(AVATARS_DIR, oldFilename);
+        try {
+          fs.unlinkSync(oldPath);
+        } catch {
+          /* ignore */
         }
       }
-
-      // Save the path to the database
-      const avatarUrl = `/api/uploads/avatars/${filename}`;
-      await userService.updateUser(id, { profile_icon: avatarUrl });
-
-      return res.status(200).json({ profile_icon: avatarUrl });
-    } catch (uploadErr) {
-      console.error('Avatar processing error:', uploadErr);
-      try {
-        fs.unlinkSync(file.filepath);
-      } catch {
-        /* ignore */
-      }
-      return res.status(500).json({ error: 'Failed to process avatar image' });
     }
-  });
+
+    // Save the path to the database
+    const avatarUrl = `/api/uploads/avatars/${filename}`;
+    await userService.updateUser(id, { profile_icon: avatarUrl });
+
+    return res.status(200).json({ profile_icon: avatarUrl });
+  } catch (uploadErr) {
+    console.error('Avatar upload error:', uploadErr);
+    if ((uploadErr as { code?: number }).code === 1009) {
+      return res.status(400).json({ error: 'File too large. Maximum size is 5MB.' });
+    }
+    const message =
+      uploadErr instanceof Error ? uploadErr.message : 'Failed to process avatar image';
+    return res.status(500).json({ error: message });
+  }
 });
 
 /**

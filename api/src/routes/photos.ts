@@ -348,7 +348,9 @@ router.get('/api/photos/search', async (req: Request, res: Response) => {
 });
 
 // POST /api/photos/upload
-router.post('/api/photos/upload', async (req: Request, res: Response): Promise<any> => {
+router.post('/api/photos/upload', async (req: Request, res: Response) => {
+  const reqId = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  console.log(`[${reqId}] ▶ POST /api/photos/upload received`);
   try {
     const form = formidable({
       multiples: true,
@@ -359,80 +361,118 @@ router.post('/api/photos/upload', async (req: Request, res: Response): Promise<a
       maxFiles: 50,
     });
 
-    form.parse(req, async (err: any, fields: any, files: any) => {
-      if (err) {
-        console.error('Form parsing error:', err);
-        return res.status(500).json({ error: 'Error parsing form data' });
-      }
+    console.log(`[${reqId}] stage=form-parse starting`);
 
-      console.log('[Upload] Files keys:', Object.keys(files || {}));
-      const fileField = (files as any).files;
-      console.log(
-        '[Upload] fileField type:',
-        typeof fileField,
-        'isArray:',
-        Array.isArray(fileField),
-        'length:',
-        Array.isArray(fileField) ? fileField.length : fileField ? 1 : 0
-      );
-
-      if (!fileField) {
-        return res.status(400).json({ error: 'No file uploaded' });
-      }
-
-      const uploadedFiles = Array.isArray(fileField) ? fileField : [fileField];
-
-      const firstFieldValue = (v: unknown): string | undefined => {
-        if (v == null) return undefined;
-        if (Array.isArray(v)) return v[0] != null ? String(v[0]) : undefined;
-        return String(v);
-      };
-
-      const visibility = firstFieldValue((fields as any).visibility);
-      const tagsRaw = firstFieldValue((fields as any).tags);
-      const title = firstFieldValue((fields as any).title) ?? '';
-      const description = firstFieldValue((fields as any).description) ?? '';
-      const country = firstFieldValue((fields as any).country);
-      const exifDataRaw = firstFieldValue((fields as any).exifData);
-      let clientExifData:
-        | Array<{
-            title?: string;
-            keywords?: string[];
-            latitude?: number;
-            longitude?: number;
-            created_date?: string;
-          }>
-        | undefined;
-      try {
-        if (exifDataRaw) clientExifData = JSON.parse(exifDataRaw);
-      } catch {
-        /* ignore parse errors */
-      }
-
-      try {
-        const result = await photoService.uploadPhotos({
-          files: uploadedFiles.map((f: any) => ({
-            filepath: f.filepath,
-            newFilename: f.newFilename,
-            originalFilename: f.originalFilename || undefined,
-          })),
-          visibility,
-          tags: tagsRaw,
-          title,
-          description,
-          country,
-          clientExifData,
-        });
-
-        return res.status(200).json(result);
-      } catch (uploadError) {
-        console.error('Upload error:', uploadError);
-        return res.status(500).json({ error: 'Failed to upload images' });
-      }
+    // Wire up granular event logging so a stalled parse is never silent
+    form.on('error', (err) => console.error(`[${reqId}] form:error`, err));
+    form.on('aborted', () => console.error(`[${reqId}] form:aborted (client disconnected)`));
+    form.on('progress', (received, expected) => {
+      console.log(`[${reqId}] form:progress ${received}/${expected}`);
     });
+    form.on('file', (name, file) => {
+      console.log(
+        `[${reqId}] form:file name=${name} originalFilename=${file.originalFilename} size=${file.size}`
+      );
+    });
+    req.on('close', () => console.log(`[${reqId}] req:close`));
+    req.on('aborted', () => console.error(`[${reqId}] req:aborted`));
+    req.on('error', (err) => console.error(`[${reqId}] req:error`, err));
+
+    const { fields, files } = await new Promise<{ fields: unknown; files: unknown }>(
+      (resolve, reject) => {
+        form.parse(req, (err, parsedFields, parsedFiles) => {
+          if (err) return reject(err);
+          return resolve({ fields: parsedFields, files: parsedFiles });
+        });
+      }
+    );
+    console.log(`[${reqId}] stage=form-parse done`);
+
+    const fieldsObj = (fields || {}) as Record<string, unknown>;
+    const filesObj = (files || {}) as Record<string, unknown>;
+
+    console.log(`[${reqId}] Files keys:`, Object.keys(filesObj));
+    const fileField = filesObj['files'];
+    console.log(
+      `[${reqId}] fileField type:`,
+      typeof fileField,
+      'isArray:',
+      Array.isArray(fileField),
+      'length:',
+      Array.isArray(fileField) ? fileField.length : fileField ? 1 : 0
+    );
+
+    if (!fileField) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const uploadedFilesRaw = Array.isArray(fileField) ? fileField : [fileField];
+    const uploadedFiles = uploadedFilesRaw.filter(
+      (f): f is { filepath: string; newFilename: string; originalFilename?: string } =>
+        !!f &&
+        typeof f === 'object' &&
+        typeof (f as { filepath?: unknown }).filepath === 'string' &&
+        typeof (f as { newFilename?: unknown }).newFilename === 'string'
+    );
+
+    if (uploadedFiles.length === 0) {
+      return res.status(400).json({ error: 'No valid files uploaded' });
+    }
+
+    const firstFieldValue = (v: unknown): string | undefined => {
+      if (v == null) return undefined;
+      if (Array.isArray(v)) return v[0] != null ? String(v[0]) : undefined;
+      return String(v);
+    };
+
+    const visibility = firstFieldValue(fieldsObj['visibility']);
+    const tagsRaw = firstFieldValue(fieldsObj['tags']);
+    const title = firstFieldValue(fieldsObj['title']) ?? '';
+    const description = firstFieldValue(fieldsObj['description']) ?? '';
+    const country = firstFieldValue(fieldsObj['country']);
+    const exifDataRaw = firstFieldValue(fieldsObj['exifData']);
+    let clientExifData:
+      | Array<{
+          title?: string;
+          keywords?: string[];
+          latitude?: number;
+          longitude?: number;
+          created_date?: string;
+        }>
+      | undefined;
+    try {
+      if (exifDataRaw) clientExifData = JSON.parse(exifDataRaw);
+    } catch {
+      /* ignore parse errors */
+    }
+
+    console.log(
+      `[${reqId}] stage=uploadPhotos starting — ${uploadedFiles.length} file(s), country=${country}`
+    );
+
+    const result = await photoService.uploadPhotos({
+      files: uploadedFiles.map((f) => ({
+        filepath: f.filepath,
+        newFilename: f.newFilename,
+        originalFilename: f.originalFilename || undefined,
+      })),
+      visibility,
+      tags: tagsRaw,
+      title,
+      description,
+      country,
+      clientExifData,
+    });
+
+    console.log(`[${reqId}] stage=uploadPhotos done — ${result.images.length} image(s) uploaded`);
+    return res.status(200).json(result);
   } catch (error) {
-    console.error('Upload error:', error);
-    return res.status(500).json({ error: 'Failed to upload images' });
+    console.error(`[${reqId}] Upload error:`, error);
+    const message = error instanceof Error ? error.message : 'Failed to upload images';
+    if ((error as { code?: number }).code === 1009) {
+      return res.status(400).json({ error: 'Upload file is too large' });
+    }
+    return res.status(500).json({ error: message });
   }
 });
 

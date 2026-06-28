@@ -21,6 +21,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { finalize } from 'rxjs';
 import { HasUnsavedChanges } from '@shared/services';
 import { UsersService } from '../../services/users.service';
 import { User } from '../../interfaces';
@@ -240,19 +241,21 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     this.uploadingAvatar.set(true);
     this.usersService
       .uploadAvatar(this.userId, file)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.uploadingAvatar.set(false))
+      )
       .subscribe({
         next: (res) => {
           this.profileIconPreview.set(res.profile_icon);
           this.snackBar.open('Profile icon updated', 'Close', { duration: 3000 });
-          this.uploadingAvatar.set(false);
         },
-        error: (err: { error?: { error?: string } }) => {
-          this.snackBar.open(err?.error?.error || 'Failed to upload avatar', 'Close', {
+        error: (err: { error?: { error?: string }; message?: string }) => {
+          const msg = err?.error?.error || err?.message || 'Failed to upload avatar';
+          this.snackBar.open(msg, 'Close', {
             duration: 5000,
             panelClass: 'error-snackbar',
           });
-          this.uploadingAvatar.set(false);
         },
       });
 
@@ -269,19 +272,20 @@ export class UserEditComponent implements OnInit, HasUnsavedChanges {
     this.uploadingAvatar.set(true);
     this.usersService
       .removeAvatar(this.userId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.uploadingAvatar.set(false))
+      )
       .subscribe({
         next: () => {
           this.profileIconPreview.set(null);
           this.snackBar.open('Profile icon removed', 'Close', { duration: 3000 });
-          this.uploadingAvatar.set(false);
         },
         error: (err: { error?: { error?: string } }) => {
           this.snackBar.open(err?.error?.error || 'Failed to remove avatar', 'Close', {
             duration: 5000,
             panelClass: 'error-snackbar',
           });
-          this.uploadingAvatar.set(false);
         },
       });
   }

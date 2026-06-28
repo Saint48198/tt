@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>GPX Time Shifter</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          Arial;
+        padding: 28px 24px;
+        max-width: 780px;
+        margin: 0 auto;
+        background: #f4f5f9;
+        color: #1a1a2e;
+      }
+
+      h1 {
+        margin: 0 0 4px;
+        font-size: 1.6rem;
+      }
+      .subtitle {
+        color: #555;
+        margin: 0 0 28px;
+        font-size: 0.95rem;
+      }
+
+      /* ── Card ── */
+      .card {
+        background: #fff;
+        border: 1px solid #dde0ec;
+        border-radius: 10px;
+        padding: 20px 22px;
+        margin-bottom: 18px;
+      }
+      .card-title {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #7a7f9a;
+        margin: 0 0 14px;
+      }
+
+      /* ── Drop zone ── */
+      #drop-zone {
+        border: 2px dashed #b0b7d4;
+        border-radius: 8px;
+        padding: 32px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+        color: #555;
+      }
+      #drop-zone:hover,
+      #drop-zone.dragover {
+        background: #eef1fb;
+        border-color: #5c6bc0;
+      }
+      #drop-zone .icon {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 8px;
+      }
+      #drop-zone p {
+        margin: 0;
+        font-size: 0.93rem;
+      }
+      #file-input {
+        display: none;
+      }
+
+      #file-info {
+        margin-top: 12px;
+        font-size: 0.88rem;
+        color: #3a3f5c;
+        display: none;
+        align-items: center;
+        gap: 8px;
+      }
+      #file-info .file-name {
+        background: #eef1fb;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+      }
+      #clear-file {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #888;
+        font-size: 1rem;
+        line-height: 1;
+        padding: 0 2px;
+      }
+      #clear-file:hover {
+        color: #c62828;
+      }
+
+      /* ── Hours control ── */
+      .hours-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .hours-row label {
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      #hours-input {
+        width: 110px;
+        padding: 8px 10px;
+        font-size: 1.05rem;
+        border: 1px solid #c5c9de;
+        border-radius: 6px;
+        text-align: center;
+      }
+      #hours-input:focus {
+        outline: none;
+        border-color: #5c6bc0;
+        box-shadow: 0 0 0 3px rgba(92, 107, 192, 0.18);
+      }
+
+      .presets {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .preset-btn {
+        padding: 5px 11px;
+        font-size: 0.83rem;
+        border: 1px solid #c5c9de;
+        border-radius: 20px;
+        background: #f6f7fb;
+        cursor: pointer;
+        transition:
+          background 0.12s,
+          border-color 0.12s;
+      }
+      .preset-btn:hover {
+        background: #eef1fb;
+        border-color: #5c6bc0;
+      }
+      .preset-btn.active {
+        background: #5c6bc0;
+        border-color: #5c6bc0;
+        color: #fff;
+      }
+
+      /* ── Action buttons ── */
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button.primary {
+        padding: 9px 20px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        background: #5c6bc0;
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      button.primary:hover:not(:disabled) {
+        background: #3f51b5;
+      }
+      button.primary:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      button.secondary {
+        padding: 9px 18px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        background: #fff;
+        color: #3a3f5c;
+        border: 1px solid #c5c9de;
+        border-radius: 7px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      button.secondary:hover:not(:disabled) {
+        background: #f0f1f8;
+      }
+      button.secondary:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      /* ── Preview table ── */
+      #preview-section {
+        display: none;
+      }
+
+      .stats-row {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+        font-size: 0.88rem;
+        color: #444;
+      }
+      .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .stat strong {
+        font-size: 1.1rem;
+        color: #1a1a2e;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.87rem;
+      }
+      th {
+        text-align: left;
+        padding: 7px 10px;
+        background: #f0f1f8;
+        color: #555;
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid #dde0ec;
+      }
+      td {
+        padding: 6px 10px;
+        border-bottom: 1px solid #f0f1f8;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tr:hover td {
+        background: #f6f7fb;
+      }
+      .arr {
+        color: #9e9e9e;
+        padding: 0 6px;
+      }
+      .changed {
+        color: #2e7d32;
+        font-weight: 600;
+      }
+      .date-changed {
+        background: #fff3cd;
+        color: #856404;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-weight: 600;
+      }
+      .ts-old {
+        color: #888;
+      }
+
+      .more-note {
+        font-size: 0.82rem;
+        color: #888;
+        margin-top: 8px;
+        text-align: right;
+      }
+
+      /* ── Error / success banner ── */
+      .banner {
+        padding: 10px 14px;
+        border-radius: 7px;
+        font-size: 0.9rem;
+        display: none;
+        margin-top: 10px;
+      }
+      .banner.error {
+        background: #fdecea;
+        color: #b71c1c;
+        border: 1px solid #ef9a9a;
+      }
+      .banner.success {
+        background: #e8f5e9;
+        color: #1b5e20;
+        border: 1px solid #a5d6a7;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>⏱ GPX Time Shifter</h1>
+    <p class="subtitle">
+      Shift every <code>&lt;time&gt;</code> element in a GPX file forward or back by N hours. Dates
+      update automatically.
+    </p>
+
+    <!-- Step 1 — File -->
+    <div class="card">
+      <div class="card-title">1 · Choose GPX file</div>
+      <div
+        id="drop-zone"
+        role="button"
+        tabindex="0"
+        aria-label="Drop GPX file here or click to browse"
+      >
+        <span class="icon">📂</span>
+        <p><strong>Drop a .gpx file here</strong> or click to browse</p>
+      </div>
+      <input
+        type="file"
+        id="file-input"
+        accept=".gpx,application/gpx+xml,text/xml,application/xml"
+      />
+      <div id="file-info">
+        <span class="file-name" id="file-name-label"></span>
+        <span id="ts-count-badge"></span>
+        <button id="clear-file" title="Remove file">✕</button>
+      </div>
+    </div>
+
+    <!-- Step 2 — Hours -->
+    <div class="card">
+      <div class="card-title">2 · Time shift (hours)</div>
+      <div class="hours-row">
+        <label for="hours-input">Hours:</label>
+        <input id="hours-input" type="number" step="0.5" value="0" aria-label="Hours to shift" />
+        <div class="presets" aria-label="Quick presets">
+          <button class="preset-btn" data-h="0">No shift</button>
+          <button class="preset-btn" data-h="-14">−14</button>
+          <button class="preset-btn" data-h="-13">−13</button>
+          <button class="preset-btn" data-h="-12">−12</button>
+          <button class="preset-btn" data-h="-11">−11</button>
+          <button class="preset-btn" data-h="-10">−10</button>
+          <button class="preset-btn" data-h="-9">−9</button>
+          <button class="preset-btn" data-h="-8">−8</button>
+          <button class="preset-btn" data-h="-7">−7</button>
+          <button class="preset-btn" data-h="-6">−6</button>
+          <button class="preset-btn" data-h="-5">−5</button>
+          <button class="preset-btn" data-h="+5">+5</button>
+          <button class="preset-btn" data-h="+6">+6</button>
+          <button class="preset-btn" data-h="+7">+7</button>
+          <button class="preset-btn" data-h="+8">+8</button>
+          <button class="preset-btn" data-h="+9">+9</button>
+          <button class="preset-btn" data-h="+10">+10</button>
+          <button class="preset-btn" data-h="+11">+11</button>
+          <button class="preset-btn" data-h="+12">+12</button>
+          <button class="preset-btn" data-h="+13">+13</button>
+          <button class="preset-btn" data-h="+14">+14</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2b — Day shift -->
+    <div class="card">
+      <div class="card-title">2b · Day shift (optional)</div>
+      <div class="hours-row">
+        <label for="days-input">Days:</label>
+        <input id="days-input" type="number" step="1" value="0" aria-label="Days to shift" />
+        <span style="color: #666; font-size: 0.85rem">e.g., 1 for +1 day, -1 for -1 day</span>
+        <div class="presets" aria-label="Quick day presets">
+          <button class="preset-btn" data-d="-1">−1 day</button>
+          <button class="preset-btn active" data-d="0">No shift</button>
+          <button class="preset-btn" data-d="+1">+1 day</button>
+          <button class="preset-btn" data-d="+2">+2 days</button>
+          <button class="preset-btn" data-d="+7">+1 week</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 — Actions -->
+    <div class="card">
+      <div class="card-title">3 · Run</div>
+      <div class="actions">
+        <button class="primary" id="btn-preview" disabled>Preview changes</button>
+        <button class="primary" id="btn-download" disabled>⬇ Download shifted GPX</button>
+        <button class="secondary" id="btn-toggle-ampm">🕐 Toggle AM/PM (display only)</button>
+      </div>
+      <div class="banner error" id="banner-error"></div>
+      <div class="banner success" id="banner-success"></div>
+    </div>
+
+    <!-- Preview -->
+    <div class="card" id="preview-section">
+      <div class="card-title">Preview — all timestamps</div>
+      <div class="stats-row" id="stats-row"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Original UTC</th>
+            <th></th>
+            <th>Shifted UTC</th>
+          </tr>
+        </thead>
+        <tbody id="preview-body"></tbody>
+      </table>
+      <p class="more-note" id="more-note"></p>
+    </div>
+
+    <script>
+      // ── Core logic (mirrors Node script) ────────────────────────────────────
+
+      function shiftTimestamp(isoString, hours, days) {
+        const d = new Date(isoString.trim());
+        if (isNaN(d.getTime())) throw new Error(`Unparseable timestamp: "${isoString}"`);
+        const totalMs = hours * 3600000 + days * 86400000;
+        return new Date(d.getTime() + totalMs).toISOString();
+      }
+
+      function formatTime(isoString, format) {
+        if (format === '12h') {
+          const date = new Date(isoString);
+          const hours = String(date.getUTCHours()).padStart(2, '0');
+          const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+          const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+          const dateStr = isoString.substring(0, 10);
+
+          let hour12 = parseInt(hours);
+          const ampm = hour12 >= 12 ? 'PM' : 'AM';
+          if (hour12 > 12) hour12 -= 12;
+          else if (hour12 === 0) hour12 = 12;
+
+          return `${dateStr} ${String(hour12).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
+        }
+        return isoString;
+      }
+
+      function shiftGpxXml(xml, hours, days) {
+        let count = 0;
+        const updated = xml.replace(/<time>([^<]+)<\/time>/g, (match, iso) => {
+          try {
+            count++;
+            const shifted = shiftTimestamp(iso, hours, days);
+            if (count <= 3) {
+              // Log first 3 replacements
+              console.log(`[shiftGpxXml] Replacement ${count}: "${iso}" → "${shifted}"`);
+            }
+            return `<time>${shifted}</time>`;
+          } catch {
+            count--; // don't count unparseable
+            return match;
+          }
+        });
+
+        // Add metadata comment AFTER the XML declaration on a new line
+        // This preserves the XML declaration on a single line (required by XML spec)
+        const now = new Date().toISOString();
+        const metadata = `<!-- SHIFTED by GPX Time Shifter: ${hours}h ${days}d on ${now} - ${count} timestamps updated -->\n`;
+
+        // Insert comment right after the XML declaration line (after the ?> and newline)
+        const marked = updated.replace(/(<\?xml[^?]*\?>)\n/, `$1\n${metadata}`);
+
+        console.log(`[shiftGpxXml] Total replacements: ${count}`);
+        return { updated: marked, count };
+      }
+
+      // ── State ────────────────────────────────────────────────────────────────
+
+      let gpxText = null;
+      let gpxFileName = 'shifted.gpx';
+
+      // ── DOM refs ─────────────────────────────────────────────────────────────
+
+      const dropZone = document.getElementById('drop-zone');
+      const fileInput = document.getElementById('file-input');
+      const fileInfo = document.getElementById('file-info');
+      const fileNameLabel = document.getElementById('file-name-label');
+      const tsCountBadge = document.getElementById('ts-count-badge');
+      const clearFileBtn = document.getElementById('clear-file');
+      const hoursInput = document.getElementById('hours-input');
+      const daysInput = document.getElementById('days-input');
+      const presetBtns = document.querySelectorAll('.preset-btn[data-h]');
+      const dayPresetBtns = document.querySelectorAll('.preset-btn[data-d]');
+      const btnPreview = document.getElementById('btn-preview');
+      const btnDownload = document.getElementById('btn-download');
+      const btnToggleAMPM = document.getElementById('btn-toggle-ampm');
+      const bannerError = document.getElementById('banner-error');
+      const bannerSuccess = document.getElementById('banner-success');
+      const previewSection = document.getElementById('preview-section');
+      const statsRow = document.getElementById('stats-row');
+      const previewBody = document.getElementById('preview-body');
+      const moreNote = document.getElementById('more-note');
+      let displayFormat = '24h'; // '24h' or '12h'
+
+      // ── File loading ─────────────────────────────────────────────────────────
+
+      function loadFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          gpxText = e.target.result;
+          console.log('[loadFile] GPX file loaded:', file.name);
+          console.log('[loadFile] File size:', gpxText.length, 'bytes');
+
+          const matches = [...gpxText.matchAll(/<time>([^<]+)<\/time>/g)];
+          console.log('[loadFile] Time elements found:', matches.length);
+          if (matches.length > 0) {
+            console.log('[loadFile] First timestamp:', matches[0][1]);
+            console.log('[loadFile] Last timestamp:', matches[matches.length - 1][1]);
+          }
+
+          // Extract timezone offset from GPX comment (e.g., "<!-- TZ: 25200 -->")
+          const tzMatch = gpxText.match(/<!--\s*TZ:\s*(\d+)\s*-->/);
+          let autoShiftHours = 0;
+          if (tzMatch) {
+            const tzSeconds = parseInt(tzMatch[1]);
+            autoShiftHours = tzSeconds / 3600;
+            console.log(
+              '[loadFile] Timezone detected: TZ=' +
+                tzSeconds +
+                ' seconds = ' +
+                autoShiftHours +
+                ' hours'
+            );
+          }
+
+          gpxFileName = file.name.replace(/\.gpx$/i, '') + '-shifted.gpx';
+
+          fileNameLabel.textContent = file.name;
+          tsCountBadge.textContent = `${matches.length} timestamp${matches.length !== 1 ? 's' : ''}`;
+          fileInfo.style.display = 'flex';
+          btnPreview.disabled = false;
+          btnDownload.disabled = false;
+          hideBanners();
+          previewSection.style.display = 'none';
+
+          // Auto-set the hours field to the detected timezone offset
+          if (autoShiftHours !== 0) {
+            hoursInput.value = autoShiftHours;
+            console.log('[loadFile] Auto-populated hours field with:', autoShiftHours);
+            // Trigger input event to update active preset button
+            hoursInput.dispatchEvent(new Event('input'));
+          }
+
+          // Auto-show preview with the auto-detected timezone shift
+          setTimeout(() => showPreviewData(), 100);
+        };
+        reader.onerror = () => showError('Could not read the file.');
+        reader.readAsText(file);
+      }
+
+      dropZone.addEventListener('click', () => fileInput.click());
+      dropZone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') fileInput.click();
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) loadFile(fileInput.files[0]);
+      });
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) loadFile(file);
+      });
+
+      clearFileBtn.addEventListener('click', () => {
+        gpxText = null;
+        fileInput.value = '';
+        fileInfo.style.display = 'none';
+        btnPreview.disabled = true;
+        btnDownload.disabled = true;
+        previewSection.style.display = 'none';
+        hideBanners();
+      });
+
+      // ── Presets ──────────────────────────────────────────────────────────
+
+      presetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          hoursInput.value = parseFloat(btn.dataset.h);
+          presetBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      dayPresetBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const val = btn.dataset.d;
+          daysInput.value = parseInt(val);
+          dayPresetBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      hoursInput.addEventListener('input', () => {
+        const v = parseFloat(hoursInput.value);
+        presetBtns.forEach((btn) => {
+          btn.classList.toggle('active', parseFloat(btn.dataset.h) === v);
+        });
+        // Auto-refresh preview if visible
+        if (previewSection.style.display === 'block') {
+          showPreviewData();
+        }
+      });
+
+      daysInput.addEventListener('input', () => {
+        const v = parseInt(daysInput.value);
+        dayPresetBtns.forEach((btn) => {
+          btn.classList.toggle('active', parseInt(btn.dataset.d) === v);
+        });
+        // Auto-refresh preview if visible
+        if (previewSection.style.display === 'block') {
+          showPreviewData();
+        }
+      });
+
+      // ── Preview ──────────────────────────────────────────────────────
+
+      const PREVIEW_ROWS = -1; // -1 = show all, or set to a number for limit
+
+      function showPreviewData() {
+        if (!gpxText) return;
+        const hours = parseFloat(hoursInput.value);
+        const days = parseInt(daysInput.value) || 0;
+        if (isNaN(hours)) {
+          showError('Enter a valid number of hours.');
+          return;
+        }
+
+        try {
+          const { updated, count } = shiftGpxXml(gpxText, hours, days);
+          const origTimes = [...gpxText.matchAll(/<time>([^<]+)<\/time>/g)].map((m) => m[1].trim());
+          const newTimes = [...updated.matchAll(/<time>([^<]+)<\/time>/g)].map((m) => m[1].trim());
+
+          // Extract timezone offset if available (e.g., "<!-- TZ: 25200 -->")
+          const tzMatch = gpxText.match(/<!--\s*TZ:\s*(\d+)\s*-->/);
+          const tzSeconds = tzMatch ? parseInt(tzMatch[1]) : 0;
+          const tzHours = tzSeconds / 3600;
+          const tzSign = tzHours >= 0 ? '+' : '';
+
+          // Count all date changes in entire GPX
+          let totalDateChanges = 0;
+          for (let i = 0; i < origTimes.length; i++) {
+            const origDate = origTimes[i].substring(0, 10);
+            const newDate = newTimes[i].substring(0, 10);
+            if (origDate !== newDate) totalDateChanges++;
+          }
+
+          // Stats
+          statsRow.innerHTML = `
+              <div class="stat"><span>Timestamps found</span><strong>${count}</strong></div>
+              <div class="stat"><span>File timezone</span><strong>${tzSign}${Math.abs(tzHours)}h${tzSeconds % 3600 !== 0 ? ' ' + (tzSeconds % 3600) / 60 + 'm' : ''}</strong></div>
+              <div class="stat"><span>Shift applied</span><strong>${hours >= 0 ? '+' : ''}${hours}h${days !== 0 ? ` + ${days >= 0 ? '+' : ''}${days}d` : ''}</strong></div>
+              <div class="stat"><span>Dates changed</span><strong style="color: #ff9800;">${totalDateChanges}</strong></div>
+            `;
+
+          // Table
+          previewBody.innerHTML = '';
+          const rows =
+            PREVIEW_ROWS === -1 ? origTimes.length : Math.min(PREVIEW_ROWS, origTimes.length);
+          for (let i = 0; i < rows; i++) {
+            const tr = document.createElement('tr');
+            // Check if the date (not just time) changed
+            const origDate = origTimes[i].substring(0, 10); // YYYY-MM-DD
+            const newDate = newTimes[i].substring(0, 10);
+            const dateChanged = origDate !== newDate;
+            const dateClass = dateChanged ? 'date-changed' : 'changed';
+
+            tr.innerHTML = `
+                <td>${i + 1}</td>
+                <td class="ts-old">${esc(formatTime(origTimes[i], displayFormat))}</td>
+                <td class="arr">→</td>
+                <td class="${dateClass}">${esc(formatTime(newTimes[i], displayFormat))}${dateChanged ? ' ⚠️' : ''}</td>
+              `;
+            previewBody.appendChild(tr);
+          }
+
+          moreNote.textContent =
+            PREVIEW_ROWS > 0 && origTimes.length > PREVIEW_ROWS
+              ? `… and ${origTimes.length - PREVIEW_ROWS} more (all will be shifted on download)`
+              : '';
+
+          previewSection.style.display = 'block';
+          hideBanners();
+        } catch (err) {
+          showError(err.message);
+        }
+      }
+
+      btnPreview.addEventListener('click', () => {
+        showPreviewData();
+      });
+
+      // ── Download ─────────────────────────────────────────────────────────────
+
+      btnDownload.addEventListener('click', async () => {
+        if (!gpxText) return;
+        const hours = parseFloat(hoursInput.value);
+        const days = parseInt(daysInput.value) || 0;
+        if (isNaN(hours)) {
+          showError('Enter a valid number of hours.');
+          return;
+        }
+
+        try {
+          console.log('[Download] Starting download with hours=', hours, 'days=', days);
+          console.log('[Download] Original gpxText length:', gpxText.length);
+
+          const { updated, count } = shiftGpxXml(gpxText, hours, days);
+          console.log('[Download] Shifted count:', count);
+          console.log('[Download] Updated XML length:', updated.length);
+
+          // Verify the content actually changed
+          if (updated === gpxText) {
+            console.warn(
+              '[Download] ⚠️ WARNING: Updated XML is identical to original! No shifts applied.'
+            );
+          } else {
+            console.log('[Download] ✓ XML content has been modified');
+          }
+
+          // Find a sample time tag to verify it was shifted
+          const origTimeMatch = gpxText.match(/<time>([^<]+)<\/time>/);
+          const updatedTimeMatch = updated.match(/<time>([^<]+)<\/time>/);
+          if (origTimeMatch && updatedTimeMatch) {
+            console.log('[Download] Sample time tag:');
+            console.log('  Original:', origTimeMatch[1]);
+            console.log('  Updated: ', updatedTimeMatch[1]);
+            if (origTimeMatch[1] === updatedTimeMatch[1]) {
+              console.warn('[Download] ⚠️ First timestamp unchanged! Check hours/days values.');
+            }
+          }
+
+          // Create blob from the UPDATED (shifted) content
+          const blob = new Blob([updated], { type: 'application/gpx+xml' });
+          console.log('[Download] Blob created with size:', blob.size);
+
+          // Verify blob contents by reading first 200 chars
+          const blobReader = new FileReader();
+          blobReader.onload = () => {
+            const blobText = blobReader.result;
+            console.log('[Download] Blob content (first 300 chars):', blobText.substring(0, 300));
+            const blobTimeMatch = blobText.match(/<time>([^<]+)<\/time>/);
+            if (blobTimeMatch) {
+              console.log('[Download] Blob first timestamp:', blobTimeMatch[1]);
+            }
+          };
+          blobReader.readAsText(blob);
+
+          // Create unique filename with timestamp to prevent caching issues
+          const now = new Date();
+          const timestamp = now.toISOString().replace(/[:\-]/g, '').substring(0, 15); // e.g., 20260427T023045
+          const uniqueFileName = gpxFileName.replace(/\.gpx$/i, '') + '_' + timestamp + '.gpx';
+
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = uniqueFileName;
+          console.log('[Download] Created ObjectURL and triggering download as:', uniqueFileName);
+          console.log('[Download] ⚠️ Filename now includes timestamp to prevent caching');
+          a.click();
+
+          // Small delay before revoking to ensure download starts
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+
+          const shift = `${hours >= 0 ? '+' : ''}${hours}h${days !== 0 ? ` + ${days >= 0 ? '+' : ''}${days}d` : ''}`;
+          showSuccess(
+            `✓ Downloaded with ${count} timestamp${count !== 1 ? 's' : ''} shifted by ${shift}. Check your Downloads folder!`
+          );
+        } catch (err) {
+          console.error('[Download] Error:', err);
+          showError(err.message);
+        }
+      });
+
+      // ── AM/PM Toggle ──────────────────────────────────────────────────────
+
+      btnToggleAMPM.addEventListener('click', () => {
+        displayFormat = displayFormat === '24h' ? '12h' : '24h';
+        btnToggleAMPM.textContent =
+          displayFormat === '12h' ? '🕐 Switch to 24h' : '🕐 Toggle AM/PM';
+        // Re-render preview if visible
+        if (previewSection.style.display === 'block') {
+          showPreviewData();
+        }
+      });
+
+      // ── Helpers ──────────────────────────────────────────────────────────────
+
+      function showError(msg) {
+        bannerError.textContent = msg;
+        bannerError.style.display = 'block';
+        bannerSuccess.style.display = 'none';
+      }
+      function showSuccess(msg) {
+        bannerSuccess.textContent = msg;
+        bannerSuccess.style.display = 'block';
+        bannerError.style.display = 'none';
+      }
+      function hideBanners() {
+        bannerError.style.display = 'none';
+        bannerSuccess.style.display = 'none';
+      }
+      function esc(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+    </script>
+  </body>
+</html>

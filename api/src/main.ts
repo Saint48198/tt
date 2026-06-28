@@ -20,6 +20,7 @@ import tripsRouter from './routes/trips';
 import statsRouter from './routes/stats';
 import profileRouter from './routes/profile';
 import worldRegionsRouter from './routes/worldRegions';
+import gpxGeotagRouter from './routes/gpx-geotag';
 
 const app = express();
 
@@ -27,8 +28,21 @@ app.use(cors());
 app.use(cookieParser());
 app.use(express.json({ limit: '16mb' }));
 
+// NOTE: express-fileupload is intentionally NOT registered globally because
+// it consumes multipart request bodies and would break formidable-based
+// upload routes (/api/photos/upload, /api/users/:id/avatar).
+// It's scoped to the gpx-geotag endpoint only — see routes/gpx-geotag.ts.
+
 // Serve uploaded files (avatars, etc.)
 app.use('/api/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// Serve tools (gpx-geotag, etc.)
+// Use process.cwd() as fallback for development, __dirname for production
+const toolsPath =
+  process.env.NODE_ENV === 'production'
+    ? path.join(__dirname, '..', '..', 'tools')
+    : path.join(process.cwd(), 'tools');
+app.use('/tools', express.static(toolsPath));
 
 app.use(usersRouter);
 app.use(attractions);
@@ -47,6 +61,7 @@ app.use(tripsRouter);
 app.use(statsRouter);
 app.use(profileRouter);
 app.use(worldRegionsRouter);
+app.use(gpxGeotagRouter);
 
 const port = process.env.PORT || 3001;
 
