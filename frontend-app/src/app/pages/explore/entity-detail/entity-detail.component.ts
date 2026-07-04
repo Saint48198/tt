@@ -1,16 +1,12 @@
 import { Component, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import {
-  MapComponent,
-  MapMarker,
-  ImageLoaderComponent,
-  PhotoGridComponent,
-} from '@shared/components';
+import { MapComponent, MapMarker, PhotoGridComponent } from '@shared/components';
 import { ExploreDetailService } from '../../../services/explore.service';
 
 @Component({
+  standalone: true,
   selector: 'app-entity-detail',
-  imports: [MapComponent, ImageLoaderComponent, RouterLink, PhotoGridComponent],
+  imports: [MapComponent, RouterLink, PhotoGridComponent],
   templateUrl: './entity-detail.component.html',
   styleUrl: './entity-detail.component.scss',
 })

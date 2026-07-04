@@ -50,6 +50,7 @@ export class App implements OnInit {
         { label: 'Home', path: prefix || '/' },
         { label: 'Explore', path: `${prefix}/explore` },
         { label: 'My Trips', path: `${prefix}/trips` },
+        { label: 'Wish List', path: `${prefix}/wish-list` },
       ];
     })
   );

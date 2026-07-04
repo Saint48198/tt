@@ -21,6 +21,7 @@ import statsRouter from './routes/stats';
 import profileRouter from './routes/profile';
 import worldRegionsRouter from './routes/worldRegions';
 import gpxGeotagRouter from './routes/gpx-geotag';
+import wishListRouter from './routes/wishLists';
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use(statsRouter);
 app.use(profileRouter);
 app.use(worldRegionsRouter);
 app.use(gpxGeotagRouter);
+app.use(wishListRouter);
 
 const port = process.env.PORT || 3001;
 

@@ -1,5 +1,28 @@
 /* You can add global styles to this file, and also import other style files */
 
+/* ── Angular Material theme ── */
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$app-primary: mat.m2-define-palette(mat.$m2-indigo-palette, 900);
+$app-accent: mat.m2-define-palette(mat.$m2-blue-palette);
+$app-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+$app-theme: mat.m2-define-light-theme(
+  (
+    color: (
+      primary: $app-primary,
+      accent: $app-accent,
+      warn: $app-warn,
+    ),
+    typography: mat.m2-define-typography-config(),
+    density: 0,
+  )
+);
+
+@include mat.all-component-themes($app-theme);
+
 /* ── Skeleton loader ── */
 @keyframes skeleton-shimmer {
   0% {

@@ -14,3 +14,4 @@ export * from './lib/geocode';
 export * from './lib/wikipedia';
 export * from './lib/dashboard';
 export * from './lib/world-region';
+export * from './lib/wish-list';

@@ -51,6 +51,23 @@ export const appRoutes: Route[] = [
       import('./pages/trip-detail/trip-detail.component').then((m) => m.TripDetailComponent),
   },
   {
+    path: ':username/wish-list',
+    loadComponent: () =>
+      import('./pages/wish-list/wish-list.component').then((m) => m.WishListComponent),
+  },
+  {
+    path: ':username/wish-list/add',
+    loadComponent: () =>
+      import('./pages/wish-list/wish-list.component').then((m) => m.WishListComponent),
+    data: { mode: 'add' },
+  },
+  {
+    path: ':username/wish-list/:id/edit',
+    loadComponent: () =>
+      import('./pages/wish-list/wish-list.component').then((m) => m.WishListComponent),
+    data: { mode: 'edit' },
+  },
+  {
     path: ':username',
     pathMatch: 'full',
     loadComponent: () => import('./pages/home/home.component').then((m) => m.HomeComponent),

@@ -1,0 +1,314 @@
+<div class="wish-list-page">
+  <div class="page-header">
+    <h1>
+      <span class="title-icon" aria-hidden="true">✨</span>
+      Wish List
+    </h1>
+    @if (!loading()) {
+      <span class="item-count">
+        {{ counts().all }} {{ counts().all === 1 ? 'item' : 'items' }}
+      </span>
+    }
+    <button mat-raised-button color="primary" type="button" (click)="openAddForm()">+ Add</button>
+  </div>
+
+  <p class="page-subtitle">Future countries, cities, and attractions you'd love to visit.</p>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs" role="tablist">
+    @for (opt of filterOptions; track opt.value) {
+      <button
+        type="button"
+        role="tab"
+        class="filter-tab"
+        [class.active]="filter() === opt.value"
+        [attr.aria-selected]="filter() === opt.value"
+        (click)="filter.set(opt.value)"
+      >
+        {{ opt.label }}
+        <span class="filter-count">
+          @switch (opt.value) {
+            @case ('all') {
+              {{ counts().all }}
+            }
+            @case ('country') {
+              {{ counts().country }}
+            }
+            @case ('city') {
+              {{ counts().city }}
+            }
+            @case ('attraction') {
+              {{ counts().attraction }}
+            }
+          }
+        </span>
+      </button>
+    }
+  </div>
+
+  <!-- Add / Edit form -->
+  @if (showForm()) {
+    <form class="wish-form" (ngSubmit)="submitForm()">
+      <h2>{{ editingId() ? 'Edit Wish' : 'Add to Wish List' }}</h2>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Type</mat-label>
+          <mat-select
+            id="wish-type"
+            name="type"
+            [ngModel]="formType()"
+            (ngModelChange)="onTypeChange($event)"
+          >
+            @for (opt of typeOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.icon }} {{ opt.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Country picker with search — required for type=country, used as filter for city/attraction -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>
+            Country
+            @if (formType() === 'country') {
+              <span class="req">*</span>
+            } @else {
+              <span class="hint">(optional filter)</span>
+            }
+          </mat-label>
+          <input
+            matInput
+            id="wish-country"
+            name="country"
+            autocomplete="off"
+            placeholder="Search countries..."
+            [ngModel]="formCountryQuery()"
+            (ngModelChange)="onCountryQueryChange($event)"
+            [matAutocomplete]="countryAuto"
+          />
+          <mat-autocomplete
+            #countryAuto="matAutocomplete"
+            (optionSelected)="onCountryChange($event.option.value)"
+          >
+            @for (c of filteredCountries(); track c.id) {
+              <mat-option [value]="c.id">
+                {{ c.name }}
+                @if (c.abbreviation) {
+                  <span class="muted">({{ c.abbreviation }})</span>
+                }
+              </mat-option>
+            }
+            @if (filteredCountries().length === 0) {
+              <mat-option disabled>No countries found</mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+      </div>
+
+      <!-- City picker -->
+      @if (formType() === 'city') {
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>City <span class="req">*</span></mat-label>
+            <input
+              matInput
+              id="wish-city"
+              autocomplete="off"
+              placeholder="Start typing a city name…"
+              [ngModel]="formCityLabel()"
+              name="city"
+              (ngModelChange)="onCityQueryChange($event)"
+              [matAutocomplete]="cityAuto"
+            />
+            <mat-autocomplete
+              #cityAuto="matAutocomplete"
+              (optionSelected)="pickCity($event.option.value)"
+            >
+              @for (s of citySuggestions(); track s.id) {
+                <mat-option [value]="s">
+                  <strong>{{ s.name }}</strong>
+                  @if (s.country_name) {
+                    <span class="muted">— {{ s.country_name }}</span>
+                  }
+                </mat-option>
+              }
+              @if (citySuggestions().length === 0 && formCityLabel().length > 0) {
+                <mat-option disabled>No cities found</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+      }
+
+      <!-- Attraction picker -->
+      @if (formType() === 'attraction') {
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Attraction <span class="req">*</span></mat-label>
+            <input
+              matInput
+              id="wish-attraction"
+              autocomplete="off"
+              placeholder="Start typing an attraction name…"
+              [ngModel]="formAttractionLabel()"
+              name="attraction"
+              (ngModelChange)="onAttractionQueryChange($event)"
+              [matAutocomplete]="attractionAuto"
+            />
+            <mat-autocomplete
+              #attractionAuto="matAutocomplete"
+              (optionSelected)="pickAttraction($event.option.value)"
+            >
+              @for (s of attractionSuggestions(); track s.id) {
+                <mat-option [value]="s">
+                  <strong>{{ s.name }}</strong>
+                  @if (s.country_name) {
+                    <span class="muted">— {{ s.country_name }}</span>
+                  }
+                </mat-option>
+              }
+              @if (attractionSuggestions().length === 0 && formAttractionLabel().length > 0) {
+                <mat-option disabled>No attractions found</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+        </div>
+      }
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Priority</mat-label>
+          <mat-select
+            id="wish-priority"
+            name="priority"
+            [ngModel]="formPriority()"
+            (ngModelChange)="formPriority.set($event)"
+          >
+            <mat-option [value]="0">Normal</mat-option>
+            <mat-option [value]="1">High</mat-option>
+            <mat-option [value]="2">Top</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notes</mat-label>
+          <textarea
+            matInput
+            id="wish-notes"
+            name="notes"
+            rows="3"
+            maxlength="1000"
+            placeholder="Why do you want to visit?"
+            [ngModel]="formNotes()"
+            (ngModelChange)="formNotes.set($event)"
+          ></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="form-actions">
+        <button mat-stroked-button type="button" (click)="cancelForm()">Cancel</button>
+        <button
+          mat-raised-button
+          color="primary"
+          type="submit"
+          [disabled]="saving() || !formValid()"
+        >
+          {{ saving() ? 'Saving…' : editingId() ? 'Save Changes' : 'Add Wish' }}
+        </button>
+      </div>
+    </form>
+  }
+
+  <!-- Loading skeleton -->
+  @if (loading()) {
+    <div class="wish-grid">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="wish-card-skeleton">
+          <div class="skeleton skeleton-name"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-line short"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-state">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error() }}</p>
+      <button mat-raised-button color="accent" type="button" (click)="load()">Try Again</button>
+    </div>
+  }
+
+  <!-- Empty -->
+  @if (!loading() && !error() && filteredItems().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">✨</span>
+      <h2>
+        {{ filter() === 'all' ? 'Your wish list is empty' : 'No ' + filter() + ' wishes yet' }}
+      </h2>
+      <p>Start dreaming up your next adventure.</p>
+      <button mat-raised-button color="primary" type="button" (click)="openAddForm()">
+        Add your first wish
+      </button>
+    </div>
+  }
+
+  <!-- Wish cards -->
+  @if (!loading() && !error() && filteredItems().length > 0) {
+    <div class="wish-grid">
+      @for (item of filteredItems(); track item.id) {
+        <article
+          class="wish-card"
+          [class.priority-high]="item.priority === 1"
+          [class.priority-top]="item.priority >= 2"
+        >
+          <header class="wish-card-header">
+            <span class="wish-type-badge" [attr.data-type]="item.type">
+              <span class="badge-icon" aria-hidden="true">{{ iconForType(item.type) }}</span>
+              {{ labelForType(item.type) }}
+            </span>
+            @if (item.priority >= 2) {
+              <span class="priority-pill top">★ Top</span>
+            } @else if (item.priority === 1) {
+              <span class="priority-pill high">High</span>
+            }
+          </header>
+
+          <h3 class="wish-name">{{ item.name }}</h3>
+          @if (contextLine(item)) {
+            <p class="wish-context">{{ contextLine(item) }}</p>
+          }
+
+          @if (item.notes) {
+            <p class="wish-notes">{{ item.notes }}</p>
+          }
+
+          <footer class="wish-card-footer">
+            <button
+              type="button"
+              class="link-btn"
+              (click)="openEditForm(item)"
+              aria-label="Edit wish"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              class="link-btn danger"
+              (click)="deleteItem(item)"
+              aria-label="Remove wish"
+            >
+              Remove
+            </button>
+          </footer>
+        </article>
+      }
+    </div>
+  }
+</div>

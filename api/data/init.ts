@@ -85,6 +85,33 @@ async function init() {
       );
     `);
 
+    // wish_list TABLE — future destinations the user wants to visit
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS wish_list (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        type TEXT NOT NULL CHECK (type IN ('country', 'city', 'attraction')),
+        name TEXT NOT NULL,
+        country_id INTEGER,
+        city_id INTEGER,
+        attraction_id INTEGER,
+        notes TEXT,
+        priority INTEGER NOT NULL DEFAULT 0,
+        created_date TIMESTAMP DEFAULT NOW(),
+        updated_date TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_wish_list_user ON wish_list (user_id);
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_wish_list_type ON wish_list (type);
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_wish_list_priority
+        ON wish_list (priority DESC, created_date DESC);
+    `);
+
     // states TABLE
     await client.query(`
       CREATE TABLE IF NOT EXISTS states (
