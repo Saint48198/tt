@@ -49,12 +49,38 @@
 
     <mat-form-field appearance="outline" class="filter-field">
       <mat-label>Country</mat-label>
-      <mat-select [value]="selectedCountryId()" (selectionChange)="onCountryChange($event.value)">
-        <mat-option [value]="null">All Countries</mat-option>
-        @for (country of countries(); track country.id) {
-          <mat-option [value]="country.id">{{ country.name }}</mat-option>
+      <input
+        matInput
+        type="text"
+        placeholder="Search countries…"
+        autocomplete="off"
+        [value]="countryQuery()"
+        (input)="onCountryQueryChange($any($event.target).value)"
+        [matAutocomplete]="countryAuto"
+      />
+      @if (countryQuery()) {
+        <button
+          matSuffix
+          mat-icon-button
+          type="button"
+          aria-label="Clear country"
+          (click)="clearCountry()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+      <mat-autocomplete
+        #countryAuto="matAutocomplete"
+        [displayWith]="displayCountry"
+        (optionSelected)="onCountrySelected($event)"
+      >
+        @for (country of countryOptions(); track country.id) {
+          <mat-option [value]="country">{{ country.name }}</mat-option>
         }
-      </mat-select>
+        @if (countryOptions().length === 0) {
+          <mat-option disabled>No countries match</mat-option>
+        }
+      </mat-autocomplete>
     </mat-form-field>
   </div>
 

@@ -13,6 +13,12 @@ interface AttractionAlias {
   created_date?: string;
 }
 
+interface AttractionState {
+  id: number;
+  name: string;
+  abbr?: string;
+}
+
 interface Attraction {
   id: number;
   name: string;
@@ -23,8 +29,15 @@ interface Attraction {
   wiki_term?: string;
   country_id: number;
   country_name?: string;
+  /**
+   * @deprecated Prefer `states[]`. Kept for API back-compat and populated
+   * from the FIRST entry of `states[]` (ordered by state name).
+   */
   state_id?: number;
+  /** @deprecated Prefer `states[]`. Populated from the first entry of `states[]`. */
   state_name?: string;
+  /** All states associated with this attraction (many-to-many). */
+  states: AttractionState[];
   created_date?: string;
   updated_date?: string;
   disabled_date?: string;
@@ -46,7 +59,10 @@ interface ListAttractionsOptions {
 interface CreateAttractionData {
   name: string;
   country_id: number;
+  /** @deprecated Prefer `state_ids`. When provided, treated as a single-item list. */
   state_id?: number | null;
+  /** States for the attraction (many-to-many). */
+  state_ids?: number[];
   type_ids?: number[];
   lat: number;
   lng: number;
@@ -57,7 +73,10 @@ interface CreateAttractionData {
 interface UpdateAttractionData {
   name?: string;
   country_id?: number;
+  /** @deprecated Prefer `state_ids`. */
   state_id?: number | null;
+  /** States for the attraction. When present, replaces all assignments. */
+  state_ids?: number[];
   type_ids?: number[];
   lat?: number;
   lng?: number;
@@ -185,6 +204,66 @@ class AttractionService {
     }
   }
 
+  /**
+   * Attach states[] to each attraction by querying the join table.
+   */
+  private async attachStates(attractions: Attraction[]): Promise<void> {
+    if (attractions.length === 0) return;
+    const ids = attractions.map((a) => a.id);
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const rows = await db.all<{
+      attraction_id: number;
+      id: number;
+      name: string;
+      abbr: string | null;
+    }>(
+      `SELECT asa.attraction_id, s.id, s.name, s.abbr
+       FROM attraction_state_assignments asa
+       JOIN states s ON s.id = asa.state_id
+       WHERE asa.attraction_id IN (${placeholders})
+       ORDER BY s.name`,
+      ids
+    );
+    const stateMap = new Map<number, AttractionState[]>();
+    for (const row of rows) {
+      if (!stateMap.has(row.attraction_id)) stateMap.set(row.attraction_id, []);
+      stateMap.get(row.attraction_id)!.push({
+        id: row.id,
+        name: row.name,
+        abbr: row.abbr ?? undefined,
+      });
+    }
+    for (const a of attractions) {
+      const states = stateMap.get(a.id) || [];
+      a.states = states;
+      // Populate deprecated single-state fields from the first assignment
+      // so existing consumers keep working.
+      if (states.length > 0) {
+        a.state_id = states[0].id;
+        a.state_name = states[0].name;
+      } else {
+        a.state_id = undefined;
+        a.state_name = undefined;
+      }
+    }
+  }
+
+  /**
+   * Replace all state assignments for an attraction (1-to-many).
+   */
+  private async setStates(attractionId: number, stateIds: number[]): Promise<void> {
+    await db.run('DELETE FROM attraction_state_assignments WHERE attraction_id = $1', [
+      attractionId,
+    ]);
+    for (const stateId of stateIds) {
+      if (stateId == null) continue;
+      await db.run(
+        'INSERT INTO attraction_state_assignments (attraction_id, state_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [attractionId, stateId]
+      );
+    }
+  }
+
   public async getAttractions(options: ListAttractionsOptions): Promise<{
     attractions: Attraction[];
     total: number;
@@ -219,10 +298,18 @@ class AttractionService {
     }
 
     if (state_id !== undefined && !Number.isNaN(state_id)) {
-      // Include attractions explicitly assigned to this state OR country-wide
-      // attractions (state_id IS NULL) so they don't get hidden when a photo
-      // has a state selected.
-      whereClauses.push(`(attractions.state_id = $${paramIdx} OR attractions.state_id IS NULL)`);
+      // Match attractions linked to this state via the join table, OR
+      // attractions with no state at all (country-wide).
+      whereClauses.push(
+        `(EXISTS (
+            SELECT 1 FROM attraction_state_assignments asa
+            WHERE asa.attraction_id = attractions.id AND asa.state_id = $${paramIdx}
+          )
+          OR NOT EXISTS (
+            SELECT 1 FROM attraction_state_assignments asa2
+            WHERE asa2.attraction_id = attractions.id
+          ))`
+      );
       params.push(state_id);
       paramIdx++;
     }
@@ -239,19 +326,18 @@ class AttractionService {
 
     const baseSelect = `
       SELECT attractions.id, attractions.name, attractions.lat, attractions.lng,
-             attractions.last_visited, attractions.wiki_term, attractions.state_id,
+             attractions.last_visited, attractions.wiki_term,
              attractions.created_date, attractions.updated_date, attractions.disabled_date,
-             countries.name AS country_name,
-             states.name AS state_name
+             countries.name AS country_name
       FROM attractions
       JOIN countries ON attractions.country_id = countries.id
-      LEFT JOIN states ON attractions.state_id = states.id
       ${whereClause}
       ORDER BY ${sortByStr} ${sortOrderStr.toUpperCase()}`;
 
     if (all) {
       const attractions = await db.all<Attraction>(baseSelect, params);
       await this.attachTypes(attractions);
+      await this.attachStates(attractions);
       return { attractions, total: attractions.length, page: 1, limit: attractions.length };
     }
 
@@ -261,6 +347,7 @@ class AttractionService {
 
     const attractions = await db.all<Attraction>(query, params);
     await this.attachTypes(attractions);
+    await this.attachStates(attractions);
 
     const countParams: any[] = [];
     let countParamIdx = 1;
@@ -274,7 +361,14 @@ class AttractionService {
     }
     if (state_id !== undefined && !Number.isNaN(state_id)) {
       countWhereClauses.push(
-        `(attractions.state_id = $${countParamIdx} OR attractions.state_id IS NULL)`
+        `(EXISTS (
+            SELECT 1 FROM attraction_state_assignments asa
+            WHERE asa.attraction_id = attractions.id AND asa.state_id = $${countParamIdx}
+          )
+          OR NOT EXISTS (
+            SELECT 1 FROM attraction_state_assignments asa2
+            WHERE asa2.attraction_id = attractions.id
+          ))`
       );
       countParams.push(state_id);
       countParamIdx++;
@@ -301,34 +395,42 @@ class AttractionService {
     const attraction = await db.get<Attraction>(
       `SELECT attractions.id, attractions.name,
               attractions.lat, attractions.lng, attractions.last_visited, attractions.wiki_term,
-              attractions.state_id,
               attractions.created_date, attractions.updated_date, attractions.disabled_date,
-              countries.id as country_id, countries.name as country_name,
-              states.name as state_name
+              countries.id as country_id, countries.name as country_name
        FROM attractions
        JOIN countries ON attractions.country_id = countries.id
-       LEFT JOIN states ON attractions.state_id = states.id
        WHERE attractions.id = $1 AND attractions.disabled_date IS NULL`,
       [id]
     );
     if (attraction) {
       await this.attachTypes([attraction]);
+      await this.attachStates([attraction]);
       await this.attachAliases([attraction]);
     }
     return attraction;
   }
 
   public async createAttraction(data: CreateAttractionData): Promise<{ id: number }> {
-    const { name, country_id, state_id, type_ids, lat, lng, last_visited, wiki_term } = data;
+    const { name, country_id, state_id, state_ids, type_ids, lat, lng, last_visited, wiki_term } =
+      data;
+
     const result = await db.run(
-      `INSERT INTO attractions (name, country_id, state_id, lat, lng, last_visited, wiki_term)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-      [name, country_id, state_id || null, lat, lng, last_visited || null, wiki_term]
+      `INSERT INTO attractions (name, country_id, lat, lng, last_visited, wiki_term)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
+      [name, country_id, lat, lng, last_visited || null, wiki_term]
     );
     const attractionId = result.rows[0].id;
+
     if (type_ids && type_ids.length > 0) {
       await this.setTypes(attractionId, type_ids);
     }
+
+    // Sync join table. Prefer explicit state_ids; otherwise fall back to
+    // a single-item list built from the legacy state_id.
+    const stateIdsToStore =
+      state_ids && state_ids.length > 0 ? state_ids : state_id != null ? [state_id] : [];
+    await this.setStates(attractionId, stateIdsToStore);
+
     return { id: attractionId };
   }
 
@@ -336,15 +438,27 @@ class AttractionService {
     id: number | string,
     data: UpdateAttractionData
   ): Promise<{ success: boolean; changes: number }> {
-    const { name, country_id, state_id, type_ids, lat, lng, last_visited, wiki_term } = data;
+    const { name, country_id, state_id, state_ids, type_ids, lat, lng, last_visited, wiki_term } =
+      data;
+
     const result = await db.run(
-      `UPDATE attractions SET name=$1, country_id=$2, state_id=$3,
-       lat=$4, lng=$5, last_visited=$6, wiki_term=$7, updated_date=NOW() WHERE id=$8`,
-      [name, country_id, state_id ?? null, lat, lng, last_visited || null, wiki_term, id]
+      `UPDATE attractions SET name=$1, country_id=$2,
+       lat=$3, lng=$4, last_visited=$5, wiki_term=$6, updated_date=NOW() WHERE id=$7`,
+      [name, country_id, lat, lng, last_visited || null, wiki_term, id]
     );
+
     if (type_ids !== undefined) {
       await this.setTypes(Number(id), type_ids);
     }
+
+    // Only replace state assignments if the caller explicitly sent
+    // `state_ids`, or sent a `state_id` (legacy single-state update).
+    if (state_ids !== undefined) {
+      await this.setStates(Number(id), state_ids);
+    } else if (state_id !== undefined) {
+      await this.setStates(Number(id), state_id == null ? [] : [state_id]);
+    }
+
     return { success: result.rowCount > 0, changes: result.rowCount };
   }
 
@@ -408,29 +522,32 @@ class AttractionService {
     const lower = name.toLowerCase().trim();
 
     let attraction = await db.get<Attraction>(
-      `SELECT attractions.*, countries.name AS country_name, states.name AS state_name
+      `SELECT attractions.*, countries.name AS country_name
        FROM attractions
        LEFT JOIN countries ON attractions.country_id = countries.id
-       LEFT JOIN states   ON attractions.state_id   = states.id
        WHERE attractions.disabled_date IS NULL
          AND LOWER(attractions.name) = $1`,
       [lower]
     );
-    if (attraction) return attraction;
 
-    const aliasRow = await db.get<{ attraction_id: number }>(
-      `SELECT attraction_id FROM attraction_aliases WHERE LOWER(alias) = $1`,
-      [lower]
-    );
-    if (aliasRow) {
-      attraction = await db.get<Attraction>(
-        `SELECT attractions.*, countries.name AS country_name, states.name AS state_name
-         FROM attractions
-         LEFT JOIN countries ON attractions.country_id = countries.id
-         LEFT JOIN states   ON attractions.state_id   = states.id
-         WHERE attractions.id = $1 AND attractions.disabled_date IS NULL`,
-        [aliasRow.attraction_id]
+    if (!attraction) {
+      const aliasRow = await db.get<{ attraction_id: number }>(
+        `SELECT attraction_id FROM attraction_aliases WHERE LOWER(alias) = $1`,
+        [lower]
       );
+      if (aliasRow) {
+        attraction = await db.get<Attraction>(
+          `SELECT attractions.*, countries.name AS country_name
+           FROM attractions
+           LEFT JOIN countries ON attractions.country_id = countries.id
+           WHERE attractions.id = $1 AND attractions.disabled_date IS NULL`,
+          [aliasRow.attraction_id]
+        );
+      }
+    }
+
+    if (attraction) {
+      await this.attachStates([attraction]);
     }
     return attraction;
   }

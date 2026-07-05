@@ -122,7 +122,7 @@ export class AttractionEditComponent implements OnInit {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(255)]],
       country_id: [null, [Validators.required]],
-      state_id: [null as number | null],
+      state_ids: [[] as number[]],
       lat: [null, [Validators.required]],
       lng: [null, [Validators.required]],
       type_ids: [[] as number[]],
@@ -186,10 +186,15 @@ export class AttractionEditComponent implements OnInit {
                   res.states.filter((s) => Number(s.country_id) === Number(countryId))
                 );
                 this.loadingStates.set(false);
-                // Patch state_id after states are loaded so the select can match
-                if (attraction?.state_id) {
-                  this.form.patchValue({ state_id: attraction.state_id });
-                }
+                // Patch state_ids after states are loaded so the multi-select can match.
+                // Prefer new `states[]` field; fall back to legacy `state_id` for old data.
+                const ids =
+                  attraction?.states && attraction.states.length > 0
+                    ? attraction.states.map((s) => s.id)
+                    : attraction?.state_id
+                      ? [attraction.state_id]
+                      : [];
+                this.form.patchValue({ state_ids: ids });
               }),
               catchError(() => {
                 this.states.set([]);
@@ -235,7 +240,7 @@ export class AttractionEditComponent implements OnInit {
           const country = this.countries().find((c) => c.id === countryId);
           this.selectedCountryName.set(country?.name || '');
           // Reset state selection whenever the country changes
-          this.form.get('state_id')?.setValue(null, { emitEvent: false });
+          this.form.get('state_ids')?.setValue([], { emitEvent: false });
         }),
         switchMap((countryId) => {
           if (!countryId) {
@@ -379,7 +384,7 @@ export class AttractionEditComponent implements OnInit {
     const payload = {
       name: formValue.name,
       country_id: formValue.country_id,
-      state_id: formValue.state_id || null,
+      state_ids: Array.isArray(formValue.state_ids) ? formValue.state_ids : [],
       lat: +formValue.lat,
       lng: +formValue.lng,
       type_ids: formValue.type_ids || [],

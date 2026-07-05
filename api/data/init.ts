@@ -174,16 +174,17 @@ async function init() {
         lat DOUBLE PRECISION NOT NULL,
         lng DOUBLE PRECISION NOT NULL,
         country_id INTEGER NOT NULL,
-        state_id INTEGER,
         wiki_term TEXT,
         last_visited TIMESTAMP,
         created_date TIMESTAMP DEFAULT NOW(),
         updated_date TIMESTAMP DEFAULT NOW(),
         disabled_date TIMESTAMP,
-        FOREIGN KEY (country_id) REFERENCES countries(id),
-        FOREIGN KEY (state_id) REFERENCES states(id)
+        FOREIGN KEY (country_id) REFERENCES countries(id)
       );
     `);
+    // Drop legacy attractions.state_id if present (replaced by
+    // attraction_state_assignments join table).
+    await client.query(`ALTER TABLE attractions DROP COLUMN IF EXISTS state_id;`);
 
     // attraction_types TABLE
     await client.query(`
@@ -212,6 +213,22 @@ async function init() {
         FOREIGN KEY (type_id) REFERENCES attraction_types(id) ON DELETE CASCADE,
         PRIMARY KEY (attraction_id, type_id)
       );
+    `);
+
+    // attraction_state_assignments TABLE (one-to-many: attraction -> states)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS attraction_state_assignments (
+        attraction_id INTEGER NOT NULL,
+        state_id INTEGER NOT NULL,
+        created_date TIMESTAMP DEFAULT NOW(),
+        PRIMARY KEY (attraction_id, state_id),
+        FOREIGN KEY (attraction_id) REFERENCES attractions(id) ON DELETE CASCADE,
+        FOREIGN KEY (state_id) REFERENCES states(id) ON DELETE CASCADE
+      );
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_attraction_state_assignments_state
+        ON attraction_state_assignments (state_id);
     `);
 
     // users TABLE

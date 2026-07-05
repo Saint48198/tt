@@ -112,7 +112,8 @@ router.get('/api/attractions', async (req: Request, res: Response) => {
 
 // POST /api/attractions
 router.post('/api/attractions', async (req: Request, res: Response) => {
-  const { name, country_id, state_id, type_ids, lat, lng, last_visited, wiki_term } = req.body;
+  const { name, country_id, state_id, state_ids, type_ids, lat, lng, last_visited, wiki_term } =
+    req.body;
 
   if (!name || !country_id || !lat || !lng) {
     return res.status(400).json({
@@ -125,6 +126,9 @@ router.post('/api/attractions', async (req: Request, res: Response) => {
       name,
       country_id: Number(country_id),
       state_id: state_id ? Number(state_id) : null,
+      state_ids: Array.isArray(state_ids)
+        ? state_ids.map(Number).filter((n) => !isNaN(n))
+        : undefined,
       type_ids: Array.isArray(type_ids) ? type_ids.map(Number) : [],
       lat: parseFloat(lat),
       lng: parseFloat(lng),
@@ -163,7 +167,8 @@ router.get('/api/attractions/:id', async (req: Request, res: Response) => {
 // PUT /api/attractions/:id
 router.put('/api/attractions/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { name, country_id, state_id, type_ids, lat, lng, last_visited, wiki_term } = req.body;
+  const { name, country_id, state_id, state_ids, type_ids, lat, lng, last_visited, wiki_term } =
+    req.body;
 
   if (!name || !country_id || !lat || !lng) {
     return res.status(400).json({
@@ -176,6 +181,9 @@ router.put('/api/attractions/:id', async (req: Request, res: Response) => {
       name,
       country_id: Number(country_id),
       state_id: state_id ? Number(state_id) : null,
+      state_ids: Array.isArray(state_ids)
+        ? state_ids.map(Number).filter((n) => !isNaN(n))
+        : undefined,
       type_ids: Array.isArray(type_ids) ? type_ids.map(Number) : [],
       lat: parseFloat(lat),
       lng: parseFloat(lng),

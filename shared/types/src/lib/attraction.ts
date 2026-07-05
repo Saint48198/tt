@@ -11,6 +11,12 @@ export interface AttractionType {
   slug: string;
 }
 
+export interface AttractionState {
+  id: number;
+  name: string;
+  abbr?: string;
+}
+
 export interface Attraction {
   id: number;
   name: string;
@@ -19,8 +25,12 @@ export interface Attraction {
   wiki_term?: string;
   country_name?: string;
   country_id?: number;
+  /** @deprecated Prefer `states[]`. Populated from the first entry of `states[]`. */
   state_id?: number | null;
+  /** @deprecated Prefer `states[]`. Populated from the first entry of `states[]`. */
   state_name?: string;
+  /** All states associated with this attraction. */
+  states?: AttractionState[];
   types?: AttractionType[];
   last_visited?: string;
   created_date?: string;
@@ -51,7 +61,10 @@ export interface AttractionListParams {
 export interface CreateAttractionRequest {
   name: string;
   country_id: number;
+  /** @deprecated Prefer `state_ids`. */
   state_id?: number | null;
+  /** Multiple states an attraction spans (many-to-many). */
+  state_ids?: number[];
   lat: number;
   lng: number;
   type_ids?: number[];

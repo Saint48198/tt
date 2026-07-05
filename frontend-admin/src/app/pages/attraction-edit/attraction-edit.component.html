@@ -58,15 +58,20 @@
       @if (showStates()) {
         <div class="form-row">
           <mat-form-field appearance="outline" class="form-field full-width">
-            <mat-label>State / Province</mat-label>
-            <mat-select formControlName="state_id" placeholder="Select a state/province">
-              <mat-option [value]="null">— None —</mat-option>
+            <mat-label>States / Provinces</mat-label>
+            <mat-select
+              formControlName="state_ids"
+              placeholder="Select one or more states/provinces"
+              multiple
+            >
               @for (state of states(); track state.id) {
                 <mat-option [value]="state.id">{{ state.name }}</mat-option>
               }
             </mat-select>
             @if (loadingStates()) {
               <mat-hint>Loading states...</mat-hint>
+            } @else {
+              <mat-hint>An attraction can span multiple states/provinces.</mat-hint>
             }
           </mat-form-field>
         </div>

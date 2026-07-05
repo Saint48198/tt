@@ -505,7 +505,14 @@ class PhotoService {
     }
     if (!resolvedCountryId && attraction_id) {
       const attr = await db.get<{ country_id: number; state_id: number | null }>(
-        'SELECT country_id, state_id FROM attractions WHERE id = $1',
+        `SELECT a.country_id,
+                (SELECT asa.state_id
+                   FROM attraction_state_assignments asa
+                  WHERE asa.attraction_id = a.id
+                  ORDER BY asa.state_id
+                  LIMIT 1) AS state_id
+           FROM attractions a
+          WHERE a.id = $1`,
         [attraction_id]
       );
       resolvedCountryId = attr?.country_id || null;
@@ -1262,7 +1269,14 @@ class PhotoService {
         }
       } else if (effectiveAttractionId) {
         const attr = await db.get<{ country_id: number; state_id: number | null }>(
-          'SELECT country_id, state_id FROM attractions WHERE id = $1',
+          `SELECT a.country_id,
+                  (SELECT asa.state_id
+                     FROM attraction_state_assignments asa
+                    WHERE asa.attraction_id = a.id
+                    ORDER BY asa.state_id
+                    LIMIT 1) AS state_id
+             FROM attractions a
+            WHERE a.id = $1`,
           [effectiveAttractionId]
         );
         resolvedCountryId = attr?.country_id || null;

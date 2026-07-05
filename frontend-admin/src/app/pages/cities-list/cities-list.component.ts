@@ -2,6 +2,7 @@ import {
   Component,
   DestroyRef,
   OnInit,
+  computed,
   inject,
   signal,
   ViewChild,
@@ -23,6 +24,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import {
+  MatAutocompleteModule,
+  MatAutocompleteSelectedEvent,
+} from '@angular/material/autocomplete';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CitiesService } from '../../services/cities.service';
@@ -49,6 +54,7 @@ import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatAutocompleteModule,
     MatSlideToggleModule,
     MatDialogModule,
   ],
@@ -88,6 +94,17 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
   countries = signal<Country[]>([]);
   states = signal<State[]>([]);
   filteredStates = signal<State[]>([]);
+
+  // Country combo box (search + single select via mat-autocomplete)
+  countryQuery = signal('');
+  countryOptions = computed<Country[]>(() => {
+    const q = this.countryQuery().trim().toLowerCase();
+    const all = this.countries();
+    if (!q) return all;
+    return all.filter(
+      (c) => c.name.toLowerCase().includes(q) || (c.abbreviation ?? '').toLowerCase().includes(q)
+    );
+  });
 
   // Pagination / sort state (read from URL on init)
   private currentPage = 1;
@@ -245,12 +262,14 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (res) => {
           this.countries.set(res.countries);
-          // Apply country filter from URL — update filteredStates after countries load
+          // Apply country filter from URL — update filteredStates + display name
           const cid = this.selectedCountryId();
           if (cid) {
             this.filteredStates.set(
               this.states().filter((s) => Number(s.country_id) === Number(cid))
             );
+            const match = res.countries.find((c) => c.id === cid);
+            if (match) this.countryQuery.set(match.name);
           }
         },
       });
@@ -268,6 +287,46 @@ export class CitiesListComponent implements OnInit, AfterViewInit {
         },
       });
   }
+
+  /** Called on every keystroke in the country search input. */
+  onCountryQueryChange(text: string): void {
+    this.countryQuery.set(text);
+    // Empty query means "no country filter".
+    if (!text.trim()) {
+      if (this.selectedCountryId() !== null) {
+        this.onCountryChange(null);
+      }
+      return;
+    }
+    // If the typed text no longer matches the currently-selected country's
+    // display name, clear the id filter until the user picks an option.
+    const selectedId = this.selectedCountryId();
+    if (selectedId !== null) {
+      const selected = this.countries().find((c) => c.id === selectedId);
+      if (selected && selected.name !== text) {
+        this.onCountryChange(null);
+      }
+    }
+  }
+
+  /** User picked a country from the autocomplete panel. */
+  onCountrySelected(event: MatAutocompleteSelectedEvent): void {
+    const country = event.option.value as Country;
+    this.countryQuery.set(country.name);
+    this.onCountryChange(country.id);
+  }
+
+  /** Clear button next to the country combo box. */
+  clearCountry(): void {
+    this.countryQuery.set('');
+    this.onCountryChange(null);
+  }
+
+  /** Display fn — keeps the option's name in the input after selection. */
+  displayCountry = (country: Country | string | null): string => {
+    if (!country) return '';
+    return typeof country === 'string' ? country : country.name;
+  };
 
   onCountryChange(countryId: number | null): void {
     this.selectedCountryId.set(countryId);
