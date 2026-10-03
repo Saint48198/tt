@@ -8,7 +8,7 @@ import {
   HostListener,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -52,6 +52,7 @@ import {
   selector: 'app-trip-edit',
   imports: [
     DatePipe,
+    NgTemplateOutlet,
     ReactiveFormsModule,
     RouterModule,
     MatFormFieldModule,

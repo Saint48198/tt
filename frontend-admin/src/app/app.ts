@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, isDevMode } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { AsyncPipe } from '@angular/common';
 import { HeaderComponent, FooterComponent } from '@shared/components';
@@ -12,6 +12,7 @@ import { AuthService } from '@shared/services';
 })
 export class App {
   protected title = 'Trip Tracker Admin';
+  protected mainAppUrl = isDevMode() ? 'http://localhost:4200' : '/';
   private authService = inject(AuthService);
   private router = inject(Router);
 

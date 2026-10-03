@@ -82,6 +82,12 @@
                     <span>Admin Panel</span>
                   </a>
                 }
+                @if (mainAppUrl) {
+                  <a [href]="mainAppUrl" class="menu-item">
+                    <span class="item-icon"><i class="fa-solid fa-house"></i></span>
+                    <span>Main App</span>
+                  </a>
+                }
               </div>
 
               <div class="menu-divider"></div>
