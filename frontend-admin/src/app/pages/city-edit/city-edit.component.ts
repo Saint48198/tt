@@ -1,10 +1,22 @@
-import { Component, DestroyRef, OnInit, inject, signal, HostListener } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+  HostListener,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import {
+  MatAutocompleteModule,
+  MatAutocompleteSelectedEvent,
+} from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -42,6 +54,7 @@ const MONTH_YEAR_FORMATS = {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatAutocompleteModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -86,6 +99,17 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
   hasCoordinates = signal(false);
   private saved = false;
 
+  // Country combo box (search input + single-select via mat-autocomplete)
+  countryQuery = signal('');
+  countryOptions = computed<Country[]>(() => {
+    const q = this.countryQuery().trim().toLowerCase();
+    const all = this.countries();
+    if (!q) return all;
+    return all.filter(
+      (c) => c.name.toLowerCase().includes(q) || (c.abbreviation ?? '').toLowerCase().includes(q)
+    );
+  });
+
   // Alias management
   aliases = signal<CityAlias[]>([]);
   newAlias = signal('');
@@ -124,7 +148,75 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
       .get('lng')
       ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.updateMapFromForm());
+
+    // Keep the country combo box in sync with the country_id form control
+    // (fires on both user selection and programmatic patch during load).
+    this.form
+      .get('country_id')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((countryId: number | null) => {
+        this.syncCountryQueryFromId(countryId);
+        // If the selected state no longer belongs to the new country, clear it.
+        const stateId = this.form.get('state_id')?.value;
+        if (stateId != null) {
+          const state = this.states().find((s) => s.id === stateId);
+          if (!state || (countryId != null && Number(state.country_id) !== Number(countryId))) {
+            this.form.get('state_id')?.setValue(null, { emitEvent: false });
+          }
+        }
+      });
   }
+
+  /** Set the visible input text from a country id (no-op if not loaded yet). */
+  private syncCountryQueryFromId(countryId: number | null): void {
+    if (countryId == null) {
+      this.countryQuery.set('');
+      return;
+    }
+    const country = this.countries().find((c) => c.id === countryId);
+    if (country) this.countryQuery.set(country.name);
+  }
+
+  // --- Country combo box handlers ---
+
+  onCountryQueryChange(text: string): void {
+    this.countryQuery.set(text);
+    if (!text.trim()) {
+      // Empty input means "no country picked" → invalidate required control.
+      if (this.form.get('country_id')?.value != null) {
+        this.form.get('country_id')?.setValue(null);
+        this.form.get('country_id')?.markAsDirty();
+      }
+      return;
+    }
+    // If the text no longer matches the currently-selected country, clear id.
+    const currentId = this.form.get('country_id')?.value as number | null;
+    if (currentId != null) {
+      const current = this.countries().find((c) => c.id === currentId);
+      if (current && current.name !== text) {
+        this.form.get('country_id')?.setValue(null);
+      }
+    }
+  }
+
+  onCountrySelected(event: MatAutocompleteSelectedEvent): void {
+    const country = event.option.value as Country;
+    this.countryQuery.set(country.name);
+    this.form.get('country_id')?.setValue(country.id);
+    this.form.get('country_id')?.markAsDirty();
+  }
+
+  clearCountry(): void {
+    this.countryQuery.set('');
+    this.form.get('country_id')?.setValue(null);
+    this.form.get('country_id')?.markAsDirty();
+    this.form.get('country_id')?.markAsTouched();
+  }
+
+  displayCountry = (country: Country | string | null): string => {
+    if (!country) return '';
+    return typeof country === 'string' ? country : country.name;
+  };
 
   private initForm(): void {
     this.form = this.fb.group({
@@ -161,6 +253,10 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
       .subscribe({
         next: (response) => {
           this.countries.set(response.countries);
+          // If a country was already patched into the form before countries
+          // finished loading, populate the visible search text now.
+          const cid = this.form?.get('country_id')?.value as number | null;
+          this.syncCountryQueryFromId(cid);
         },
         error: (err) => {
           this.snackBar.open(err?.error?.message || 'Failed to load countries', 'Close', {
@@ -364,7 +460,9 @@ export class CityEditComponent implements OnInit, HasUnsavedChanges {
       },
       error: (err) => {
         this.snackBar.open(
-          err?.error?.message || `Failed to ${this.isEditMode() ? 'update' : 'create'} city`,
+          err?.error?.error ||
+            err?.error?.message ||
+            `Failed to ${this.isEditMode() ? 'update' : 'create'} city`,
           'Close',
           { duration: 5000, panelClass: 'error-snackbar' }
         );

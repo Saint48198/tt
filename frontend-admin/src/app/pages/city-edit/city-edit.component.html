@@ -28,11 +28,39 @@
       <div class="form-row two-col">
         <mat-form-field appearance="outline" class="form-field">
           <mat-label>Country</mat-label>
-          <mat-select formControlName="country_id" placeholder="Select a country">
-            @for (country of countries(); track country.id) {
-              <mat-option [value]="country.id">{{ country.name }}</mat-option>
+          <input
+            matInput
+            type="text"
+            placeholder="Search countries…"
+            autocomplete="off"
+            [value]="countryQuery()"
+            (input)="onCountryQueryChange($any($event.target).value)"
+            (blur)="form.get('country_id')?.markAsTouched()"
+            [matAutocomplete]="countryAuto"
+          />
+          @if (countryQuery()) {
+            <button
+              matSuffix
+              mat-icon-button
+              type="button"
+              aria-label="Clear country"
+              (click)="clearCountry()"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+          <mat-autocomplete
+            #countryAuto="matAutocomplete"
+            [displayWith]="displayCountry"
+            (optionSelected)="onCountrySelected($event)"
+          >
+            @for (country of countryOptions(); track country.id) {
+              <mat-option [value]="country">{{ country.name }}</mat-option>
             }
-          </mat-select>
+            @if (countryOptions().length === 0) {
+              <mat-option disabled>No countries match</mat-option>
+            }
+          </mat-autocomplete>
           @if (form.get('country_id')?.hasError('required') && form.get('country_id')?.touched) {
             <mat-error>Country is required</mat-error>
           }

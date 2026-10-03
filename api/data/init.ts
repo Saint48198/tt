@@ -146,6 +146,13 @@ async function init() {
         FOREIGN KEY (country_id) REFERENCES countries(id)
       );
     `);
+    // Prevent duplicate cities (same name + country + state).
+    // Uses COALESCE so NULL state_id values still collide with each other.
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_cities_unique_name_country_state
+        ON cities (LOWER(name), country_id, COALESCE(state_id, 0))
+        WHERE disabled_date IS NULL;
+    `);
 
     // city_aliases TABLE (1-to-many: one city has many aliases)
     await client.query(`

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { cityService } from '../services/cityService';
+import { cityService, DuplicateCityError } from '../services/cityService';
 
 const router = Router();
 
@@ -66,6 +66,9 @@ router.post('/api/cities', async (req: Request, res: Response) => {
       id: result.id,
     });
   } catch (error) {
+    if (error instanceof DuplicateCityError) {
+      return res.status(409).json({ error: error.message, code: error.code });
+    }
     console.error('Failed to add city:', error);
     return res.status(500).json({ error: 'Failed to add city' });
   }
@@ -117,6 +120,9 @@ router.put('/api/cities/:id', async (req: Request, res: Response) => {
 
     return res.status(200).json({ message: 'City updated successfully.' });
   } catch (error) {
+    if (error instanceof DuplicateCityError) {
+      return res.status(409).json({ error: error.message, code: error.code });
+    }
     console.error('Failed to update city:', error);
     return res.status(500).json({ error: 'Failed to update city' });
   }

@@ -247,9 +247,11 @@ class CountryService {
    */
   public async getVisitedCountries(userId: number): Promise<Country[]> {
     return db.all<Country>(
-      `SELECT * FROM countries
-       WHERE disabled_date IS NULL
-         AND id IN (
+      `SELECT c.*, wr.name AS world_region_name
+       FROM countries c
+       LEFT JOIN world_regions wr ON c.world_region_id = wr.id
+       WHERE c.disabled_date IS NULL
+         AND c.id IN (
            -- Countries with a last_visited date
            SELECT id FROM countries WHERE last_visited IS NOT NULL
            UNION
@@ -263,7 +265,7 @@ class CountryService {
              JOIN attractions a ON p.attraction_id = a.id
              WHERE p.user_id = $1 AND a.country_id IS NOT NULL
          )
-       ORDER BY last_visited DESC`,
+       ORDER BY c.last_visited DESC`,
       [userId]
     );
   }

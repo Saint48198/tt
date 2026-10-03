@@ -1,5 +1,29 @@
 import { db } from '../db';
 
+/**
+ * Thrown when an attempt is made to create/rename a city into an
+ * already-existing (name + country + state) triple.
+ */
+export class DuplicateCityError extends Error {
+  readonly code = 'DUPLICATE_CITY';
+  constructor(name: string, stateName: string | undefined, countryName: string) {
+    const where = stateName
+      ? `${stateName}, ${countryName}`
+      : countryName || 'the selected country';
+    super(`A city named "${name}" already exists in ${where}.`);
+    this.name = 'DuplicateCityError';
+  }
+}
+
+/** True if a caught DB error is a unique-index violation on the given index. */
+function isUniqueViolation(err: unknown, indexName?: string): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as { code?: string; constraint?: string };
+  if (e.code !== '23505') return false;
+  if (!indexName) return true;
+  return e.constraint === indexName;
+}
+
 interface CityAlias {
   id: number;
   city_id: number;
@@ -188,11 +212,27 @@ class CityService {
     wiki_term?: string;
   }): Promise<{ id: number }> {
     const { name, lat, lng, state_id, country_id, last_visited, wiki_term } = data;
-    const result = await db.run(
-      'INSERT INTO cities (name, lat, lng, state_id, country_id, last_visited, wiki_term) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
-      [name, lat, lng, state_id || null, country_id, last_visited, wiki_term]
-    );
-    return { id: result.rows[0].id };
+
+    // Prevent duplicates: same name + country + state (where state may be NULL).
+    const dup = await this.findDuplicateCity(name, country_id, state_id);
+    if (dup) {
+      throw new DuplicateCityError(name, dup.state_name ?? undefined, dup.country_name ?? '');
+    }
+
+    try {
+      const result = await db.run(
+        'INSERT INTO cities (name, lat, lng, state_id, country_id, last_visited, wiki_term) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id',
+        [name, lat, lng, state_id || null, country_id, last_visited, wiki_term]
+      );
+      return { id: result.rows[0].id };
+    } catch (err) {
+      // Race condition: another request inserted the same city between our
+      // check and this INSERT. The DB unique index will reject it.
+      if (isUniqueViolation(err, 'idx_cities_unique_name_country_state')) {
+        throw new DuplicateCityError(name, undefined, '');
+      }
+      throw err;
+    }
   }
 
   public async updateCity(
@@ -208,11 +248,64 @@ class CityService {
     }
   ): Promise<{ success: boolean; changes: number }> {
     const { name, lat, lng, state_id, country_id, last_visited, wiki_term } = data;
-    const result = await db.run(
-      'UPDATE cities SET name=$1, lat=$2, lng=$3, state_id=$4, country_id=$5, last_visited=$6, wiki_term=$7, updated_date=NOW() WHERE id=$8',
-      [name, lat, lng, state_id || null, country_id, last_visited, wiki_term, id]
+
+    // Prevent renaming into an existing (name, country, state) triple.
+    const dup = await this.findDuplicateCity(name, country_id, state_id, Number(id));
+    if (dup) {
+      throw new DuplicateCityError(name, dup.state_name ?? undefined, dup.country_name ?? '');
+    }
+
+    try {
+      const result = await db.run(
+        'UPDATE cities SET name=$1, lat=$2, lng=$3, state_id=$4, country_id=$5, last_visited=$6, wiki_term=$7, updated_date=NOW() WHERE id=$8',
+        [name, lat, lng, state_id || null, country_id, last_visited, wiki_term, id]
+      );
+      return { success: result.rowCount > 0, changes: result.rowCount };
+    } catch (err) {
+      if (isUniqueViolation(err, 'idx_cities_unique_name_country_state')) {
+        throw new DuplicateCityError(name, undefined, '');
+      }
+      throw err;
+    }
+  }
+
+  /**
+   * Look up an existing city with the same case-insensitive name, country_id
+   * and state_id (state_id NULL matches state_id NULL). Optionally excludes
+   * a specific city id (used when updating).
+   */
+  private async findDuplicateCity(
+    name: string,
+    countryId: number,
+    stateId: number | undefined,
+    excludeId?: number
+  ): Promise<{ id: number; country_name: string | null; state_name: string | null } | undefined> {
+    const params: any[] = [name.trim(), countryId];
+    let sql = `
+      SELECT ci.id,
+             co.name AS country_name,
+             s.name  AS state_name
+        FROM cities ci
+        JOIN countries co ON co.id = ci.country_id
+        LEFT JOIN states s ON s.id = ci.state_id
+       WHERE ci.disabled_date IS NULL
+         AND LOWER(ci.name) = LOWER($1)
+         AND ci.country_id = $2`;
+    if (stateId != null) {
+      params.push(stateId);
+      sql += ` AND ci.state_id = $${params.length}`;
+    } else {
+      sql += ` AND ci.state_id IS NULL`;
+    }
+    if (excludeId != null) {
+      params.push(excludeId);
+      sql += ` AND ci.id <> $${params.length}`;
+    }
+    sql += ` LIMIT 1`;
+    return db.get<{ id: number; country_name: string | null; state_name: string | null }>(
+      sql,
+      params
     );
-    return { success: result.rowCount > 0, changes: result.rowCount };
   }
 
   public async deleteCity(id: number | string): Promise<{ success: boolean; changes: number }> {

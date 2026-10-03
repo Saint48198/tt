@@ -8,6 +8,10 @@ import {
   computed,
 } from '@angular/core';
 import { Location } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Observable, Subject, EMPTY } from 'rxjs';
 import { takeUntil, switchMap, tap, finalize, catchError } from 'rxjs/operators';
@@ -41,6 +45,10 @@ interface BreadcrumbItem {
 @Component({
   selector: 'app-explore',
   imports: [
+    MatFormFieldModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatTooltipModule,
     MapComponent,
     RouterLink,
     EntityDetailComponent,
@@ -72,13 +80,95 @@ export class ExploreComponent implements OnInit, OnDestroy {
   selectedAttraction = computed(() => this.detailService.attraction());
 
   countries = signal<ExploreCountry[]>([]);
+  selectedRegion = signal('');
+  countrySortDirection = signal<'asc' | 'desc'>('asc');
+  countrySortBy = signal<'name' | 'lastVisited'>('name');
+  visitedSortDirection = signal<'asc' | 'desc'>('desc');
+  visitedSortLabel = computed(() =>
+    this.countrySortBy() === 'lastVisited' && this.visitedSortDirection() === 'desc'
+      ? 'Sort countries by visited date: oldest first'
+      : 'Sort countries by visited date: newest first'
+  );
+  countryRegions = computed(() =>
+    [...new Set(this.countries().map((country) => this.getCountryRegion(country)))].sort((a, b) =>
+      a.localeCompare(b)
+    )
+  );
+  filteredCountries = computed(() => {
+    const region = this.selectedRegion();
+    const direction = this.countrySortDirection() === 'asc' ? 1 : -1;
+    const sortBy = this.countrySortBy();
+    const visitedDirection = this.visitedSortDirection() === 'asc' ? 1 : -1;
+    return this.countries()
+      .filter((country) => !region || this.getCountryRegion(country) === region)
+      .sort((a, b) => {
+        if (sortBy === 'name') return direction * a.name.localeCompare(b.name);
+        const aDate = Date.parse(a.last_visited || '');
+        const bDate = Date.parse(b.last_visited || '');
+        if (!Number.isFinite(aDate) && !Number.isFinite(bDate)) {
+          return a.name.localeCompare(b.name);
+        }
+        if (!Number.isFinite(aDate)) return 1;
+        if (!Number.isFinite(bDate)) return -1;
+        return visitedDirection * (aDate - bDate) || a.name.localeCompare(b.name);
+      });
+  });
+  toggleCountrySort(): void {
+    if (this.countrySortBy() === 'name') {
+      this.countrySortDirection.update((direction) => (direction === 'asc' ? 'desc' : 'asc'));
+    }
+    this.countrySortBy.set('name');
+  }
+  toggleVisitedSort(): void {
+    if (this.countrySortBy() === 'lastVisited') {
+      this.visitedSortDirection.update((direction) => (direction === 'asc' ? 'desc' : 'asc'));
+    }
+    this.countrySortBy.set('lastVisited');
+  }
+  stateSortBy = signal<'name' | 'lastVisited'>('name');
+  stateSortDirection = signal<'asc' | 'desc'>('asc');
+  stateVisitedSortDirection = signal<'asc' | 'desc'>('desc');
+  stateVisitedSortLabel = computed(() =>
+    this.stateSortBy() === 'lastVisited' && this.stateVisitedSortDirection() === 'desc'
+      ? 'Sort states by visited date: oldest first'
+      : 'Sort states by visited date: newest first'
+  );
+
+  toggleStateSort(): void {
+    if (this.stateSortBy() === 'name') {
+      this.stateSortDirection.update((direction) => (direction === 'asc' ? 'desc' : 'asc'));
+    }
+    this.stateSortBy.set('name');
+  }
+
+  toggleStateVisitedSort(): void {
+    if (this.stateSortBy() === 'lastVisited') {
+      this.stateVisitedSortDirection.update((direction) => (direction === 'asc' ? 'desc' : 'asc'));
+    }
+    this.stateSortBy.set('lastVisited');
+  }
+
   states = signal<ExploreState[]>([]);
+  sortedStates = computed(() => {
+    const sortBy = this.stateSortBy();
+    const direction = this.stateSortDirection() === 'asc' ? 1 : -1;
+    const visitedDirection = this.stateVisitedSortDirection() === 'asc' ? 1 : -1;
+    return [...this.states()].sort((a, b) => {
+      if (sortBy === 'name') return direction * a.name.localeCompare(b.name);
+      const aDate = Date.parse(a.last_visited || '');
+      const bDate = Date.parse(b.last_visited || '');
+      if (!Number.isFinite(aDate) && !Number.isFinite(bDate)) return a.name.localeCompare(b.name);
+      if (!Number.isFinite(aDate)) return 1;
+      if (!Number.isFinite(bDate)) return -1;
+      return visitedDirection * (aDate - bDate) || a.name.localeCompare(b.name);
+    });
+  });
   cities = signal<ExploreCity[]>([]);
   attractions = signal<ExploreAttraction[]>([]);
 
   // --- EntityListItem mappings ---
   countryItems = computed<EntityListItem[]>(() =>
-    this.countries().map((c) => ({
+    this.filteredCountries().map((c) => ({
       id: c.id,
       name: c.name,
       badge: c.abbreviation,
@@ -87,8 +177,12 @@ export class ExploreComponent implements OnInit, OnDestroy {
     }))
   );
 
+  private getCountryRegion(country: ExploreCountry): string {
+    return country.world_region_name?.trim() || country.region?.trim() || 'Unspecified';
+  }
+
   stateItems = computed<EntityListItem[]>(() =>
-    this.states().map((s) => ({
+    this.sortedStates().map((s) => ({
       id: s.id,
       name: s.name,
       badge: s.abbr,
@@ -176,6 +270,25 @@ export class ExploreComponent implements OnInit, OnDestroy {
     return [];
   });
 
+  isUnitedStates = computed(() => {
+    const country = this.selectedCountry();
+    const abbr = (country?.abbreviation || '').toUpperCase();
+    return (
+      abbr === 'US' ||
+      abbr === 'USA' ||
+      (country?.name || '').toLowerCase().includes('united states')
+    );
+  });
+
+  countryMapFitBounds(): boolean {
+    if (this.isUnitedStates() && !this.selectedState()) return false;
+    return (
+      this.level() === 'states' ||
+      (this.level() === 'cities' && !!this.selectedState()) ||
+      (this.countryMapOverlays.length === 0 && this.countryMapMarkers().length > 1)
+    );
+  }
+
   /** Map center — when a state is selected, center on its cities; otherwise use country center */
   countryMapCenter = computed<[number, number]>(() => {
     // When viewing cities within a state, center on those cities
@@ -209,7 +322,7 @@ export class ExploreComponent implements OnInit, OnDestroy {
     const country = this.selectedCountry();
     const abbr = (country?.abbreviation || '').toUpperCase();
     const name = (country?.name || '').toLowerCase();
-    if (abbr === 'US' || abbr === 'USA' || name.includes('united states')) return 3;
+    if (this.isUnitedStates()) return 4;
     if (abbr === 'CA' || abbr === 'CAN' || name.includes('canada')) return 3;
     return 5;
   });
@@ -400,7 +513,8 @@ export class ExploreComponent implements OnInit, OnDestroy {
     const name = country.name.toLowerCase();
     const geoKey = abbr === 'CA' || abbr === 'CAN' || name.includes('canada') ? 'CA' : 'US';
 
-    const stateNames = states.map((s) => s.name);
+    this.countryMapOverlays = [];
+    const stateNames = states.filter((state) => !!state.last_visited).map((state) => state.name);
     if (stateNames.length === 0) return;
 
     this.exploreService
